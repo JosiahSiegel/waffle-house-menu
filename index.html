@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Waffle House · Full Menu &amp; Nutrition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --yellow:#FFD200;
+  --black:#171310;
+  --paper:#FBF5E6;
+  --ink:#241E17;
+  --brown:#8A5A2B;
+  --green:#1F7A33;
+  --line:#E5DAC0;
+  --tile-r:3px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+/* ---------- Sign header ---------- */
+header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
+.tiles{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.tiles+.tiles{margin-bottom:12px}
+.tile{
+  width:clamp(30px,8.4vw,44px);
+  height:clamp(38px,10.6vw,56px);
+  background:var(--yellow);
+  border-radius:var(--tile-r);
+  display:flex;align-items:center;justify-content:center;
+  font-family:Anton,sans-serif;
+  font-size:clamp(22px,6.4vw,34px);
+  color:var(--black);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.22), inset 0 2px 0 rgba(255,255,255,.28);
+}
+.sign-sub{
+  font-family:"IBM Plex Mono",monospace;color:var(--yellow);
+  font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+}
+.sign-meta{
+  font-family:"IBM Plex Mono",monospace;color:#B8A66A;
+  font-size:10px;margin-top:6px;letter-spacing:.06em;
+}
+
+/* ---------- Controls ---------- */
+.controls{
+  position:sticky;top:0;z-index:20;
+  background:var(--paper);border-bottom:2px solid var(--black);
+  padding:10px 14px 8px;
+}
+.controls input{
+  width:100%;font:inherit;padding:9px 12px;
+  border:2px solid var(--black);border-radius:8px;background:#fff;color:var(--ink);
+}
+.controls input:focus-visible{outline:3px solid var(--yellow);outline-offset:1px}
+.chips{
+  display:flex;gap:6px;align-items:center;
+  margin-top:8px;overflow-x:auto;padding-bottom:2px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.chips::-webkit-scrollbar{display:none}
+.chips-label{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--brown);
+  white-space:nowrap;flex:0 0 auto;
+}
+.chip{
+  flex:0 0 auto;
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:600;
+  padding:6px 10px;border:1.5px solid var(--black);border-radius:999px;
+  background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.chip[aria-pressed="true"]{background:var(--black);border-color:var(--black);color:var(--yellow)}
+.chip[aria-pressed="true"]::before{content:"✕ ";font-weight:700}
+.chip:focus-visible{outline:3px solid var(--yellow);outline-offset:1px}
+
+.banner{
+  display:none;margin:12px 14px 0;padding:10px 12px;
+  background:#FDF0E4;border:1.5px solid var(--brown);border-radius:8px;
+  font-size:13px;color:#6B4013;
+}
+.banner.show{display:block}
+
+/* ---------- Sections ---------- */
+main{max-width:640px;margin:0 auto;padding:8px 14px 40px}
+details.sec{border-bottom:1px solid var(--line)}
+details.sec>summary{
+  list-style:none;cursor:pointer;
+  display:flex;align-items:baseline;gap:10px;
+  padding:16px 2px 14px;-webkit-tap-highlight-color:transparent;
+}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary:focus-visible{outline:3px solid var(--yellow);outline-offset:-3px}
+.sec-title{
+  font-family:Anton,sans-serif;font-size:19px;letter-spacing:.03em;
+  text-transform:uppercase;border-bottom:4px solid var(--yellow);padding-bottom:2px;
+}
+.sec-count{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--brown);margin-left:auto}
+.sec-caret{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--brown);transition:transform .15s}
+details.sec[open] .sec-caret{transform:rotate(90deg)}
+.grp-h{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--brown);
+  padding:12px 2px 4px;
+}
+
+/* ---------- Items ---------- */
+.item{border-top:1px dashed var(--line)}
+.item:first-of-type{border-top:0}
+.item-row{
+  width:100%;text-align:left;background:none;border:0;cursor:pointer;
+  display:flex;align-items:center;gap:10px;padding:11px 2px;
+  font:inherit;color:inherit;-webkit-tap-highlight-color:transparent;
+}
+.item-row:focus-visible{outline:3px solid var(--yellow);outline-offset:-3px}
+.item-name{flex:1;min-width:0;font-weight:600;font-size:14.5px}
+.item-note{display:block;font-weight:400;font-size:12px;color:var(--brown);font-style:italic;margin-top:1px}
+.al-tags{
+  display:block;font-family:"IBM Plex Mono",monospace;font-weight:400;
+  font-size:9.5px;letter-spacing:.08em;color:#A98F5E;margin-top:2px;
+}
+.cal-tile{
+  font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:13px;
+  background:var(--yellow);color:var(--black);
+  border-radius:var(--tile-r);min-width:52px;text-align:center;padding:6px 6px;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.18);
+}
+.cal-tile small{display:block;font-size:8px;font-weight:400;letter-spacing:.1em}
+
+.facts{display:none;padding:2px 2px 14px}
+.item.open .facts{display:block}
+.facts dl{
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;
+  background:#fff;border:1.5px solid var(--black);border-radius:8px;
+  padding:10px 12px;
+}
+.facts .fr{display:flex;align-items:baseline;padding:2.5px 0}
+.facts dt{color:var(--brown)}
+.facts .dots{flex:1;border-bottom:1.5px dotted var(--line);margin:0 6px;transform:translateY(-3px)}
+.facts dd{font-weight:600}
+.facts .allerg{margin-top:7px;padding-top:7px;border-top:1.5px solid var(--line);font-size:11.5px;color:var(--brown)}
+
+.empty,.load-err{
+  display:none;text-align:center;padding:44px 20px;color:var(--brown);
+  font-family:"IBM Plex Mono",monospace;font-size:13px;
+}
+.empty.show,.load-err.show{display:block}
+
+footer{
+  max-width:640px;margin:0 auto;padding:18px 16px 34px;
+  border-top:2px solid var(--black);font-size:11.5px;color:var(--brown);
+}
+footer p+p{margin-top:6px}
+footer a{color:var(--brown)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="sign" aria-label="Waffle House">
+  <div class="tiles" aria-hidden="true">
+    <span class="tile">W</span><span class="tile">A</span><span class="tile">F</span><span class="tile">F</span><span class="tile">L</span><span class="tile">E</span>
+  </div>
+  <div class="tiles" aria-hidden="true">
+    <span class="tile">H</span><span class="tile">O</span><span class="tile">U</span><span class="tile">S</span><span class="tile">E</span>
+  </div>
+  <div class="sign-sub">Full Menu · Nutrition</div>
+  <div class="sign-meta" id="meta"></div>
+</header>
+
+<div class="controls">
+  <input id="q" type="search" placeholder="Search the menu…" aria-label="Search the menu" autocomplete="off">
+  <div class="chips" id="chips" role="group" aria-label="Filter out allergens">
+    <span class="chips-label">Avoid:</span>
+  </div>
+</div>
+
+<div class="banner" id="avoidBanner"></div>
+
+<main id="menu"></main>
+<div class="empty" id="empty">No items match. Try a shorter search or fewer filters.</div>
+<div class="load-err" id="loadErr">Menu data not found. Run <code>python scripts/sync.py</code> to generate data/menu.js.</div>
+
+<footer>
+  <p id="srcLine">Source: Waffle House official nutritionals PDF.</p>
+  <p>Allergen data comes from the PDF's own allergen column. Absence of a listing is not a guarantee — and everything shares a grill, so cross-contact between items is likely. Do not rely on this site for severe allergies.</p>
+  <p>2,000 calories a day is used for general nutrition advice, but calorie needs vary.</p>
+  <p>This site auto-syncs from wafflehouse.com and is not affiliated with Waffle House, Inc.</p>
+</footer>
+
+<script src="data/menu.js"></script>
+<script>
+const LABELS=["Calories","Fat","Sat Fat","Trans Fat","Cholesterol","Sodium","Carbs","Fiber","Sugars","Protein"];
+const UNITS=["","g","g","g","mg","mg","g","g","g","g"];
+// canonical order + short tags; chips render only for allergens present in data
+const ALLERGENS=["Egg","Milk","Soy","Wheat","Tree Nuts","Peanut","Fish","Shellfish","Sesame"];
+const ABBR={"Egg":"EGG","Milk":"MLK","Soy":"SOY","Wheat":"WHT","Tree Nuts":"NUT","Peanut":"PNT","Fish":"FSH","Shellfish":"SHF","Sesame":"SES"};
+
+const menuEl=document.getElementById('menu');
+const emptyEl=document.getElementById('empty');
+const qEl=document.getElementById('q');
+const chipsEl=document.getElementById('chips');
+const bannerEl=document.getElementById('avoidBanner');
+const avoid=new Set();
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
+
+function factsHTML(it){
+  let rows="";
+  for(let i=1;i<it.d.length;i++){
+    const v=(it.d[i]===null||it.d[i]===undefined)?"—":it.d[i]+" "+UNITS[i];
+    rows+=`<div class="fr"><dt>${LABELS[i]}</dt><span class="dots"></span><dd>${v}</dd></div>`;
+  }
+  const al=(it.a&&it.a.length)?it.a.join(", "):"None listed";
+  return `<div class="facts"><dl>${rows}<div class="allerg">Allergens: ${esc(al)}</div></dl></div>`;
+}
+
+function render(data){
+  let html="";
+  data.sections.forEach(sec=>{
+    let items="",count=0;
+    sec.groups.forEach(gr=>{
+      let gItems="";
+      gr.items.forEach(it=>{
+        count++;
+        const a=it.a||[];
+        const tags=a.length?`<span class="al-tags">${a.map(x=>ABBR[x]||x).join("·")}</span>`:"";
+        const note=it.note?`<span class="item-note">${esc(it.note)}</span>`:'';
+        gItems+=`<div class="item" data-name="${esc(it.n.toLowerCase())}" data-a="${esc(a.join("|"))}">
+          <button class="item-row" aria-expanded="false">
+            <span class="item-name">${esc(it.n)}${note}${tags}</span>
+            <span class="cal-tile">${it.d[0]}<small>CAL</small></span>
+          </button>${factsHTML(it)}</div>`;
+      });
+      items+=(gr.h?`<div class="grp-h">${esc(gr.h)}</div>`:'')+gItems;
+    });
+    html+=`<details class="sec">
+      <summary><span class="sec-caret">▸</span><span class="sec-title">${esc(sec.title)}</span><span class="sec-count">${count}</span></summary>
+      ${items}</details>`;
+  });
+  menuEl.innerHTML=html;
+
+  // build one chip per allergen actually present in the data
+  const present=new Set();
+  data.sections.forEach(s=>s.groups.forEach(g=>g.items.forEach(i=>(i.a||[]).forEach(a=>present.add(a)))));
+  ALLERGENS.filter(a=>present.has(a)).forEach(a=>{
+    const b=document.createElement('button');
+    b.className='chip';
+    b.textContent=a;
+    b.dataset.allergen=a;
+    b.setAttribute('aria-pressed','false');
+    b.title=`Hide items that list ${a}`;
+    chipsEl.appendChild(b);
+  });
+
+  const meta=document.getElementById('meta');
+  if(data.source_updated) meta.textContent="menu data updated "+data.source_updated;
+  const src=document.getElementById('srcLine');
+  src.innerHTML=`Source: <a href="${esc(data.source_url)}" rel="noopener">official Waffle House nutritionals PDF</a>`+
+    (data.source_updated?` (updated ${esc(data.source_updated)})`:``)+
+    (data.fetched_at?`, last synced ${esc(data.fetched_at.slice(0,10))}.`:`.`);
+}
+
+function updateBanner(){
+  if(!avoid.size){bannerEl.classList.remove('show');return}
+  const list=[...avoid].join(", ");
+  bannerEl.innerHTML=`<strong>Hiding items that list: ${esc(list)}.</strong> Based on Waffle House's own allergen column — everything shares a grill, so cross-contact is likely. Fine for preference, not safe for severe allergies or celiac disease.`;
+  bannerEl.classList.add('show');
+}
+
+function applyFilters(){
+  const q=qEl.value.trim().toLowerCase();
+  const filtering=q||avoid.size;
+  let anyVisible=false;
+  document.querySelectorAll('details.sec').forEach(sec=>{
+    let visCount=0;
+    sec.querySelectorAll('.item').forEach(it=>{
+      const a=it.dataset.a?it.dataset.a.split("|"):[];
+      const okQ=!q||it.dataset.name.includes(q);
+      const okA=!a.some(x=>avoid.has(x));
+      const show=okQ&&okA;
+      it.style.display=show?"":"none";
+      if(show)visCount++;
+    });
+    sec.querySelectorAll('.grp-h').forEach(h=>{
+      let el=h.nextElementSibling,vis=false;
+      while(el&&!el.classList.contains('grp-h')){
+        if(el.classList.contains('item')&&el.style.display!=="none"){vis=true;break}
+        el=el.nextElementSibling;
+      }
+      h.style.display=vis?"":"none";
+    });
+    sec.style.display=visCount?"":"none";
+    sec.querySelector('.sec-count').textContent=visCount;
+    if(visCount)anyVisible=true;
+    if(filtering&&visCount)sec.open=true;
+    if(!filtering)sec.open=false;
+  });
+  emptyEl.classList.toggle('show',!anyVisible);
+}
+
+menuEl.addEventListener('click',e=>{
+  const btn=e.target.closest('.item-row');
+  if(!btn)return;
+  const item=btn.closest('.item');
+  const open=item.classList.toggle('open');
+  btn.setAttribute('aria-expanded',open);
+});
+qEl.addEventListener('input',applyFilters);
+chipsEl.addEventListener('click',e=>{
+  const chip=e.target.closest('.chip');
+  if(!chip)return;
+  const a=chip.dataset.allergen;
+  const on=!avoid.has(a);
+  if(on)avoid.add(a);else avoid.delete(a);
+  chip.setAttribute('aria-pressed',on);
+  updateBanner();
+  applyFilters();
+});
+
+if(window.MENU_DATA&&window.MENU_DATA.sections){
+  render(window.MENU_DATA);
+}else{
+  document.getElementById('loadErr').classList.add('show');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+name: Sync Waffle House nutritionals
+
+on:
+  schedule:
+    - cron: "17 9 * * 1"   # Mondays 09:17 UTC (odd minute to dodge cron rush)
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - ".github/workflows/sync.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch and parse latest nutritionals
+        id: sync
+        run: |
+          set -o pipefail
+          python scripts/sync.py | tee sync_out.txt
+          echo "result=$(tail -n1 sync_out.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Commit updated data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes."
+          else
+            src=$(python -c "import json;print(json.load(open('data/meta.json'))['source_updated'])")
+            git commit -m "chore: sync nutritionals (source updated ${src})"
+            git push
+          fi
