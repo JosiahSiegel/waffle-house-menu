@@ -50,6 +50,31 @@ python scripts/sync.py
 # then open index.html
 ```
 
+## Tests
+
+```bash
+node --test test/
+```
+
+Runs the **filter regression suite** (32 assertions, no extra deps —
+uses `node:test` from Node 20+). The suite imports the same
+`filter.mjs` that the page loads via `<script type="module">`, so the
+page and the tests share one source of truth for the filter rule. Any
+drift in `SUBCAT_RE`, the anchor logic, or the data shape fails here
+before the broken page can ship.
+
+```bash
+python3 scripts/test-allergen-anchor.py
+```
+
+Belt-and-braces Python re-implementation of the same rule. Catches
+the case where someone replaces `filter.mjs` with a fresh
+implementation that happens to satisfy the JS tests but disagrees
+with the documented contract.
+
+Both suites run in the `Tests` workflow (`.github/workflows/test.yml`)
+on every PR and every push to `main`.
+
 ## Notes
 
 - wafflehouse.com is behind Cloudflare. A browser-like User-Agent gets
