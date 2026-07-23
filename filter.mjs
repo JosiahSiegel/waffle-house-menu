@@ -111,3 +111,59 @@ export function visibleBySection(annotatedSections, avoid, q) {
   }
   return out;
 }
+
+/**
+ * Build the JSON-LD structured-data blocks for SEO. Returns an
+ * array of `{ type, payload }` objects; the page appends them as
+ * <script type="application/ld+json"> tags. We return a 2-tuple
+ * — WebSite + Menu — so a future addition (e.g. Organization)
+ * drops in without breaking the contract.
+ *
+ * The Menu schema mirrors the data the page renders, so the
+ * rich-results data never drifts from the on-page menu.
+ */
+export function buildStructuredData(data) {
+  const website = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Waffle Stats",
+    "url": "https://wafflestats.com/",
+    "description":
+      "Full Waffle House menu with per-item calories and the chain's own allergen column.",
+  };
+  const menu = {
+    "@context": "https://schema.org",
+    "@type": "Menu",
+    "name": "Waffle House Menu",
+    "inLanguage": "en",
+    "hasMenuSection": (data.sections || []).map((sec) => ({
+      "@type": "MenuSection",
+      "name": sec.title,
+      "hasMenuItem": sec.groups
+        .flatMap((g) => g.items)
+        .map((it) => {
+          const n = {
+            "@type": "MenuItem",
+            "name": it.n,
+            "nutrition": {
+              "@type": "NutritionInformation",
+              "calories": String(it.d[0] || 0),
+              "fatContent": (it.d[1] || 0) + " g",
+              "saturatedFatContent": (it.d[2] || 0) + " g",
+              "transFatContent": (it.d[3] || 0) + " g",
+              "cholesterolContent": (it.d[4] || 0) + " mg",
+              "sodiumContent": (it.d[5] || 0) + " mg",
+              "carbohydrateContent": (it.d[6] || 0) + " g",
+              "fiberContent": (it.d[7] || 0) + " g",
+              "sugarContent": (it.d[8] || 0) + " g",
+              "proteinContent": (it.d[9] || 0) + " g",
+            },
+          };
+          if (it.note) n.description = it.note;
+          if (it.a && it.a.length) n.suitableForDiet = `Avoid: ${it.a.join(", ")}`;
+          return n;
+        }),
+    })),
+  };
+  return [website, menu];
+}
