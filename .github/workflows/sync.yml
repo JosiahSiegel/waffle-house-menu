@@ -49,4 +49,17 @@ jobs:
             src=$(python -c "import json;print(json.load(open('data/meta.json'))['source_updated'])")
             git commit -m "chore: sync nutritionals (source updated ${src})"
             git push
+
+      - name: Regression test (allergen anchor filter)
+        # If a future change to index.html's filter logic or the
+        # data shape breaks the Waffles-with-Wheat case the user
+        # filed, this catches it before the broken page can ship
+        # via the weekly sync. Pure stdlib + the parsed data, so
+        # no extra dependencies to install.
+        run: |
+          if [ -f data/menu.json ]; then
+            python scripts/test-allergen-anchor.py
+          else
+            echo "::warning::data/menu.json not present; skipping filter test."
+          fi
           fi
