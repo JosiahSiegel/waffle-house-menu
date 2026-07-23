@@ -227,14 +227,33 @@ function factsHTML(it){
 }
 
 function render(data){
+  // Subcategory groups are conditional add-ons to a "main" item in the
+  // same section (e.g. "Toppings", "Add-ons", "Choices", "Includes",
+  // "Meats"). They make no sense without the main item the customer
+  // is actually ordering — you can't order waffle toppings without
+  // ordering a waffle. Detect these at render time and tag the
+  // section so applyFilters can hide the whole section when the
+  // main (anchor) item is filtered out by an allergen.
+  const SUBCAT_RE = /^(Choices|Includes|Add-ons|Toppings|Meats)$/u;
+  const isSubcat = (h) => typeof h === "string" && SUBCAT_RE.test(h.trim());
+
   let html="";
   data.sections.forEach(sec=>{
-    let items="",count=0;
+    let itemsHTML="",count=0;
+    let hasSubcat=false;
+    let anchorA=null;  // allergens of the first item in the first non-subcategory group
     sec.groups.forEach(gr=>{
+      const subcat = isSubcat(gr.h);
+      if (subcat) hasSubcat=true;
       let gItems="";
       gr.items.forEach(it=>{
         count++;
         const a=it.a||[];
+        // The "anchor" is the first item in the first non-subcategory
+        // group of the section. When this item is filtered, the whole
+        // section is filtered (because every subcategory item is a
+        // useless add-on to an item the customer can't eat).
+        if (anchorA===null && !subcat) anchorA=a;
         const tags=a.length?`<span class="al-tags">${a.map(x=>ABBR[x]||x).join("·")}</span>`:"";
         const note=it.note?`<span class="item-note">${esc(it.note)}</span>`:'';
         gItems+=`<div class="item" data-name="${esc(it.n.toLowerCase())}" data-a="${esc(a.join("|"))}">
@@ -243,11 +262,15 @@ function render(data){
             <span class="cal-tile">${it.d[0]}<small>CAL</small></span>
           </button>${factsHTML(it)}</div>`;
       });
-      items+=(gr.h?`<div class="grp-h">${esc(gr.h)}</div>`:'')+gItems;
+      itemsHTML+=(gr.h?`<div class="grp-h${subcat?' subcat':''}">${esc(gr.h)}</div>`:'')+gItems;
     });
-    html+=`<details class="sec">
+    const attrs=[
+      `data-has-subcat="${hasSubcat?'1':'0'}"`,
+      (hasSubcat && anchorA && anchorA.length) ? `data-anchor-a="${esc(anchorA.join("|"))}"` : '',
+    ].filter(Boolean).join(" ");
+    html+=`<details class="sec" ${attrs}>
       <summary><span class="sec-caret">▸</span><span class="sec-title">${esc(sec.title)}</span><span class="sec-count">${count}</span></summary>
-      ${items}</details>`;
+      ${itemsHTML}</details>`;
   });
   menuEl.innerHTML=html;
 
@@ -284,8 +307,26 @@ function applyFilters(){
   const filtering=q||avoid.size;
   let anyVisible=false;
   document.querySelectorAll('details.sec').forEach(sec=>{
+    // Anchor rule: if this section has subcategory groups (Toppings,
+    // Add-ons, Choices, Includes, Meats) and the customer has any
+    // allergen filter active, the section is anchored to its first
+    // non-subcategory item. If that anchor item contains any of the
+    // avoided allergens, the entire section (primary items + all
+    // subcategory add-ons) is hidden, because the subcategory items
+    // are useless without the main item the customer is ordering.
+    // This rule only fires for allergen filters, not the search box.
+    const hasSubcat = sec.dataset.hasSubcat === "1";
+    const anchorA = sec.dataset.anchorA ? sec.dataset.anchorA.split("|") : [];
+    const anchorFiltered = hasSubcat && avoid.size > 0
+      && anchorA.some(x => avoid.has(x));
+
     let visCount=0;
     sec.querySelectorAll('.item').forEach(it=>{
+      if (anchorFiltered) {
+        // Whole section is gated — no need to look at this item.
+        it.style.display = "none";
+        return;
+      }
       const a=it.dataset.a?it.dataset.a.split("|"):[];
       const okQ=!q||it.dataset.name.includes(q);
       const okA=!a.some(x=>avoid.has(x));
@@ -294,6 +335,10 @@ function applyFilters(){
       if(show)visCount++;
     });
     sec.querySelectorAll('.grp-h').forEach(h=>{
+      // If the section was anchor-filtered, every grp-h is hidden
+      // (no visible items follow it). This matches the per-item
+      // path so grp-h visibility stays consistent.
+      if (anchorFiltered) { h.style.display = "none"; return; }
       let el=h.nextElementSibling,vis=false;
       while(el&&!el.classList.contains('grp-h')){
         if(el.classList.contains('item')&&el.style.display!=="none"){vis=true;break}

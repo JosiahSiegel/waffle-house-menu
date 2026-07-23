@@ -50,6 +50,22 @@ python scripts/sync.py
 # then open index.html
 ```
 
+## Tests
+
+```bash
+python scripts/test-allergen-anchor.py
+```
+
+Regression test for the **subcategory-aware allergen filter**: when a
+section has groups like `Toppings`, `Add-ons`, `Choices`, `Includes`,
+or `Meats`, the first non-subcategory item is treated as the section's
+"anchor". If the anchor contains a filtered allergen, the whole
+section is hidden, because every subcategory item is an add-on to the
+main item the customer is ordering (you can't order waffle toppings
+without ordering a waffle). The test pins the Waffles-with-Wheat case
+and ~15 other behaviours so a future change to the rule or the data
+shape cannot silently regress the user-visible filter.
+
 ## Notes
 
 - wafflehouse.com is behind Cloudflare. A browser-like User-Agent gets
