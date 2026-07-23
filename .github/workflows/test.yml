@@ -27,7 +27,11 @@ jobs:
         # one source of truth for the filter rule. Any drift in
         # SUBCAT_RE, the anchor logic, or the data shape fails here
         # before the broken page can ship.
-        run: node --test test/
+        #
+        # Pass the file glob explicitly — `node --test test/` on
+        # Node 22 tries to load `test/index.js` instead of expanding
+        # the directory.
+        run: node --test "test/*.test.mjs"
 
       - name: Run anchor regression suite (Python)
         # Belt-and-braces: the Python re-implementation of the same
