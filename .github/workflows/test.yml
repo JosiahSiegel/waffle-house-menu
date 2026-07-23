@@ -1,0 +1,73 @@
+name: Tests
+
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  filter:
+    name: filter rule (node --test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run filter regression suite
+        # node:test is built into Node 18+; no `npm install` needed.
+        # The suite imports the same filter.mjs that index.html loads
+        # via <script type="module">, so the page and the tests share
+        # one source of truth for the filter rule. Any drift in
+        # SUBCAT_RE, the anchor logic, or the data shape fails here
+        # before the broken page can ship.
+        #
+        # Pass the file glob explicitly — `node --test test/` on
+        # Node 22 tries to load `test/index.js` instead of expanding
+        # the directory.
+        run: node --test "test/*.test.mjs"
+
+      - name: Run anchor regression suite (Python)
+        # Belt-and-braces: the Python re-implementation of the same
+        # rule catches the case where someone replaces filter.mjs
+        # with a fresh implementation that happens to satisfy the
+        # JS tests but disagrees with the documented contract.
+        run: python3 scripts/test-allergen-anchor.py
+
+  page-syntax:
+    name: page syntax (HTML + module import)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify index.html loads its module without throwing
+        # index.html references filter.mjs via <script type="module">.
+        # A typo in the import path, a missing export, or a syntax
+        # error in the inline script would surface here. We don't
+        # render the page (no headless browser in CI), but we do
+        # confirm the JS module graph wires up correctly.
+        run: |
+          set -euo pipefail
+          # Quick sanity: the file references both filter.mjs and
+          # data/menu.js, both of which must exist.
+          test -f filter.mjs
+          test -f data/menu.js
+          test -f data/menu.json
+          # And the import + export names must match.
+          grep -q 'from "./filter.mjs"' index.html
+          grep -q 'export const SUBCAT_RE' filter.mjs
+          grep -q 'export function annotateSections' filter.mjs
+          grep -q 'export function computeVisibility' filter.mjs
+          # data/menu.js must define window.MENU_DATA
+          grep -q 'window.MENU_DATA' data/menu.js

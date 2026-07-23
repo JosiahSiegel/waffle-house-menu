@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Waffle House · Full Menu &amp; Nutrition</title>
+<title>Waffle Stats · Full Menu &amp; Nutrition</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -168,12 +168,12 @@ footer a{color:var(--brown)}
 </head>
 <body>
 
-<header class="sign" aria-label="Waffle House">
+<header class="sign" aria-label="Waffle Stats">
   <div class="tiles" aria-hidden="true">
     <span class="tile">W</span><span class="tile">A</span><span class="tile">F</span><span class="tile">F</span><span class="tile">L</span><span class="tile">E</span>
   </div>
   <div class="tiles" aria-hidden="true">
-    <span class="tile">H</span><span class="tile">O</span><span class="tile">U</span><span class="tile">S</span><span class="tile">E</span>
+    <span class="tile">S</span><span class="tile">T</span><span class="tile">A</span><span class="tile">T</span><span class="tile">S</span>
   </div>
   <div class="sign-sub">Full Menu · Nutrition</div>
   <div class="sign-meta" id="meta"></div>
@@ -200,7 +200,12 @@ footer a{color:var(--brown)}
 </footer>
 
 <script src="data/menu.js"></script>
-<script>
+<script type="module">
+// filter.mjs is the single source of truth for the filter rule.
+// Imported here for the page and by test/filter.test.mjs for the
+// PR-CI regression suite. If you change the rule, change both.
+import { annotateSections, isSubcat, computeVisibility } from "./filter.mjs";
+
 const LABELS=["Calories","Fat","Sat Fat","Trans Fat","Cholesterol","Sodium","Carbs","Fiber","Sugars","Protein"];
 const UNITS=["","g","g","g","mg","mg","g","g","g","g"];
 // canonical order + short tags; chips render only for allergens present in data
@@ -213,6 +218,11 @@ const qEl=document.getElementById('q');
 const chipsEl=document.getElementById('chips');
 const bannerEl=document.getElementById('avoidBanner');
 const avoid=new Set();
+
+// Cached per-render annotation so applyFilters() doesn't have to
+// re-walk the data on every keystroke. The cache is invalidated
+// whenever render() runs (the data could have changed).
+let annotatedSections = [];
 
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
 
@@ -227,10 +237,21 @@ function factsHTML(it){
 }
 
 function render(data){
+  // Pre-compute the filter metadata once. annotateSections() is the
+  // same function the test suite uses, so the page and the tests
+  // share one source of truth for "which groups are subcategories"
+  // and "what is the anchor for this section".
+  annotatedSections = annotateSections(data.sections);
+
   let html="";
-  data.sections.forEach(sec=>{
-    let items="",count=0;
+  annotatedSections.forEach(sec=>{
+    // Walk the original groups so we can keep the grp-h dividers in
+    // the right place between items. annotateSections gave us
+    // hasSubcat + anchorA on `sec`, which we tag the <details> with
+    // for applyFilters() to read without re-parsing.
+    let itemsHTML="",count=0;
     sec.groups.forEach(gr=>{
+      const subcat = isSubcat(gr.h);
       let gItems="";
       gr.items.forEach(it=>{
         count++;
@@ -243,11 +264,15 @@ function render(data){
             <span class="cal-tile">${it.d[0]}<small>CAL</small></span>
           </button>${factsHTML(it)}</div>`;
       });
-      items+=(gr.h?`<div class="grp-h">${esc(gr.h)}</div>`:'')+gItems;
+      itemsHTML+=(gr.h?`<div class="grp-h${subcat?' subcat':''}">${esc(gr.h)}</div>`:'')+gItems;
     });
-    html+=`<details class="sec">
+    const attrs=[
+      `data-has-subcat="${sec.hasSubcat?'1':'0'}"`,
+      (sec.hasSubcat && sec.anchorA.length) ? `data-anchor-a="${esc(sec.anchorA.join("|"))}"` : '',
+    ].filter(Boolean).join(" ");
+    html+=`<details class="sec" ${attrs}>
       <summary><span class="sec-caret">▸</span><span class="sec-title">${esc(sec.title)}</span><span class="sec-count">${count}</span></summary>
-      ${items}</details>`;
+      ${itemsHTML}</details>`;
   });
   menuEl.innerHTML=html;
 
@@ -282,18 +307,36 @@ function updateBanner(){
 function applyFilters(){
   const q=qEl.value.trim().toLowerCase();
   const filtering=q||avoid.size;
+  // Re-use the cached annotatedSections from render(). This is the
+  // same data the test suite sees, so the page and the tests cannot
+  // drift on which sections have subcategories or what the anchor
+  // allergens are. computeVisibility() returns the same structure
+  // with a `visible` flag on each item.
+  const visible = computeVisibility(annotatedSections, [...avoid], q);
   let anyVisible=false;
-  document.querySelectorAll('details.sec').forEach(sec=>{
+
+  document.querySelectorAll('details.sec').forEach((sec, idx)=>{
+    const secVisible = visible[idx];
+    if (!secVisible) return;  // shouldn't happen — sections are parallel
+
+    const anchorFiltered = secVisible.hasSubcat && avoid.size > 0
+      && secVisible.anchorA.some(x => avoid.has(x));
+
     let visCount=0;
-    sec.querySelectorAll('.item').forEach(it=>{
-      const a=it.dataset.a?it.dataset.a.split("|"):[];
-      const okQ=!q||it.dataset.name.includes(q);
-      const okA=!a.some(x=>avoid.has(x));
-      const show=okQ&&okA;
-      it.style.display=show?"":"none";
-      if(show)visCount++;
+    const itemEls = sec.querySelectorAll('.item');
+    itemEls.forEach((it, j)=>{
+      // flatItems is in display order; .item divs are also in
+      // display order, so the indices line up 1:1.
+      const flatItem = secVisible.flatItems[j];
+      const isVisible = flatItem ? flatItem.visible : false;
+      it.style.display = isVisible ? "" : "none";
+      if (isVisible) visCount++;
     });
+
     sec.querySelectorAll('.grp-h').forEach(h=>{
+      // Mirror the original logic: a grp-h is visible iff at least
+      // one following .item is visible. With the anchor filter, no
+      // items are visible, so the header hides too.
       let el=h.nextElementSibling,vis=false;
       while(el&&!el.classList.contains('grp-h')){
         if(el.classList.contains('item')&&el.style.display!=="none"){vis=true;break}
