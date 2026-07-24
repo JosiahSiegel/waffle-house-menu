@@ -75,6 +75,13 @@ with the documented contract.
 Both suites run in the `Tests` workflow (`.github/workflows/test.yml`)
 on every PR and every push to `main`.
 
+## PR previews
+
+`netlify.toml` is in the repo so Netlify auto-detects the static
+site. Sign up at <https://app.netlify.com/>, import this repo, and
+every PR gets a preview URL in its comment thread. Takes ~2 min,
+free, doesn't touch GitHub Pages or the live site.
+
 ## Notes
 
 - wafflehouse.com is behind Cloudflare. A browser-like User-Agent gets
