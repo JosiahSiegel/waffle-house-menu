@@ -504,6 +504,13 @@ function applyFilters(){
     if(!filtering)sec.open=false;
   });
   emptyEl.classList.toggle('show',!anyVisible);
+  // Mirror section visibility onto the quick-jump nav: hidden
+  // section → hidden jump link. onScroll already skips display:none
+  // sections, so a single display sync is all we need.
+  for(const sec of menuEl.querySelectorAll('details.sec')){
+    const link = jumpnavEl.querySelector(`a[href="#${sec.id}"]`);
+    if(link) link.style.display = sec.style.display;
+  }
 }
 
 menuEl.addEventListener('click',e=>{
