@@ -1,9 +1,9 @@
 {
  "source_url": "https://www.wafflehouse.com/wp-content/uploads/2026/05/Menu-Nutritionals-2026-05-05.pdf",
  "source_updated": "05/05/26",
- "fetched_at": "2026-07-22T18:25:24+00:00",
+ "fetched_at": "2026-07-24T03:12:32+00:00",
  "sha256": "3b9f16921f1e5e562701cca15f857ac2d3f7591a6ee847f77722d24bf1a916f6",
- "item_count": 221,
+ "item_count": 381,
  "sections": [
   {
    "title": "All-Star Special",
@@ -162,7 +162,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "Grits",
        "d": [
@@ -217,7 +222,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "Bacon - 3 Slices",
        "d": [
@@ -323,54 +333,6 @@
         33
        ],
        "a": []
-      },
-      {
-       "n": "Chicken Sausage Egg & Cheese Hashbrown Bowl",
-       "d": [
-        840,
-        50,
-        18,
-        1,
-        438,
-        1856,
-        62,
-        6,
-        3,
-        37
-       ],
-       "a": []
-      },
-      {
-       "n": "Bacon Egg & Cheese Hashbrown Bowl",
-       "d": [
-        795,
-        49,
-        19,
-        1,
-        393,
-        1531,
-        62,
-        6,
-        3,
-        32
-       ],
-       "a": []
-      },
-      {
-       "n": "Ham Egg & Cheese Hashbrown Bowl",
-       "d": [
-        800,
-        43,
-        16,
-        1,
-        413,
-        2416,
-        66,
-        6,
-        5,
-        41
-       ],
-       "a": []
       }
      ]
     },
@@ -448,6 +410,50 @@
         "Milk",
         "Soy"
        ]
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
+      {
+       "n": "Chicken Sausage Egg & Cheese Hashbrown Bowl",
+       "d": [
+        840,
+        50,
+        18,
+        1,
+        438,
+        1856,
+        62,
+        6,
+        3,
+        37
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Includes",
+     "items": [
+      {
+       "n": "Large Hashbrowns",
+       "d": [
+        380,
+        14,
+        5,
+        0,
+        0,
+        480,
+        58,
+        6,
+        0,
+        6
+       ],
+       "a": [
+        "Soy"
+       ]
       },
       {
        "n": "Chicken Sausage",
@@ -466,6 +472,88 @@
        "a": []
       },
       {
+       "n": "2 Eggs - Scrambled",
+       "d": [
+        180,
+        14,
+        4,
+        1,
+        338,
+        176,
+        2,
+        0,
+        2,
+        12
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "American Cheese (2 Slices)",
+       "d": [
+        100,
+        9,
+        5,
+        0,
+        25,
+        500,
+        2,
+        0,
+        1,
+        5
+       ],
+       "a": [
+        "Milk",
+        "Soy"
+       ]
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
+      {
+       "n": "Bacon Egg & Cheese Hashbrown Bowl",
+       "d": [
+        795,
+        49,
+        19,
+        1,
+        393,
+        1531,
+        62,
+        6,
+        3,
+        32
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Includes",
+     "items": [
+      {
+       "n": "Large Hashbrowns",
+       "d": [
+        380,
+        14,
+        5,
+        0,
+        0,
+        480,
+        58,
+        6,
+        0,
+        6
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
        "n": "Bacon",
        "d": [
         135,
@@ -482,6 +570,88 @@
        "a": []
       },
       {
+       "n": "2 Eggs - Scrambled",
+       "d": [
+        180,
+        14,
+        4,
+        1,
+        338,
+        176,
+        2,
+        0,
+        2,
+        12
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "American Cheese (2 Slices)",
+       "d": [
+        100,
+        9,
+        5,
+        0,
+        25,
+        500,
+        2,
+        0,
+        1,
+        5
+       ],
+       "a": [
+        "Milk",
+        "Soy"
+       ]
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
+      {
+       "n": "Ham Egg & Cheese Hashbrown Bowl",
+       "d": [
+        800,
+        43,
+        16,
+        1,
+        413,
+        2416,
+        66,
+        6,
+        5,
+        41
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Includes",
+     "items": [
+      {
+       "n": "Large Hashbrowns",
+       "d": [
+        380,
+        14,
+        5,
+        0,
+        0,
+        480,
+        58,
+        6,
+        0,
+        6
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
        "n": "Diced Ham",
        "d": [
         140,
@@ -496,6 +666,44 @@
         18
        ],
        "a": []
+      },
+      {
+       "n": "2 Eggs - Scrambled",
+       "d": [
+        180,
+        14,
+        4,
+        1,
+        338,
+        176,
+        2,
+        0,
+        2,
+        12
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "American Cheese (2 Slices)",
+       "d": [
+        100,
+        9,
+        5,
+        0,
+        25,
+        500,
+        2,
+        0,
+        1,
+        5
+       ],
+       "a": [
+        "Milk",
+        "Soy"
+       ]
       }
      ]
     }
@@ -631,7 +839,1723 @@
         "Soy",
         "Wheat"
        ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
       },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        0
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Cheese 'N Eggs",
+     "items": [
+      {
+       "n": "2 Scrambled Eggs with Cheese",
+       "d": [
+        280,
+        23,
+        9,
+        1,
+        363,
+        676,
+        4,
+        0,
+        3,
+        17
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy"
+       ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        0
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "T-Bone & Eggs",
+     "items": [
+      {
+       "n": "T-Bone Steak and 2 Eggs - Scrambled",
+       "d": [
+        600,
+        43,
+        15,
+        1,
+        453,
+        436,
+        2,
+        0,
+        2,
+        49
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        0
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Steak & Eggs",
+     "items": [
+      {
+       "n": "Delmonico Steak and 2 Eggs - Scrambled",
+       "d": [
+        480,
+        28,
+        9,
+        2,
+        473,
+        636,
+        2,
+        0,
+        2,
+        53
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        0
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Country Ham & Eggs",
+     "items": [
+      {
+       "n": "Country Ham and 2 Eggs - Scrambled",
+       "d": [
+        370,
+        23,
+        7,
+        1,
+        433,
+        2286,
+        3,
+        0,
+        3,
+        37
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        0
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Chicken & Eggs",
+     "items": [
+      {
+       "n": "Grilled Chicken and 2 Eggs - Scrambled",
+       "d": [
+        310,
+        15,
+        4,
+        1,
+        418,
+        1106,
+        4,
+        0,
+        2,
+        41
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        0
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Meat Lover's Chicken & Eggs",
+     "items": [
+      {
+       "n": "2 Pieces of Grilled Chicken and 2 Eggs - Scrambled",
+       "d": [
+        440,
+        16,
+        4,
+        1,
+        498,
+        2036,
+        6,
+        0,
+        2,
+        70
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        0
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Pork Chops & Eggs",
+     "items": [
+      {
+       "n": "2 Grilled Pork Chops and 2 Eggs - Scrambled",
+       "d": [
+        520,
+        28,
+        9,
+        1,
+        478,
+        1216,
+        2,
+        0,
+        2,
+        64
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        0
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Meat Lover's Pork Chops & Eggs",
+     "items": [
+      {
+       "n": "3 Grilled Pork Chops and 2 Eggs - Scrambled",
+       "d": [
+        690,
+        35,
+        12,
+        1,
+        548,
+        1736,
+        2,
+        0,
+        2,
+        90
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        0
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Cheesesteak & Eggs",
+     "items": [
+      {
+       "n": "Cheesesteak and 2 Eggs - Scrambled",
+       "d": [
+        310,
+        21,
+        7,
+        1,
+        388,
+        476,
+        2,
+        0,
+        2,
+        28
+       ],
+       "a": [
+        "Egg",
+        "Soy"
+       ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "Grits",
        "d": [
@@ -708,223 +2632,6 @@
        "note": "Grilled Chicken, 3 Eggs - Scrambled, 2 Cheese, 1 OPT"
       }
      ]
-    },
-    {
-     "h": "Cheese 'N Eggs",
-     "items": [
-      {
-       "n": "2 Scrambled Eggs with Cheese",
-       "d": [
-        280,
-        23,
-        9,
-        1,
-        363,
-        676,
-        4,
-        0,
-        3,
-        17
-       ],
-       "a": [
-        "Egg",
-        "Milk",
-        "Soy"
-       ]
-      }
-     ]
-    },
-    {
-     "h": "T-Bone & Eggs",
-     "items": [
-      {
-       "n": "T-Bone Steak and 2 Eggs - Scrambled",
-       "d": [
-        600,
-        43,
-        15,
-        1,
-        453,
-        436,
-        2,
-        0,
-        2,
-        49
-       ],
-       "a": [
-        "Egg",
-        "Soy"
-       ]
-      }
-     ]
-    },
-    {
-     "h": "Steak & Eggs",
-     "items": [
-      {
-       "n": "Delmonico Steak and 2 Eggs - Scrambled",
-       "d": [
-        480,
-        28,
-        9,
-        2,
-        473,
-        636,
-        2,
-        0,
-        2,
-        53
-       ],
-       "a": [
-        "Egg",
-        "Soy"
-       ]
-      }
-     ]
-    },
-    {
-     "h": "Country Ham & Eggs",
-     "items": [
-      {
-       "n": "Country Ham and 2 Eggs - Scrambled",
-       "d": [
-        370,
-        23,
-        7,
-        1,
-        433,
-        2286,
-        3,
-        0,
-        3,
-        37
-       ],
-       "a": [
-        "Egg",
-        "Soy"
-       ]
-      }
-     ]
-    },
-    {
-     "h": "Chicken & Eggs",
-     "items": [
-      {
-       "n": "Grilled Chicken and 2 Eggs - Scrambled",
-       "d": [
-        310,
-        15,
-        4,
-        1,
-        418,
-        1106,
-        4,
-        0,
-        2,
-        41
-       ],
-       "a": [
-        "Egg",
-        "Soy"
-       ]
-      }
-     ]
-    },
-    {
-     "h": "Meat Lover's Chicken & Eggs",
-     "items": [
-      {
-       "n": "2 Pieces of Grilled Chicken and 2 Eggs - Scrambled",
-       "d": [
-        440,
-        16,
-        4,
-        1,
-        498,
-        2036,
-        6,
-        0,
-        2,
-        70
-       ],
-       "a": [
-        "Egg",
-        "Soy"
-       ]
-      }
-     ]
-    },
-    {
-     "h": "Pork Chops & Eggs",
-     "items": [
-      {
-       "n": "2 Grilled Pork Chops and 2 Eggs - Scrambled",
-       "d": [
-        520,
-        28,
-        9,
-        1,
-        478,
-        1216,
-        2,
-        0,
-        2,
-        64
-       ],
-       "a": [
-        "Egg",
-        "Soy"
-       ]
-      }
-     ]
-    },
-    {
-     "h": "Meat Lover's Pork Chops & Eggs",
-     "items": [
-      {
-       "n": "3 Grilled Pork Chops and 2 Eggs - Scrambled",
-       "d": [
-        690,
-        35,
-        12,
-        1,
-        548,
-        1736,
-        2,
-        0,
-        2,
-        90
-       ],
-       "a": [
-        "Egg",
-        "Soy"
-       ]
-      }
-     ]
-    },
-    {
-     "h": "Cheesesteak & Eggs",
-     "items": [
-      {
-       "n": "Cheesesteak and 2 Eggs - Scrambled",
-       "d": [
-        310,
-        21,
-        7,
-        1,
-        388,
-        476,
-        2,
-        0,
-        2,
-        28
-       ],
-       "a": [
-        "Egg",
-        "Soy"
-       ]
-      }
-     ]
     }
    ]
   },
@@ -955,7 +2662,12 @@
         "Wheat",
         "Tree Nuts"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Pecans",
        "d": [
@@ -1064,7 +2776,12 @@
        "a": [
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Large Hashbrowns",
        "d": [
@@ -1082,7 +2799,12 @@
        "a": [
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Triple Hashbrowns",
        "d": [
@@ -1100,7 +2822,12 @@
        "a": [
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Sautéed Onions",
        "d": [
@@ -1116,7 +2843,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Melted American Cheese",
        "d": [
@@ -1271,7 +3003,12 @@
         9
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Large Bacon",
        "d": [
@@ -1287,7 +3024,12 @@
         15
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Sausage",
        "d": [
@@ -1303,7 +3045,12 @@
         10
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Large Sausage",
        "d": [
@@ -1319,7 +3066,12 @@
         15
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Chicken Sausage",
        "d": [
@@ -1335,7 +3087,12 @@
         14
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "City Ham",
        "d": [
@@ -1351,7 +3108,12 @@
         14
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Country Ham",
        "d": [
@@ -1367,7 +3129,12 @@
         25
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Biscuit & Sausage Gravy",
        "d": [
@@ -1388,7 +3155,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Grits",
        "d": [
@@ -1409,7 +3181,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Cheese Grits",
        "d": [
@@ -1430,7 +3207,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Tomatoes",
        "d": [
@@ -1446,7 +3228,12 @@
         1
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Sausage Egg & Cheese Grits Bowl",
        "d": [
@@ -1467,7 +3254,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Chicken Sausage Egg & Cheese Grits Bowl",
        "d": [
@@ -1483,7 +3275,12 @@
         37
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Bacon Egg & Cheese Grits Bowl",
        "d": [
@@ -1504,7 +3301,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Ham Egg & Cheese Grits Bowl",
        "d": [
@@ -1556,7 +3358,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Sausage Egg & Cheese Biscuit",
        "d": [
@@ -1577,7 +3384,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Chicken Sausage Egg & Cheese Biscuit",
        "d": [
@@ -1593,7 +3405,12 @@
         21
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Bacon Egg & Cheese Biscuit",
        "d": [
@@ -1614,7 +3431,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Chicken Biscuit",
        "d": [
@@ -1635,7 +3457,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Bacon Biscuit",
        "d": [
@@ -1656,7 +3483,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Sausage Biscuit",
        "d": [
@@ -1677,7 +3509,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Chicken Sausage Biscuit",
        "d": [
@@ -1698,7 +3535,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "City Ham Biscuit (1)",
        "d": [
@@ -1762,7 +3604,38 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Ham Biscuits are served as 2 Biscuits",
+     "items": [
+      {
+       "n": "Country Ham Biscuits (2)",
+       "d": [
+        790,
+        39,
+        21,
+        0,
+        95,
+        3710,
+        69,
+        2,
+        5,
+        35
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Add-ons",
+     "items": [
       {
        "n": "American Cheese - 2 slices",
        "d": [
@@ -1802,32 +3675,6 @@
        ]
       }
      ]
-    },
-    {
-     "h": "Ham Biscuits are served as 2 Biscuits",
-     "items": [
-      {
-       "n": "Country Ham Biscuits (2)",
-       "d": [
-        790,
-        39,
-        21,
-        0,
-        95,
-        3710,
-        69,
-        2,
-        5,
-        35
-       ],
-       "a": [
-        "Egg",
-        "Milk",
-        "Soy",
-        "Wheat"
-       ]
-      }
-     ]
     }
    ]
   },
@@ -1856,7 +3703,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Egg & Cheese Sandwich",
        "d": [
@@ -1877,7 +3729,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Texas Egg & Cheese Melt",
        "d": [
@@ -1898,7 +3755,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Sausage Sandwich",
        "d": [
@@ -1917,7 +3779,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Sausage & Egg Sandwich",
        "d": [
@@ -1937,7 +3804,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Sausage, Egg & Cheese Sandwich",
        "d": [
@@ -1958,7 +3830,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Texas Sausage, Egg & Cheese Melt",
        "d": [
@@ -1979,7 +3856,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Chicken Sausage Sandwich",
        "d": [
@@ -1998,7 +3880,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Chicken Sausage & Egg Sandwich",
        "d": [
@@ -2018,7 +3905,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Chicken Sausage, Egg & Cheese Sandwich",
        "d": [
@@ -2039,7 +3931,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Texas Chicken Sausage, Egg & Cheese Melt",
        "d": [
@@ -2060,7 +3957,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Bacon Sandwich",
        "d": [
@@ -2079,7 +3981,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Bacon & Egg Sandwich",
        "d": [
@@ -2099,7 +4006,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Bacon, Egg & Cheese Sandwich",
        "d": [
@@ -2120,7 +4032,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Texas Bacon, Egg & Cheese Melt",
        "d": [
@@ -2141,7 +4058,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Grilled Ham Sandwich",
        "d": [
@@ -2160,7 +4082,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Ham & Egg Sandwich",
        "d": [
@@ -2180,7 +4107,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Ham, Egg & Cheese Sandwich",
        "d": [
@@ -2201,7 +4133,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Texas Ham, Egg & Cheese Melt",
        "d": [
@@ -2307,122 +4244,6 @@
         7
        ],
        "a": []
-      },
-      {
-       "n": "Raisin Toast - 2 Slices",
-       "d": [
-        220,
-        3,
-        0,
-        0,
-        0,
-        280,
-        42,
-        2,
-        16,
-        6
-       ],
-       "a": [
-        "Milk",
-        "Soy",
-        "Wheat"
-       ]
-      },
-      {
-       "n": "Grilled Biscuit",
-       "d": [
-        300,
-        15,
-        9,
-        0,
-        0,
-        800,
-        34,
-        1,
-        2,
-        5
-       ],
-       "a": [
-        "Egg",
-        "Milk",
-        "Soy",
-        "Wheat"
-       ]
-      },
-      {
-       "n": "Texas Toast - 1 Slice",
-       "d": [
-        100,
-        1,
-        0,
-        0,
-        0,
-        190,
-        19,
-        1,
-        2,
-        3
-       ],
-       "a": [
-        "Milk",
-        "Soy",
-        "Wheat"
-       ]
-      },
-      {
-       "n": "Grits",
-       "d": [
-        90,
-        3,
-        1,
-        0,
-        0,
-        300,
-        16,
-        1,
-        0,
-        3
-       ],
-       "a": [
-        "Egg",
-        "Milk",
-        "Soy",
-        "Wheat"
-       ]
-      },
-      {
-       "n": "Hashbrowns",
-       "d": [
-        190,
-        7,
-        3,
-        0,
-        0,
-        240,
-        29,
-        3,
-        0,
-        3
-       ],
-       "a": [
-        "Soy"
-       ]
-      },
-      {
-       "n": "Sliced Tomatoes",
-       "d": [
-        10,
-        0,
-        0,
-        0,
-        0,
-        0,
-        2,
-        1,
-        2,
-        1
-       ],
-       "a": []
       }
      ]
     },
@@ -2487,6 +4308,185 @@
         "Soy",
         "Wheat"
        ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
+        1
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Kid's Bacon",
+       "d": [
+        90,
+        8,
+        3,
+        0,
+        20,
+        250,
+        0,
+        0,
+        0,
+        6
+       ],
+       "a": []
+      },
+      {
+       "n": "Kid's Sausage",
+       "d": [
+        130,
+        12,
+        4,
+        0,
+        25,
+        255,
+        1,
+        0,
+        0,
+        5
+       ],
+       "a": []
+      },
+      {
+       "n": "Kid's Chicken Sausage",
+       "d": [
+        90,
+        7,
+        2,
+        0,
+        38,
+        350,
+        0,
+        0,
+        0,
+        7
+       ],
+       "a": []
       }
      ]
     }
@@ -2623,7 +4623,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "Grits",
        "d": [
@@ -2703,6 +4708,172 @@
         "Milk",
         "Soy"
        ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
+        1
+       ],
+       "a": []
       }
      ]
     },
@@ -2728,6 +4899,172 @@
         "Milk",
         "Soy"
        ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
+        1
+       ],
+       "a": []
       }
      ]
     },
@@ -2753,6 +5090,172 @@
         "Milk",
         "Soy"
        ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
+        1
+       ],
+       "a": []
       }
      ]
     },
@@ -2777,6 +5280,172 @@
         "Egg",
         "Soy"
        ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        3
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
+        1
+       ],
+       "a": []
       }
      ]
     },
@@ -2968,6 +5637,22 @@
         1
        ],
        "a": []
+      },
+      {
+       "n": "Grilled Chicken",
+       "d": [
+        130,
+        1,
+        0,
+        0,
+        80,
+        930,
+        2,
+        0,
+        0,
+        29
+       ],
+       "a": []
       }
      ]
     }
@@ -2992,22 +5677,6 @@
         7,
         2,
         27
-       ],
-       "a": []
-      },
-      {
-       "n": "Chicken Melt Hashbrown Bowl",
-       "d": [
-        625,
-        24,
-        10,
-        0,
-        105,
-        1910,
-        65,
-        7,
-        2,
-        40
        ],
        "a": []
       }
@@ -3086,6 +5755,50 @@
         "Milk",
         "Soy"
        ]
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
+      {
+       "n": "Chicken Melt Hashbrown Bowl",
+       "d": [
+        625,
+        24,
+        10,
+        0,
+        105,
+        1910,
+        65,
+        7,
+        2,
+        40
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Includes",
+     "items": [
+      {
+       "n": "Large Hashbrowns",
+       "d": [
+        380,
+        14,
+        5,
+        0,
+        0,
+        480,
+        58,
+        6,
+        0,
+        6
+       ],
+       "a": [
+        "Soy"
+       ]
       },
       {
        "n": "Grilled Chicken",
@@ -3102,6 +5815,41 @@
         29
        ],
        "a": []
+      },
+      {
+       "n": "Grilled Onions",
+       "d": [
+        15,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        1,
+        1,
+        0
+       ],
+       "a": []
+      },
+      {
+       "n": "American Cheese (2 Slices)",
+       "d": [
+        100,
+        9,
+        5,
+        0,
+        25,
+        500,
+        2,
+        0,
+        1,
+        5
+       ],
+       "a": [
+        "Milk",
+        "Soy"
+       ]
       }
      ]
     }
@@ -3238,7 +5986,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "Grits",
        "d": [
@@ -3318,6 +6071,172 @@
         "Soy",
         "Wheat"
        ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        1
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
+        1
+       ],
+       "a": []
       }
      ]
     },
@@ -3343,6 +6262,172 @@
         "Soy",
         "Wheat"
        ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        1
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
+        1
+       ],
+       "a": []
       }
      ]
     },
@@ -3368,6 +6453,172 @@
         "Soy",
         "Wheat"
        ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        1
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
+        1
+       ],
+       "a": []
       }
      ]
     },
@@ -3393,6 +6644,172 @@
         "Soy",
         "Wheat"
        ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        1
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
+        1
+       ],
+       "a": []
       }
      ]
     }
@@ -3529,7 +6946,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "Grits",
        "d": [
@@ -3609,6 +7031,172 @@
         "Soy",
         "Wheat"
        ]
+      },
+      {
+       "n": "White Toast - 2 Slices",
+       "d": [
+        130,
+        2,
+        0,
+        0,
+        0,
+        260,
+        25,
+        1,
+        3,
+        4
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Wheat Toast - 2 Slices",
+       "d": [
+        120,
+        2,
+        0,
+        0,
+        0,
+        250,
+        26,
+        4,
+        2,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Raisin Toast - 2 Slices",
+       "d": [
+        220,
+        3,
+        0,
+        0,
+        0,
+        280,
+        42,
+        2,
+        16,
+        6
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Grilled Biscuit",
+       "d": [
+        300,
+        15,
+        9,
+        0,
+        0,
+        800,
+        34,
+        1,
+        2,
+        5
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Texas Toast - 1 Slice",
+       "d": [
+        100,
+        1,
+        0,
+        0,
+        0,
+        190,
+        19,
+        1,
+        2,
+        3
+       ],
+       "a": [
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
+      {
+       "n": "Grits",
+       "d": [
+        90,
+        3,
+        1,
+        0,
+        0,
+        300,
+        16,
+        1,
+        0,
+        1
+       ],
+       "a": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Wheat"
+       ]
+      },
+      {
+       "n": "Hashbrowns",
+       "d": [
+        190,
+        7,
+        3,
+        0,
+        0,
+        240,
+        29,
+        3,
+        0,
+        3
+       ],
+       "a": [
+        "Soy"
+       ]
+      },
+      {
+       "n": "Sliced Tomatoes",
+       "d": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
+        1
+       ],
+       "a": []
       }
      ]
     }
@@ -3639,7 +7227,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Texas Cheesesteak™ Melt",
        "d": [
@@ -3659,7 +7252,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Texas Angus Patty Melt",
        "d": [
@@ -3679,7 +7277,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Add Bacon (2 slices)",
        "d": [
@@ -3725,7 +7328,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Large Bert's Chili™ (8 oz)",
        "d": [
@@ -3745,7 +7353,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Bert's Chili™ as a Topping (2 oz)",
        "d": [
@@ -3795,7 +7408,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Angus 1/4 LB Cheeseburger Deluxe",
        "d": [
@@ -3815,7 +7433,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Double Angus 1/4 LB Cheeseburger Deluxe",
        "d": [
@@ -3835,7 +7458,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Angus Patty",
        "d": [
@@ -3851,7 +7479,12 @@
         15
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Bun",
        "d": [
@@ -3867,7 +7500,12 @@
         4
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Add Bacon (2 slices)",
        "d": [
@@ -3913,7 +7551,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Grilled Chicken Bacon Cheese Sandwich Deluxe",
        "d": [
@@ -3933,7 +7576,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Grilled Cheese Sandwich",
        "d": [
@@ -3953,7 +7601,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Waffle Sandwich (Ham and Cheese on Wheat)",
        "d": [
@@ -3973,7 +7626,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Ham & Cheese Sandwich (Lettuce & Tomato)",
        "d": [
@@ -3993,7 +7651,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "BLT Sandwich",
        "d": [
@@ -4012,7 +7675,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Texas Bacon Lover's BLT Sandwich (5 bacon slices)",
        "d": [
@@ -4064,7 +7732,12 @@
         "Wheat",
         "Tree Nuts"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Small Slice Southern Pecan Pie",
        "d": [
@@ -4086,7 +7759,12 @@
         "Wheat",
         "Tree Nuts"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Regular Slice Triple Chocolate Pie",
        "d": [
@@ -4106,7 +7784,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Small Slice Triple Chocolate Pie",
        "d": [
@@ -4152,7 +7835,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Dark Roast Coffee",
        "d": [
@@ -4168,7 +7856,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Coffee - Decaf",
        "d": [
@@ -4184,7 +7877,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Coca-Cola®",
        "d": [
@@ -4200,7 +7898,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Diet Coke®",
        "d": [
@@ -4216,7 +7919,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Sprite®",
        "d": [
@@ -4232,7 +7940,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Pibb-Xtra®",
        "d": [
@@ -4248,7 +7961,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Barq's Root Beer®",
        "d": [
@@ -4264,7 +7982,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Hi-C® Fruit Punch",
        "d": [
@@ -4280,7 +8003,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Simply Lemonade",
        "d": [
@@ -4296,7 +8024,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Alice's Iced Tea™ - Unsweet",
        "d": [
@@ -4312,7 +8045,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Alice's Iced Tea™ - Sweet",
        "d": [
@@ -4328,7 +8066,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Alice's Iced Tea-Monade",
        "d": [
@@ -4344,7 +8087,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Simply Orange Juice",
        "d": [
@@ -4360,7 +8108,12 @@
         2
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Simply Apple Juice",
        "d": [
@@ -4376,7 +8129,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Honest Kids Apple Juice",
        "d": [
@@ -4392,7 +8150,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Regular Milk",
        "d": [
@@ -4410,7 +8173,12 @@
        "a": [
         "Milk"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Large Milk",
        "d": [
@@ -4428,7 +8196,12 @@
        "a": [
         "Milk"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Large Chocolate Milk",
        "d": [
@@ -4446,7 +8219,12 @@
        "a": [
         "Milk"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Regular Chocolate Milk",
        "d": [
@@ -4464,7 +8242,12 @@
        "a": [
         "Milk"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
        "n": "Hot Tea",
        "d": [

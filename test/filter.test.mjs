@@ -147,10 +147,10 @@ test("Hashbrowns & Toppings + Soy: 0 visible (anchor has Soy)", () => {
   );
 });
 
-test("Egg Breakfasts + Wheat: 13 visible (anchor 2 Eggs has no wheat)", () => {
+test("Egg Breakfasts + Wheat: 31 visible (anchor 2 Eggs has no wheat)", () => {
   assert.equal(
     countVisibleBySection(annotated, ["Wheat"], "")["Egg Breakfasts"],
-    13,
+    31,
   );
 });
 
