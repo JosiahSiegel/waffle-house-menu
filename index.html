@@ -91,9 +91,9 @@ header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
    scroll-margin-top on the section targets is the modern
    way: the browser handles the offset for both jump-nav
    clicks AND direct hash navigation (#sec-xyz). */
-:root{--jump-offset:200px}
+:root{--jump-offset:180px}
 details.sec{scroll-margin-top:var(--jump-offset)}
-@media (max-width:600px){:root{--jump-offset:220px}}
+@media (max-width:600px){:root{--jump-offset:200px}}
 .controls input{
   width:100%;font:inherit;padding:9px 12px;
   border:2px solid var(--black);border-radius:8px;background:#fff;color:var(--ink);
@@ -940,10 +940,13 @@ function buildJumpnav(){
   // jump link whose section is currently the topmost-visible one.
   // Uses IntersectionObserver (no scroll listener, no per-frame
   // math) and the cached _sectionEls so it's a single tight pass.
-  // The rootMargin pushes the detection line 200px below the
-  // viewport top — matches --jump-offset, so the link activates
-  // when the section title crosses the visible area below the
-  // sticky controls bar.
+  // The rootMargin creates a thin "active band" right at the
+  // top of the content area, just below the sticky controls
+  // bar. Top:-179px (matches the controls height) means the
+  // detection zone starts at the bottom of the controls;
+  // Bottom:-75% (only the top 25% of the viewport counts)
+  // means the active section is the one whose title is RIGHT
+  // UNDER the jump-nav, not a section further down the page.
   function setActiveJumpLink(link){
     for(const jl of _jumpLinks){
       if(jl) jl.removeAttribute('aria-current');
@@ -975,7 +978,7 @@ function buildJumpnav(){
         const link = _jumpLinks[_sectionEls.indexOf(best)];
         if(link) setActiveJumpLink(link);
       }
-    }, {rootMargin:'-200px 0px -60% 0px',threshold:0});
+    }, {rootMargin:'-179px 0px -75% 0px',threshold:0});
     for(const sec of _sectionEls) spy.observe(sec);
   }
 }
