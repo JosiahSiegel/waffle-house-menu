@@ -334,11 +334,12 @@ main:focus{outline:none}
 /* ---------- Quick-jump nav ---------- */
 .jumpnav{
   display:flex;gap:6px;align-items:center;
-  padding:2px 0 4px;overflow-x:auto;
+  padding:6px 14px;overflow-x:auto;
   scrollbar-width:none;
   -webkit-overflow-scrolling:touch;scroll-behavior:smooth;
-  margin:0 -14px;padding-left:14px;padding-right:14px;
-  border-top:1px solid var(--line);margin-top:6px;
+  margin:0 -14px;
+  border-top:1px solid var(--line);
+  min-height:40px;
 }
 .jumpnav::-webkit-scrollbar{display:none}
 .jumpnav-label{
@@ -947,7 +948,17 @@ function buildJumpnav(){
     for(const jl of _jumpLinks){
       if(jl) jl.removeAttribute('aria-current');
     }
-    if(link) link.setAttribute('aria-current','true');
+    if(link){
+      link.setAttribute('aria-current','true');
+      // Keep the active link in view: the jumpnav is
+      // horizontally scrollable (overflow-x:auto), and on
+      // mobile/long menus the active section's link can be
+      // scrolled off-screen even though it's the "current"
+      // one. scrollIntoView with inline:'center' brings it
+      // back to the middle of the jumpnav strip. 'nearest'
+      // for block means don't fight the page scroll.
+      link.scrollIntoView({block:'nearest',inline:'center'});
+    }
   }
   if('IntersectionObserver' in window){
     const spy = new IntersectionObserver(entries=>{
