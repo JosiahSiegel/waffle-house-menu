@@ -233,13 +233,12 @@ test("jump-nav: setActiveJumpLink removes aria-current from all links first", ()
   );
 });
 
-test("jump-nav: scroll-spy picks the section CLOSEST to the controls bottom", () => {
-  // The active section is the one whose header is closest
-  // to the controls bottom — whether it's just above
-  // (header behind the controls, user reading its items)
-  // or just below (header approaching, user about to
-  // reach it). This gives smooth, responsive active-state
-  // updates as the user scrolls.
+test("jump-nav: scroll-spy aligns pill when category title hits controls bottom", () => {
+  // The active section is the one whose VISIBLE TITLE TEXT
+  // (the <summary> with padding-top:16px) is closest to the
+  // controls bottom. The pill becomes active when the title
+  // line approaches the controls bottom from below, and
+  // stays active as the title scrolls behind.
   assert.match(
     indexHtml,
     /IntersectionObserver/,
@@ -252,8 +251,13 @@ test("jump-nav: scroll-spy picks the section CLOSEST to the controls bottom", ()
   );
   assert.match(
     indexHtml,
-    /Math\.abs\s*\(\s*top\s*-\s*controlsBottom\s*\)/u,
-    "scroll-spy must compute distance from each section top to controls bottom and pick the closest"
+    /titleTop\s*=\s*top\s*\+/u,
+    "scroll-spy must compute titleTop = sectionTop + padding (the visible title position, not the <details> top)"
+  );
+  assert.match(
+    indexHtml,
+    /Math\.abs\s*\(\s*titleTop\s*-\s*controlsBottom\s*\)/u,
+    "scroll-spy must measure distance from titleTop to controlsBottom"
   );
   assert.match(
     indexHtml,
@@ -474,31 +478,31 @@ test("jumpnav: scroll-spy scrolls the active link into the visible center", () =
   );
 });
 
-test("jumpnav: scroll-spy picks the section CLOSEST to the controls bottom", () => {
-  // User: "still needs to be pushed too far behind the jump
-  // nav before nav updates"
+test("jumpnav: scroll-spy aligns pill when category title hits controls bottom", () => {
+  // User: "when the top line of a category hits the bottom
+  // line of the navbar, that's when the jump to pill should
+  // align and vice versa"
   //
-  // Previous fix: picked the section with the largest top
-  // <= controls bottom. The section was only active when
-  // its header was at or above the controls (behind them).
-  // The user had to scroll the new section's header well
-  // behind the controls before it became active.
+  // The active section is the one whose VISIBLE TITLE TEXT
+  // (the <summary> with padding-top:16px) is closest to the
+  // controls bottom. This way:
+  //   - Pill becomes active when the title line approaches
+  //     the controls bottom from below
+  //   - Pill stays active as the title scrolls behind
+  //   - Clicking the pill scrolls the title to the controls
+  //     bottom (the "vice versa" direction)
   //
-  // New approach: pick the section whose top is CLOSEST
-  // to the controls bottom (smallest absolute distance).
-  // This way, the section becomes active as soon as its
-  // header approaches the controls from below, AND stays
-  // active as it scrolls behind. The user sees the active
-  // state update smoothly as they scroll.
+  // The title position is sectionTop + 16 (the summary
+  // padding-top), not just sectionTop.
   assert.match(
     indexHtml,
-    /Math\.abs\s*\(\s*top\s*-\s*controlsBottom\s*\)/u,
-    "scroll-spy must pick the section whose top is closest to the controls bottom (Math.abs(top - controlsBottom))"
+    /TITLE_PAD|summary.*padding|titleTop\s*=\s*top\s*\+/u,
+    "scroll-spy must account for the 16px summary padding-top when computing the title position (not just the <details> top)"
   );
   assert.match(
     indexHtml,
-    /dist\s*<\s*bestDist/u,
-    "scroll-spy must track the smallest distance to controls bottom"
+    /Math\.abs\s*\(\s*titleTop\s*-\s*controlsBottom\s*\)/u,
+    "scroll-spy must measure distance from the title position to the controls bottom"
   );
 });
 
