@@ -75,6 +75,15 @@ with the documented contract.
 Both suites run in the `Tests` workflow (`.github/workflows/test.yml`)
 on every PR and every push to `main`.
 
+## Invert filter
+
+The "Invert filter" toggle (or press `i`) flips the allergen filter
+from "hide items that list" to "show only items that list". The
+anchor rule is skipped in invert mode — you're explicitly looking
+for items with the allergen, so hiding the whole meal because the
+anchor has it would defeat the purpose. State persists in the URL
+hash (`#invert=1`) so you can share inverted-filter links.
+
 ## PR previews
 
 `netlify.toml` is in the repo so Netlify auto-detects the static
