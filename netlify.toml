@@ -1,0 +1,26 @@
+# netlify.toml
+# Used by Netlify when you connect this repo for static-site hosting.
+# It also enables PR previews automatically — every PR gets a
+# unique URL like `https://deploy-preview-N--waffle-stats.netlify.app/`
+# posted in the PR comment by the Netlify GitHub bot.
+#
+# To enable:
+#   1. Sign up at https://app.netlify.com/ (free, 1 min)
+#   2. Click "Add new site" → "Import an existing project"
+#   3. Pick the JosiahSiegel/waffle-house-menu repo
+#   4. Netlify auto-detects the static site settings from this file
+#   5. Done. Every PR now gets a preview URL in its comment thread.
+#
+# If you'd rather use Cloudflare Pages instead (also free):
+#   1. Sign up at https://dash.cloudflare.com/
+#   2. Workers & Pages → Create application → Pages → Connect to Git
+#   3. Pick the repo, set build command = empty, build output = /
+#   4. Done. Cloudflare auto-comments with a `*.waffle-house-menu.pages.dev` URL per PR.
+
+[build]
+  publish = "."
+
+# Netlify auto-detects PRs and posts preview links, so no [[deploy]]
+# hooks are needed. The only thing the file needs to do is say
+# "the publish directory is the repo root" (it's a static HTML
+# site with no build step).
