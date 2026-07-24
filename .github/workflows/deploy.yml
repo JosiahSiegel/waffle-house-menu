@@ -66,15 +66,19 @@ jobs:
           if [ "${{ steps.cls.outputs.is_pr }}" = "true" ]; then
             PR_N=${{ steps.cls.outputs.pr_number }}
             mkdir -p "../build/pr-${PR_N}"
-            # Copy everything except .github (no recursive workflow triggers)
-            # and CNAME (it's owned by the main site at root, not by previews).
-            tar --exclude='.github' --exclude='CNAME' -cf - . \
-              | tar -xf - -C "../build/pr-${PR_N}/"
+            # Copy everything except .git, .github, CNAME.
+            # .git: actions/checkout created it inside src/, we'd ship a
+            #       huge git dir otherwise. Excluding it is harmless.
+            # .github: no recursive workflow triggers.
+            # CNAME: belongs only at the gh-pages root, not in previews.
+            tar --exclude='./.git' --exclude='./.github' --exclude='./CNAME' \
+              -cf - . | tar -xf - -C "../build/pr-${PR_N}/"
             # Inject <base href> right before </head>
             sed -i "s|</head>|  <base href=\"/pr-${PR_N}/\">\n  </head>|" \
               "../build/pr-${PR_N}/index.html"
           else
-            tar --exclude='.github' -cf - . | tar -xf - -C ../build/
+            tar --exclude='./.git' --exclude='./.github' \
+              -cf - . | tar -xf - -C ../build/
           fi
 
       # --- 3. Get the gh-pages branch into a known directory ---
