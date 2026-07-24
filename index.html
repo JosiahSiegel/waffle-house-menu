@@ -100,6 +100,42 @@ header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
   letter-spacing:.12em;text-transform:uppercase;color:var(--brown);
   white-space:nowrap;flex:0 0 auto;
 }
+
+/* Invert-filter mode bar. Separated from the chip row so it's
+   not in the click flow of normal filtering. The toggle is
+   clearly labeled with a visible on/off dot and a state word;
+   the hint text below the toggle describes what the current
+   mode does, so accidental enabling is easy to notice and
+   reverse. */
+.mode-bar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin-top:6px;padding:0 2px;
+}
+.invert-toggle{
+  background:transparent;border:1px solid #d4d4d4;border-radius:999px;
+  padding:4px 12px 4px 10px;font:inherit;font-size:.82em;color:#666;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  transition:background-color .15s,color .15s,border-color .15s;
+}
+.invert-toggle:hover{border-color:#999;color:#333}
+.invert-toggle:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.invert-toggle .invert-dot{
+  display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:#bbb;flex:0 0 auto;transition:background-color .15s;
+}
+.invert-toggle[aria-pressed="true"]{
+  background:var(--yellow);color:var(--black);border-color:var(--yellow);
+  font-weight:600;
+}
+.invert-toggle[aria-pressed="true"] .invert-dot{background:var(--black)}
+.invert-toggle[aria-pressed="true"]:hover{filter:brightness(.95)}
+.invert-state{font-weight:400;opacity:.7}
+.invert-toggle[aria-pressed="true"] .invert-state{opacity:.9}
+.mode-hint{
+  font-size:.78em;color:#888;font-style:italic;flex:1 1 auto;
+  min-width:0;
+}
+.mode-hint.inverted{color:#000;font-weight:600;font-style:normal}
 .chip{
   flex:0 0 auto;
   font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:600;
@@ -337,6 +373,13 @@ main:focus{outline:none}
   <div class="chips" id="chips" role="group" aria-label="Filter out allergens">
     <span class="chips-label">Avoid:</span>
   </div>
+  <div class="mode-bar">
+    <button type="button" class="invert-toggle" id="invertToggle" aria-pressed="false" title="Show only items that list the selected allergens, instead of hiding them. Keyboard: i">
+      <span class="invert-dot" aria-hidden="true"></span>
+      Invert filter <span class="invert-state" id="invertState">(off)</span>
+    </button>
+    <span class="mode-hint" id="modeHint">Hide items that list the selected allergens</span>
+  </div>
 </div>
 
 <nav class="jumpnav" id="jumpnav" aria-label="Jump to section"></nav>
@@ -381,7 +424,11 @@ const emptyEl=document.getElementById('empty');
 const qEl=document.getElementById('q');
 const chipsEl=document.getElementById('chips');
 const bannerEl=document.getElementById('avoidBanner');
+const invertToggleEl=document.getElementById('invertToggle');
+const invertStateEl=document.getElementById('invertState');
+const modeHintEl=document.getElementById('modeHint');
 const avoid=new Set();
+let invert=false;
 
 // Cached per-render annotation so applyFilters() doesn't have to
 // re-walk the data on every keystroke. The cache is invalidated
@@ -464,7 +511,9 @@ function render(data){
 function updateBanner(){
   if(!avoid.size){bannerEl.classList.remove('show');return}
   const list=[...avoid].join(", ");
-  bannerEl.innerHTML=`<strong>Hiding items that list: ${esc(list)}.</strong> Based on Waffle House's own allergen column — everything shares a grill, so cross-contact is likely. Fine for preference, not safe for severe allergies or celiac disease.`;
+  const verb = invert ? "Showing only items that list" : "Hiding items that list";
+  const note = invert ? ' <em>(invert on — showing only matches)</em>' : '';
+  bannerEl.innerHTML=`<strong>${verb}: ${esc(list)}.</strong>${note} Based on Waffle House's own allergen column — everything shares a grill, so cross-contact is likely. Fine for preference, not safe for severe allergies or celiac disease.`;
   bannerEl.classList.add('show');
 }
 
@@ -476,7 +525,7 @@ function applyFilters(){
   // drift on which sections have subcategories or what the anchor
   // allergens are. computeVisibility() returns the same structure
   // with a `visible` flag on each item.
-  const visible = computeVisibility(annotatedSections, [...avoid], q);
+  const visible = computeVisibility(annotatedSections, [...avoid], q, { invert });
   let anyVisible=false;
 
   document.querySelectorAll('details.sec').forEach((sec, idx)=>{
@@ -546,6 +595,30 @@ chipsEl.addEventListener('click',e=>{
   syncClearAll();
 });
 
+// Invert filter toggle. When on, the avoid set is treated as
+// "show only items that list these" instead of "hide items that
+// list these". The anchor rule is skipped in invert mode (the
+// user is explicitly looking for items with the allergen).
+// Off by default, deliberate to enable, easy to spot when on
+// (yellow pill, bold "(on)", italic hint becomes solid).
+function setInvert(on){
+  invert=on;
+  invertToggleEl.setAttribute('aria-pressed',on?'true':'false');
+  invertStateEl.textContent=on?'(on)':'(off)';
+  modeHintEl.textContent=on
+    ? 'Showing only items that list the selected allergens'
+    : 'Hide items that list the selected allergens';
+  modeHintEl.classList.toggle('inverted',on);
+  updateBanner();
+  applyFilters();
+  // Update URL hash so the mode survives reloads and can be shared
+  const h=new URL(location.href).hash.replace(/^#/,'').split('&').filter(p=>p&&!p.startsWith('invert=')).join('&');
+  const next=on?'invert=1':'';
+  const merged=[h,next].filter(Boolean).join('&');
+  history.replaceState(null,'','#'+(merged||''));
+}
+invertToggleEl.addEventListener('click',()=>setInvert(!invert));
+
 // "Clear all" button: appears the moment any allergen or search is
 // active. Wipes both, gives focus back to the search box.
 const clearAllEl=document.getElementById('clearAll');
@@ -598,6 +671,12 @@ document.addEventListener('keydown',e=>{
         open.querySelector('.item-row')?.setAttribute('aria-expanded','false');
       }
     }
+  }else if(e.key==='i' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)
+     && !e.ctrlKey && !e.metaKey && !e.altKey){
+    // "i" toggles invert-filter mode. Ignored while typing so
+    // search box input is not affected.
+    e.preventDefault();
+    setInvert(!invert);
   }
 });
 
@@ -667,6 +746,11 @@ function injectStructuredData(data){
 }
 
 if(window.MENU_DATA&&window.MENU_DATA.sections){
+  // Read the invert state from the URL hash before the first
+  // render so the initial paint already reflects the mode.
+  const hash=new URL(location.href).hash.replace(/^#/,'');
+  const params=new URLSearchParams(hash);
+  setInvert(params.get('invert')==='1');
   render(window.MENU_DATA);
   buildJumpnav();
   injectStructuredData(window.MENU_DATA);
