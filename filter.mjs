@@ -38,10 +38,15 @@ export function annotateSections(sections) {
     let hasSubcat = false;
     let anchorA = null;
     const flatItems = [];
-    // Per-meal state. A "meal" is a non-subcat group plus the
-    // subcat groups that immediately follow it. Each meal has
-    // its own anchor (first item in the meal group) and its
-    // own hasSubcat flag, so the per-meal anchor rule can fire.
+    // Per-meal state. A "meal" is one or more consecutive
+    // non-subcat groups plus the subcat groups that immediately
+    // follow them. The PDF lists toppings (e.g. "Pecans" under
+    // Waffles) as their own non-subcat lines, not under the
+    // "Toppings:" subcat — we still want them gated by the
+    // Waffle's anchor, not their own. So consecutive non-subcat
+    // groups share one meal; a new meal starts when a non-subcat
+    // group follows a subcat group (or is the first group).
+    let prevWasSubcat = true; // so the first non-subcat opens a meal
     let mealAnchor = [];
     let mealHasSubcat = false;
     let mealItemStart = 0; // flatItems index where current meal's items begin
@@ -60,13 +65,21 @@ export function annotateSections(sections) {
             flatItems[i].mealHasSubcat = true;
           }
         }
+        prevWasSubcat = true;
       } else {
-        // New meal starts. Its anchor is the first item in the
-        // group; mealHasSubcat resets until a subcat group shows up.
-        mealAnchor = gr.items[0] ? (gr.items[0].a || []) : [];
-        mealItemStart = flatItems.length;
-        mealHasSubcat = false;
-        if (anchorA === null) anchorA = mealAnchor;
+        if (prevWasSubcat) {
+          // New meal starts. Its anchor is the first item in the
+          // group; mealHasSubcat resets until a subcat group shows up.
+          mealAnchor = gr.items[0] ? (gr.items[0].a || []) : [];
+          mealItemStart = flatItems.length;
+          mealHasSubcat = false;
+          if (anchorA === null) anchorA = mealAnchor;
+        }
+        // If prevWasSubcat is false, this non-subcat group is a
+        // continuation of the current meal (e.g. Pecans after
+        // Waffle). Don't reset the anchor — it stays the first
+        // item of the first non-subcat group in the meal.
+        prevWasSubcat = false;
       }
       for (const it of gr.items) {
         const a = it.a || [];

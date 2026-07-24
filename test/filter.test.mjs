@@ -94,45 +94,50 @@ test("annotateSections: data shape matches menu.item_count", () => {
 
 // ---------------------------------------------------------------------------
 // 3) Per-meal anchor rule: each meal is gated independently.
-//    The Waffles section has two meals — the Waffle (anchor has
-//    Wheat/Milk/Egg/Soy/Tree Nuts) and Pecans (anchor has only
-//    Tree Nuts). Filtering Wheat hides the Waffle meal but leaves
-//    the Pecans meal visible, with per-item filtering removing
-//    only Blueberry Nougat (the one topping with Wheat).
+//    The Waffles section has one meal (Waffle + Pecans + Toppings).
+//    Pecans is listed as its own non-subcat line in the PDF (not
+//    under "Toppings:") but it's still a topping option for the
+//    Waffle — consecutive non-subcat groups share one meal, so
+//    the anchor (Waffle) gates the whole thing. Filtering Wheat
+//    hides Waffle + Pecans + Toppings; filtering Peanut (no item
+//    has it) only hides Peanut Butter Chips per-item.
 // ---------------------------------------------------------------------------
 
-test("Waffles + Wheat: Waffle meal hidden, Pecans meal partial (3 visible)", () => {
-  const vis = visibleBySection(annotated, ["Wheat"], "")["Waffles"];
-  assert.equal(vis.length, 3);
-  assert.ok(!vis.includes("Classic Waffle House Waffle"));
-  assert.ok(vis.includes("Pecans"));
-  assert.ok(!vis.includes("Blueberry Nougat"));
+test("Waffles + Wheat: 0 visible (Waffle meal includes Pecans, anchor has Wheat)", () => {
+  assert.equal(countVisibleBySection(annotated, ["Wheat"], "")["Waffles"], 0);
 });
 
-test("Waffles + Tree Nuts: 0 visible (both meals' anchors have Tree Nuts)", () => {
+test("Waffles + Wheat: Pecans specifically hidden (user's second report)", () => {
+  // The user reported: "selecting a wheat filter still shows some
+  // of the toppings under waffles like pecans". Pecans is listed
+  // as its own non-subcat line in the PDF (not under Toppings:),
+  // but it's a topping option for the Waffle. Consecutive
+  // non-subcat groups share one meal, so Pecans is part of the
+  // Waffle meal and gated by the Waffle's Wheat.
+  const vis = visibleBySection(annotated, ["Wheat"], "")["Waffles"];
+  assert.ok(!vis.includes("Pecans"), "Pecans must be hidden with Wheat filter");
+  assert.ok(!vis.includes("Chocolate Chips"), "Chocolate Chips must be hidden too");
+  assert.ok(!vis.includes("Blueberry Nougat"), "Blueberry Nougat must be hidden too");
+  assert.ok(!vis.includes("Peanut Butter Chips"), "Peanut Butter Chips must be hidden too");
+});
+
+test("Waffles + Tree Nuts: 0 visible (anchor has Tree Nuts)", () => {
   assert.equal(countVisibleBySection(annotated, ["Tree Nuts"], "")["Waffles"], 0);
 });
 
-test("Waffles + Milk: 2 visible (Pecans + Chocolate Chips; Blueberry Nougat + Peanut Butter Chips have Milk)", () => {
-  const vis = visibleBySection(annotated, ["Milk"], "")["Waffles"];
-  assert.equal(vis.length, 2);
-  assert.ok(vis.includes("Pecans"));
-  assert.ok(vis.includes("Chocolate Chips"));
+test("Waffles + Milk: 0 visible (anchor has Milk)", () => {
+  assert.equal(countVisibleBySection(annotated, ["Milk"], "")["Waffles"], 0);
 });
 
-test("Waffles + Egg: 4 visible (Pecans meal untouched, no item has Egg)", () => {
-  const vis = visibleBySection(annotated, ["Egg"], "")["Waffles"];
-  assert.equal(vis.length, 4);
-  assert.ok(vis.includes("Pecans"));
+test("Waffles + Egg: 0 visible (anchor has Egg)", () => {
+  assert.equal(countVisibleBySection(annotated, ["Egg"], "")["Waffles"], 0);
 });
 
-test("Waffles + Soy: 1 visible (only Pecans; all 3 toppings have Soy)", () => {
-  const vis = visibleBySection(annotated, ["Soy"], "")["Waffles"];
-  assert.equal(vis.length, 1);
-  assert.equal(vis[0], "Pecans");
+test("Waffles + Soy: 0 visible (anchor has Soy)", () => {
+  assert.equal(countVisibleBySection(annotated, ["Soy"], "")["Waffles"], 0);
 });
 
-test("Waffles + Peanut: 4 visible (anchor has no Peanut)", () => {
+test("Waffles + Peanut: 4 visible (anchor has no Peanut, per-item keeps 4 of 5)", () => {
   // The anchor rule does NOT fire — neither Waffle nor Pecans has
   // Peanut. Per-item filtering still hides Peanut Butter Chips,
   // leaving 4 of 5.
@@ -154,15 +159,18 @@ test("Hashbrowns & Toppings + Wheat: 9 visible (anchor has no wheat)", () => {
   );
 });
 
-test("Hashbrowns & Toppings + Soy: 1 visible (per-item: Hashbrowns has no Soy)", () => {
-  // The Hashbrowns & Toppings section's anchor is the first
-  // hashbrowns item (which has Soy). Per-meal rule fires,
-  // but on a closer read of the data: the section is structured
-  // so the anchor group is the hashbrowns themselves. Per-item
-  // filtering leaves 1 visible.
+test("Hashbrowns & Toppings + Soy: 0 visible (Regular Hashbrowns gates the whole meal)", () => {
+  // The Hashbrowns & Toppings section has 5 consecutive non-subcat
+  // groups (Regular / Large / Triple Hashbrowns / Sautéed Onions /
+  // Melted American Cheese) plus a Toppings subcat. Consecutive
+  // non-subcat groups share one meal, anchored at Regular
+  // Hashbrowns (Soy). Filtering Soy gates the whole meal.
+  // (Sautéed Onions has no Soy, but it's part of the same meal
+  // because the PDF lists it as its own non-subcat line between
+  // the hashbrowns sizes and the Toppings subcat.)
   assert.equal(
     countVisibleBySection(annotated, ["Soy"], "")["Hashbrowns & Toppings"],
-    1,
+    0,
   );
 });
 
@@ -299,13 +307,12 @@ test("search 'pecan' + Peanut: 1 Waffles (Pecans), 0 Pies (per-item)", () => {
   assert.equal(visWaffles[0], "Pecans");
 });
 
-test("search 'pecan' + Wheat: 1 visible (Pecans in Waffles; pecan pies have wheat)", () => {
+test("search 'pecan' + Wheat: 0 visible (Waffle meal hidden, pecan pies have wheat)", () => {
   // Waffles: per-meal rule — Waffle meal hidden (anchor has Wheat),
-  // but Pecans meal shown (anchor has no Wheat). Search 'pecan'
-  // keeps only Pecans. Pies: no subcat, all pecan pies have
-  // Wheat → 0.
+  // Pecans is part of the same meal so also hidden. Pies: no
+  // subcat, all pecan pies have Wheat → 0.
   const counts = countVisibleBySection(annotated, ["Wheat"], "pecan");
-  assert.equal(counts["Waffles"], 1);
+  assert.equal(counts["Waffles"], 0);
   assert.equal(counts["Pies"], 0);
 });
 
@@ -342,11 +349,11 @@ test("additive allergen filter: Wheat + Milk narrows Sandwiches further", () => 
 });
 
 test("relaxing a filter restores previously-hidden items", () => {
-  // Hashbrowns & Toppings + Soy: 1 (per-meal rule fires on the
-  // main group, but per-item keeps 1 item without Soy)
+  // Hashbrowns & Toppings + Soy: 0 (consecutive non-subcat groups
+  // share one meal, anchored at Regular Hashbrowns which has Soy)
   assert.equal(
     countVisibleBySection(annotated, ["Soy"], "")["Hashbrowns & Toppings"],
-    1,
+    0,
   );
   // Without Soy: all items visible
   const noFilter = countVisibleBySection(annotated, [], "")["Hashbrowns & Toppings"];
