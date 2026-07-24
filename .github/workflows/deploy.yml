@@ -101,12 +101,16 @@ jobs:
             echo "CNAME already in place"
           fi
 
-      # --- 4. Mutate gh-pages-src in place ---
-      - name: Update gh-pages
+      # --- 4 + 5. Mutate gh-pages-src in place AND commit in the same step ---
+      # (Each step runs in a fresh shell — $MSG wouldn't survive across
+      # the if/else/fi into a separate commit step. So we combine them.)
+      - name: Update, commit, push gh-pages
         run: |
+          set -euo pipefail
+          cd gh-pages-src
+
           if [ "${{ steps.cls.outputs.is_pr }}" = "true" ]; then
             PR_N=${{ steps.cls.outputs.pr_number }}
-            cd gh-pages-src
             rm -rf "pr-${PR_N}"
             if [ "${{ steps.cls.outputs.action }}" != "closed" ]; then
               mkdir -p "pr-${PR_N}"
@@ -114,7 +118,6 @@ jobs:
             fi
             MSG="deploy: PR #${PR_N} ${{ steps.cls.outputs.action }}"
           else
-            cd gh-pages-src
             # Production deploy: wipe everything except pr-* dirs and CNAME
             find . -mindepth 1 -maxdepth 1 \
               ! -name 'pr-*' ! -name '.git' ! -name 'CNAME' \
@@ -123,21 +126,13 @@ jobs:
             MSG="deploy: main @ ${{ github.sha }}"
           fi
 
-      # --- 5. Commit and push ---
-      - name: Commit and push
-        working-directory: gh-pages-src
-        run: |
           git config user.email "bot@wafflestats.com"
           git config user.name  "wafflestats-bot"
 
-          if git diff --cached --quiet && git status --porcelain | grep -q '^??'; then
-            # new untracked files (e.g. brand new pr-N/) — stage them
-            git add -A
-          elif git diff --cached --quiet; then
+          git add -A
+          if git diff --cached --quiet; then
             echo "no changes to commit"
             exit 0
-          else
-            git add -A
           fi
 
           git commit -m "$MSG"
