@@ -830,18 +830,6 @@ function onScroll(){
   ticking=true;
   requestAnimationFrame(()=>{
     totopEl.hidden = window.scrollY < 400;
-    // Highlight the current section in the jump-nav (IntersectionObserver-free,
-    // so no perf hit on a 221-item page).
-    const sections = menuEl.querySelectorAll('details.sec');
-    let current=null;
-    for(const s of sections){
-      if(s.style.display==='none')continue;
-      const r=s.getBoundingClientRect();
-      if(r.top < 120 && r.bottom > 0) current=s;
-    }
-    for(const a of jumpnavEl.querySelectorAll('a')){
-      a.setAttribute('aria-current', current && a.getAttribute('href')==='#'+current.id ? 'true' : 'false');
-    }
     ticking=false;
   });
 }

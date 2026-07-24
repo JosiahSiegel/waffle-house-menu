@@ -254,3 +254,27 @@ test("jump-nav: scroll-spy uses IntersectionObserver with --jump-offset rootMarg
     "scroll-spy must observe all cached _sectionEls"
   );
 });
+
+test("jump-nav: no legacy scroll-spy in onScroll that sets aria-current='false' on every link", () => {
+  // Bug found during validation: the OLD onScroll() function
+  // (before the IntersectionObserver scroll-spy) had a buggy
+  // scroll-spy that set aria-current to 'true' OR 'false' on
+  // EVERY jump-nav link — never removing the attribute. The
+  // string 'false' is truthy in JS, so the active-state filter
+  // thought all 19 links were active. This test catches a
+  // regression of that pattern.
+  const onScrollMatch = indexHtml.match(
+    /function\s+onScroll\s*\(\s*\)\s*\{[\s\S]*?\n\}/u
+  );
+  assert.ok(onScrollMatch, "onScroll function not found");
+  assert.doesNotMatch(
+    onScrollMatch[0],
+    /setAttribute\(\s*['"]aria-current['"]/u,
+    "onScroll must NOT set aria-current (scroll-spy is in IntersectionObserver now)"
+  );
+  assert.doesNotMatch(
+    onScrollMatch[0],
+    /jumpnavEl\.querySelectorAll\(['"]a['"]\)/u,
+    "onScroll must NOT iterate over jumpnav links (scroll-spy moved out)"
+  );
+});
