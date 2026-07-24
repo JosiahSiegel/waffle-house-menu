@@ -407,13 +407,14 @@ main:focus{outline:none}
 
 <nav class="jumpnav" id="jumpnav" aria-label="Jump to section"></nav>
 
+<div class="loading show" id="loading" role="status" aria-live="polite" aria-busy="true">
+  <span class="loading-dots" aria-hidden="true"></span>Loading the menu…
+</div>
+
 <main id="menu" tabindex="-1"></main>
 <div class="empty" id="empty" role="status" aria-live="polite">
   <p class="empty-title">Nothing matches.</p>
   <p class="empty-sub">Try a shorter search or <button type="button" class="empty-clear" id="emptyClear">clear your filters</button>.</p>
-</div>
-<div class="loading show" id="loading" role="status" aria-live="polite" aria-busy="true">
-  <span class="loading-dots" aria-hidden="true"></span>Loading the menu…
 </div>
 <div class="load-err" id="loadErr" role="alert">Menu data not found. Run <code>python scripts/sync.py</code> to generate data/menu.js.</div>
 
