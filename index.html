@@ -983,17 +983,19 @@ function buildJumpnav(){
     const controls = document.querySelector('.controls');
     const spy = new IntersectionObserver(()=>{
       const controlsBottom = controls.getBoundingClientRect().bottom;
-      // Pick the section whose top is CLOSEST to the
-      // controls bottom — whether it's just above (header
-      // behind the controls, user reading its items) or
-      // just below (header approaching the controls from
-      // below, user about to reach it). This way the
-      // section becomes active as soon as it approaches
-      // the controls, not only when it's already behind.
+      // The active section is the one whose VISIBLE TITLE
+      // TEXT (the <summary> with padding-top:16px) is
+      // closest to the controls bottom. This way the pill
+      // aligns exactly when the top line of the category
+      // hits the bottom line of the navbar — and vice
+      // versa (clicking the pill scrolls the title to
+      // that position).
+      const TITLE_PAD = 16; // matches details.sec>summary padding-top
       let active = null, bestDist = Infinity;
       for(const sec of _sectionEls){
         const top = sec.getBoundingClientRect().top;
-        const dist = Math.abs(top - controlsBottom);
+        const titleTop = top + TITLE_PAD;
+        const dist = Math.abs(titleTop - controlsBottom);
         if(dist < bestDist){
           bestDist = dist;
           active = sec;
