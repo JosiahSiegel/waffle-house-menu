@@ -647,7 +647,9 @@ clearAllEl.addEventListener('click',()=>{
   updateBanner();
   applyFilters();
   syncClearAll();
-  qEl.focus();
+  // No qEl.focus() — the user just hit "clear", they don't want
+  // the on-screen keyboard popping up. Focus stays wherever the
+  // user had it (or falls back to body on mobile).
 });
 emptyClearEl.addEventListener('click',()=>clearAllEl.click());
 
