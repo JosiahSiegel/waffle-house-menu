@@ -3,10 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Waffle Stats · Full Menu &amp; Nutrition</title>
+<meta name="color-scheme" content="light dark">
+
+<title>Waffle Stats · Waffle House Menu with Calories &amp; Allergens</title>
+<meta name="description" content="Full Waffle House menu with per-item calories, fat, sodium, carbs, protein, and allergens. Search by item or avoid allergens. Updated weekly from the official Waffle House nutritionals PDF.">
+<meta name="keywords" content="waffle house menu, waffle house nutrition, waffle house calories, waffle house allergens, breakfast nutrition">
+<meta name="author" content="Waffle Stats">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#FFD200" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171310" media="(prefers-color-scheme: dark)">
+
+<link rel="canonical" href="https://wafflestats.com/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23FFD200'/%3E%3Ctext x='16' y='22' font-size='20' text-anchor='middle' font-family='sans-serif' font-weight='900' fill='%23171310'%3EW%3C/text%3E%3C/svg%3E">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Waffle Stats">
+<meta property="og:title" content="Waffle Stats · Waffle House Menu with Calories &amp; Allergens">
+<meta property="og:description" content="Full Waffle House menu with per-item calories, fat, sodium, carbs, protein, and the chain's own allergen column. Search by item or avoid allergens.">
+<meta property="og:url" content="https://wafflestats.com/">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Waffle Stats · Waffle House Menu with Calories &amp; Allergens">
+<meta name="twitter:description" content="Full Waffle House menu with per-item calories, fat, sodium, carbs, protein, and the chain's own allergen column.">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="modulepreload" href="filter.mjs">
+<link rel="preload" as="script" href="data/menu.js" crossorigin>
 <style>
 :root{
   --yellow:#FFD200;
@@ -73,6 +100,42 @@ header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
   letter-spacing:.12em;text-transform:uppercase;color:var(--brown);
   white-space:nowrap;flex:0 0 auto;
 }
+
+/* Invert-filter mode bar. Separated from the chip row so it's
+   not in the click flow of normal filtering. The toggle is
+   clearly labeled with a visible on/off dot and a state word;
+   the hint text below the toggle describes what the current
+   mode does, so accidental enabling is easy to notice and
+   reverse. */
+.mode-bar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin-top:6px;padding:0 2px;
+}
+.invert-toggle{
+  background:transparent;border:1px solid #d4d4d4;border-radius:999px;
+  padding:4px 12px 4px 10px;font:inherit;font-size:.82em;color:#666;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  transition:background-color .15s,color .15s,border-color .15s;
+}
+.invert-toggle:hover{border-color:#999;color:#333}
+.invert-toggle:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.invert-toggle .invert-dot{
+  display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:#bbb;flex:0 0 auto;transition:background-color .15s;
+}
+.invert-toggle[aria-pressed="true"]{
+  background:var(--yellow);color:var(--black);border-color:var(--yellow);
+  font-weight:600;
+}
+.invert-toggle[aria-pressed="true"] .invert-dot{background:var(--black)}
+.invert-toggle[aria-pressed="true"]:hover{filter:brightness(.95)}
+.invert-state{font-weight:400;opacity:.7}
+.invert-toggle[aria-pressed="true"] .invert-state{opacity:.9}
+.mode-hint{
+  font-size:.78em;color:#888;font-style:italic;flex:1 1 auto;
+  min-width:0;
+}
+.mode-hint.inverted{color:#000;font-weight:600;font-style:normal}
 .chip{
   flex:0 0 auto;
   font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:600;
@@ -85,9 +148,13 @@ header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
 .chip:focus-visible{outline:3px solid var(--yellow);outline-offset:1px}
 
 .banner{
-  display:none;margin:12px 14px 0;padding:10px 12px;
-  background:#FDF0E4;border:1.5px solid var(--brown);border-radius:8px;
+  display:none;
+  position:fixed;left:12px;right:12px;bottom:12px;z-index:50;
+  margin:0;padding:10px 14px;
+  background:#FDF0E4;border:1.5px solid var(--brown);border-radius:10px;
+  box-shadow:0 6px 20px rgba(0,0,0,.18);
   font-size:13px;color:#6B4013;
+  text-align:center;
 }
 .banner.show{display:block}
 
@@ -117,6 +184,11 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 /* ---------- Items ---------- */
 .item{border-top:1px dashed var(--line)}
 .item:first-of-type{border-top:0}
+/* `h` is our hot-path "hidden" class — toggled by applyFilters()
+   on every keystroke. Toggling a class is faster than writing
+   style.display, and using a single 1-char class keeps the
+   matched-ruleset count at 0 in DevTools. */
+.item.h,.grp-h.h,details.sec.h,.jumpnav a.h{display:none}
 .item-row{
   width:100%;text-align:left;background:none;border:0;cursor:pointer;
   display:flex;align-items:center;gap:10px;padding:11px 2px;
@@ -150,11 +222,27 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 .facts dd{font-weight:600}
 .facts .allerg{margin-top:7px;padding-top:7px;border-top:1.5px solid var(--line);font-size:11.5px;color:var(--brown)}
 
-.empty,.load-err{
+.empty,.load-err,.loading{
   display:none;text-align:center;padding:44px 20px;color:var(--brown);
   font-family:"IBM Plex Mono",monospace;font-size:13px;
 }
-.empty.show,.load-err.show{display:block}
+.empty.show,.load-err.show,.loading.show{display:block}
+/* Loading indicator. Shown until render() replaces the menu
+   with the rendered sections. The 3 dots use a CSS-only
+   animation so they don't depend on JS. */
+.loading{color:var(--ink)}
+.loading-dots::after{
+  content:"";
+  display:inline-block;width:1.4em;text-align:left;
+  animation:ldots 1.2s steps(4,end) infinite;
+}
+@keyframes ldots{
+  0%{content:""}
+  25%{content:"."}
+  50%{content:".."}
+  75%{content:"..."}
+  100%{content:""}
+}
 
 footer{
   max-width:640px;margin:0 auto;padding:18px 16px 34px;
@@ -164,33 +252,178 @@ footer p+p{margin-top:6px}
 footer a{color:var(--brown)}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- Accessibility utilities ---------- */
+.skip{
+  position:absolute;left:8px;top:8px;z-index:100;
+  background:var(--yellow);color:var(--black);
+  padding:8px 12px;border:2px solid var(--black);border-radius:6px;
+  font-weight:700;text-decoration:none;
+  transform:translateY(-200%);transition:transform .12s;
+}
+.skip:focus-visible{transform:translateY(0);outline:3px solid var(--black);outline-offset:2px}
+.visually-hidden{
+  position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+main:focus{outline:none}
+
+/* ---------- Search input + kbd hint ---------- */
+.search{position:relative;display:block}
+.search input{padding-right:42px}
+.search-hint{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:700;
+  background:var(--brown);color:var(--paper);
+  padding:2px 6px;border-radius:4px;pointer-events:none;opacity:.7;
+  border:1px solid rgba(0,0,0,.15);
+}
+@media (max-width:540px){.search-hint{display:none}}
+
+/* ---------- Clear-all button ---------- */
+/* Lives in the sign header, so it's always visible and never
+   pushes the controls/jump nav. Now lives in the mode-bar
+   alongside the invert toggle (clear-all is first, then invert,
+   then the hint). When shown it appears in-place rather than
+   jumping the sign down by 28px. */
+.clear-all{
+  display:inline-flex;align-items:center;gap:6px;
+  margin:0;padding:4px 12px;
+  font:inherit;font-size:11.5px;font-weight:600;
+  background:var(--yellow);color:var(--black);
+  border:0;border-radius:999px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.clear-all:hover{background:#fff;color:var(--black)}
+.clear-all:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.clear-all-count{
+  background:var(--black);color:var(--yellow);
+  font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:700;
+  padding:1px 6px;border-radius:999px;min-width:16px;text-align:center;
+}
+.clear-all[hidden]{display:none}
+
+/* ---------- Quick-jump nav ---------- */
+.jumpnav{
+  display:flex;gap:6px;align-items:center;
+  padding:6px 14px 8px;overflow-x:auto;
+  scrollbar-width:none;background:var(--paper);
+  border-bottom:1px solid var(--line);
+  -webkit-overflow-scrolling:touch;scroll-behavior:smooth;
+}
+.jumpnav::-webkit-scrollbar{display:none}
+.jumpnav-label{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--brown);
+  white-space:nowrap;flex:0 0 auto;
+}
+.jumpnav a{
+  flex:0 0 auto;text-decoration:none;
+  font:inherit;font-size:12px;font-weight:600;
+  padding:5px 10px;border-radius:999px;
+  background:transparent;color:var(--ink);
+  border:1px solid var(--line);white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.jumpnav a:hover{background:#fff;border-color:var(--brown)}
+.jumpnav a:focus-visible{outline:3px solid var(--yellow);outline-offset:1px}
+.jumpnav a[aria-current="true"]{background:var(--black);color:var(--yellow);border-color:var(--black)}
+
+/* ---------- Empty state ---------- */
+.empty{padding:36px 20px;text-align:center}
+.empty-title{font-family:Anton,sans-serif;font-size:22px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+.empty-sub{color:var(--brown);font-size:14px}
+.empty-clear{
+  background:none;border:0;padding:0;color:var(--ink);
+  font:inherit;font-weight:700;cursor:pointer;text-decoration:underline;
+  -webkit-tap-highlight-color:transparent;
+}
+.empty-clear:hover{color:var(--brown)}
+
+/* ---------- Back-to-top button ---------- */
+.totop{
+  position:fixed;right:14px;bottom:14px;z-index:30;
+  font:inherit;font-size:12px;font-weight:700;
+  font-family:"IBM Plex Mono",monospace;
+  background:var(--black);color:var(--yellow);
+  border:0;border-radius:999px;padding:9px 14px;
+  cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.25);
+  -webkit-tap-highlight-color:transparent;
+}
+.totop[hidden]{display:none}
+.totop:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+@media (max-width:540px){.totop{bottom:calc(14px + env(safe-area-inset-bottom))}}
+
+/* ---------- Print stylesheet ---------- */
+@media print{
+  .controls,.jumpnav,.banner,.totop,.item-row,.cal-tile,
+  .skip,.controls input,.chips{display:none!important}
+  details.sec>summary{padding:8px 0}
+  details.sec{break-inside:avoid}
+  .item{border-top:1px solid #000;padding:4px 0}
+  .item-name{font-size:11px}
+  .facts{display:block!important;padding:0}
+  .facts dl{background:none;border:0;padding:0}
+  body{padding:0;background:#fff}
+  header.sign{background:#fff;border-bottom:2px solid #000;padding:8px 0}
+  .tiles{filter:grayscale(1)}
+}
 </style>
 </head>
 <body>
 
-<header class="sign" aria-label="Waffle Stats">
+<a class="skip" href="#menu">Skip to menu</a>
+
+<header class="sign" role="banner">
+  <h1 class="visually-hidden">Waffle Stats — Waffle House menu with calories and allergens</h1>
   <div class="tiles" aria-hidden="true">
     <span class="tile">W</span><span class="tile">A</span><span class="tile">F</span><span class="tile">F</span><span class="tile">L</span><span class="tile">E</span>
   </div>
   <div class="tiles" aria-hidden="true">
     <span class="tile">S</span><span class="tile">T</span><span class="tile">A</span><span class="tile">T</span><span class="tile">S</span>
   </div>
-  <div class="sign-sub">Full Menu · Nutrition</div>
-  <div class="sign-meta" id="meta"></div>
+  <p class="sign-sub">Full Menu · Nutrition · Allergens</p>
+  <p class="sign-meta" id="meta"></p>
 </header>
 
-<div class="controls">
-  <input id="q" type="search" placeholder="Search the menu…" aria-label="Search the menu" autocomplete="off">
+<div class="controls" role="search">
+  <label class="search" for="q">
+    <span class="visually-hidden">Search the menu</span>
+    <input id="q" type="search" placeholder="Search the menu — try “waffle”, “cal 410”, “egg”…" aria-label="Search the menu" autocomplete="off" enterkeyhint="search" inputmode="search">
+    <kbd class="search-hint" aria-hidden="true">/</kbd>
+  </label>
   <div class="chips" id="chips" role="group" aria-label="Filter out allergens">
     <span class="chips-label">Avoid:</span>
   </div>
+  <div class="mode-bar">
+    <button type="button" class="clear-all" id="clearAll" hidden>Clear all filters <span class="clear-all-count" id="clearAllCount"></span></button>
+    <button type="button" class="invert-toggle" id="invertToggle" aria-pressed="false" title="Show only items that list the selected allergens, instead of hiding them. Keyboard: i">
+      <span class="invert-dot" aria-hidden="true"></span>
+      Invert filter <span class="invert-state" id="invertState">(off)</span>
+    </button>
+    <span class="mode-hint" id="modeHint">Hide items that list the selected allergens</span>
+  </div>
 </div>
 
-<div class="banner" id="avoidBanner"></div>
+<nav class="jumpnav" id="jumpnav" aria-label="Jump to section"></nav>
 
-<main id="menu"></main>
-<div class="empty" id="empty">No items match. Try a shorter search or fewer filters.</div>
-<div class="load-err" id="loadErr">Menu data not found. Run <code>python scripts/sync.py</code> to generate data/menu.js.</div>
+<main id="menu" tabindex="-1"></main>
+<div class="empty" id="empty" role="status" aria-live="polite">
+  <p class="empty-title">Nothing matches.</p>
+  <p class="empty-sub">Try a shorter search or <button type="button" class="empty-clear" id="emptyClear">clear your filters</button>.</p>
+</div>
+<div class="loading show" id="loading" role="status" aria-live="polite" aria-busy="true">
+  <span class="loading-dots" aria-hidden="true"></span>Loading the menu…
+</div>
+<div class="load-err" id="loadErr" role="alert">Menu data not found. Run <code>python scripts/sync.py</code> to generate data/menu.js.</div>
+
+<button type="button" class="totop" id="totop" aria-label="Back to top" hidden>↑ Top</button>
+
+<!-- Avoid-allergen info panel: position:fixed bottom bar so it
+     doesn't push the jump nav. It's part of the document flow at
+     the end so screen readers find it, but visually it docks to the
+     bottom of the viewport. -->
+<div class="banner" id="avoidBanner" role="status" aria-live="polite"></div>
 
 <footer>
   <p id="srcLine">Source: Waffle House official nutritionals PDF.</p>
@@ -199,12 +432,12 @@ footer a{color:var(--brown)}
   <p>This site auto-syncs from wafflehouse.com and is not affiliated with Waffle House, Inc.</p>
 </footer>
 
-<script src="data/menu.js"></script>
+<script src="data/menu.js" defer></script>
 <script type="module">
 // filter.mjs is the single source of truth for the filter rule.
 // Imported here for the page and by test/filter.test.mjs for the
 // PR-CI regression suite. If you change the rule, change both.
-import { annotateSections, isSubcat, computeVisibility } from "./filter.mjs";
+import { annotateSections, isSubcat, computeVisibility, buildStructuredData } from "./filter.mjs";
 
 const LABELS=["Calories","Fat","Sat Fat","Trans Fat","Cholesterol","Sodium","Carbs","Fiber","Sugars","Protein"];
 const UNITS=["","g","g","g","mg","mg","g","g","g","g"];
@@ -217,7 +450,11 @@ const emptyEl=document.getElementById('empty');
 const qEl=document.getElementById('q');
 const chipsEl=document.getElementById('chips');
 const bannerEl=document.getElementById('avoidBanner');
+const invertToggleEl=document.getElementById('invertToggle');
+const invertStateEl=document.getElementById('invertState');
+const modeHintEl=document.getElementById('modeHint');
 const avoid=new Set();
+let invert=false;
 
 // Cached per-render annotation so applyFilters() doesn't have to
 // re-walk the data on every keystroke. The cache is invalidated
@@ -270,11 +507,45 @@ function render(data){
       `data-has-subcat="${sec.hasSubcat?'1':'0'}"`,
       (sec.hasSubcat && sec.anchorA.length) ? `data-anchor-a="${esc(sec.anchorA.join("|"))}"` : '',
     ].filter(Boolean).join(" ");
-    html+=`<details class="sec" ${attrs}>
+    html+=`<details class="sec" id="sec-${esc(sec.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))}" ${attrs}>
       <summary><span class="sec-caret">▸</span><span class="sec-title">${esc(sec.title)}</span><span class="sec-count">${count}</span></summary>
       ${itemsHTML}</details>`;
   });
   menuEl.innerHTML=html;
+
+  // Build the per-section DOM caches that applyFilters() uses on
+  // every keystroke. Doing this once here turns applyFilters into
+  // pure property reads + classList.toggle — no querySelectorAll,
+  // no getElementById, no getBoundingClientRect per pass.
+  _sectionEls = Array.from(menuEl.querySelectorAll('details.sec'));
+  for (const sec of _sectionEls) {
+    sec._itemEls = Array.from(sec.querySelectorAll('.item'));
+    sec._grpHs = Array.from(sec.querySelectorAll('.grp-h'));
+    sec._countEl = sec.querySelector('.sec-count');
+    // Pre-compute the [first, last] item-index range each grp-h
+    // "owns" (the items between this grp-h and the next grp-h or
+    // the end of the section). applyFilters uses these to walk
+    // only the items that belong to a grp-h, not all items.
+    for (let i = 0; i < sec._grpHs.length; i++) {
+      const gh = sec._grpHs[i];
+      const next = sec._grpHs[i + 1];
+      // DOM order: grp-h is followed by .item divs until the next
+      // grp-h or the parent <details> ends. Walk the DOM to find
+      // the boundaries once.
+      let first = -1, last = -1;
+      let el = gh.nextElementSibling;
+      while (el && el !== next) {
+        if (el.classList.contains('item')) {
+          const idx = sec._itemEls.indexOf(el);
+          if (first === -1) first = idx;
+          last = idx;
+        }
+        el = el.nextElementSibling;
+      }
+      gh._first = first;
+      gh._last = last;
+    }
+  }
 
   // build one chip per allergen actually present in the data
   const present=new Set();
@@ -300,9 +571,21 @@ function render(data){
 function updateBanner(){
   if(!avoid.size){bannerEl.classList.remove('show');return}
   const list=[...avoid].join(", ");
-  bannerEl.innerHTML=`<strong>Hiding items that list: ${esc(list)}.</strong> Based on Waffle House's own allergen column — everything shares a grill, so cross-contact is likely. Fine for preference, not safe for severe allergies or celiac disease.`;
+  const verb = invert ? "Showing only items that list" : "Hiding items that list";
+  const note = invert ? ' <em>(invert on — showing only matches)</em>' : '';
+  bannerEl.innerHTML=`<strong>${verb}: ${esc(list)}.</strong>${note} Based on Waffle House's own allergen column — everything shares a grill, so cross-contact is likely. Fine for preference, not safe for severe allergies or celiac disease.`;
   bannerEl.classList.add('show');
 }
+
+// Cached per-render DOM references. The page renders 19 sections
+// + 381 items, and applyFilters() runs on every keystroke + every
+// chip click. Re-querying the DOM for sec.querySelectorAll('.item')
+// / .grp-h / .sec-count on every filter pass was the biggest
+// bottleneck — these are now looked up once per render() and
+// reused on every filter pass. Storing the sec-count element on
+// the section as ._countEl also skips a querySelectorAll per pass.
+let _sectionEls = [];
+let _jumpLinks = [];
 
 function applyFilters(){
   const q=qEl.value.trim().toLowerCase();
@@ -312,45 +595,70 @@ function applyFilters(){
   // drift on which sections have subcategories or what the anchor
   // allergens are. computeVisibility() returns the same structure
   // with a `visible` flag on each item.
-  const visible = computeVisibility(annotatedSections, [...avoid], q);
+  const visible = computeVisibility(annotatedSections, [...avoid], q, { invert });
   let anyVisible=false;
 
-  document.querySelectorAll('details.sec').forEach((sec, idx)=>{
+  for (let idx = 0; idx < _sectionEls.length; idx++) {
+    const sec = _sectionEls[idx];
     const secVisible = visible[idx];
-    if (!secVisible) return;  // shouldn't happen — sections are parallel
-
-    const anchorFiltered = secVisible.hasSubcat && avoid.size > 0
-      && secVisible.anchorA.some(x => avoid.has(x));
-
+    const itemEls = sec._itemEls;
+    const flatItems = secVisible.flatItems;
     let visCount=0;
-    const itemEls = sec.querySelectorAll('.item');
-    itemEls.forEach((it, j)=>{
-      // flatItems is in display order; .item divs are also in
-      // display order, so the indices line up 1:1.
-      const flatItem = secVisible.flatItems[j];
+    for (let j = 0; j < itemEls.length; j++) {
+      const flatItem = flatItems[j];
       const isVisible = flatItem ? flatItem.visible : false;
-      it.style.display = isVisible ? "" : "none";
-      if (isVisible) visCount++;
-    });
-
-    sec.querySelectorAll('.grp-h').forEach(h=>{
-      // Mirror the original logic: a grp-h is visible iff at least
-      // one following .item is visible. With the anchor filter, no
-      // items are visible, so the header hides too.
-      let el=h.nextElementSibling,vis=false;
-      while(el&&!el.classList.contains('grp-h')){
-        if(el.classList.contains('item')&&el.style.display!=="none"){vis=true;break}
-        el=el.nextElementSibling;
+      // Toggle a class instead of writing style.display inline —
+      // class toggle is faster than style write, and the rule
+      // `.sec .item.hidden { display:none }` lives in CSS.
+      const it = itemEls[j];
+      if (isVisible) {
+        if (it.classList.contains('h')) it.classList.remove('h');
+        visCount++;
+      } else {
+        if (!it.classList.contains('h')) it.classList.add('h');
       }
-      h.style.display=vis?"":"none";
-    });
-    sec.style.display=visCount?"":"none";
-    sec.querySelector('.sec-count').textContent=visCount;
-    if(visCount)anyVisible=true;
-    if(filtering&&visCount)sec.open=true;
-    if(!filtering)sec.open=false;
-  });
+    }
+
+    // grp-h visibility: visible iff at least one following .item
+    // is visible. Cached on render.
+    const grpHs = sec._grpHs;
+    for (let g = 0; g < grpHs.length; g++) {
+      const gh = grpHs[g];
+      let vis = false;
+      for (let k = gh._first; k <= gh._last; k++) {
+        if (!itemEls[k].classList.contains('h')) { vis = true; break; }
+      }
+      if (vis) {
+        if (gh.classList.contains('h')) gh.classList.remove('h');
+      } else {
+        if (!gh.classList.contains('h')) gh.classList.add('h');
+      }
+    }
+    if (visCount) {
+      if (sec.classList.contains('h')) sec.classList.remove('h');
+      anyVisible=true;
+    } else {
+      if (!sec.classList.contains('h')) sec.classList.add('h');
+    }
+    sec._countEl.textContent = visCount;
+    // No auto-open/close on filter — the user controls which
+    // sections are expanded. Section counts (sec-count) update
+    // regardless so they can see which sections have matches
+    // without clicking.
+  }
   emptyEl.classList.toggle('show',!anyVisible);
+  // Mirror section visibility onto the quick-jump nav: hidden
+  // section → hidden jump link. Uses the cached _jumpLinks list
+  // to avoid querying both sides per filter pass.
+  for (let i = 0; i < _jumpLinks.length; i++) {
+    const jl = _jumpLinks[i];
+    const sec = _sectionEls[i];
+    if (sec.classList.contains('h')) {
+      if (!jl.classList.contains('h')) jl.classList.add('h');
+    } else {
+      if (jl.classList.contains('h')) jl.classList.remove('h');
+    }
+  }
 }
 
 menuEl.addEventListener('click',e=>{
@@ -360,7 +668,15 @@ menuEl.addEventListener('click',e=>{
   const open=item.classList.toggle('open');
   btn.setAttribute('aria-expanded',open);
 });
-qEl.addEventListener('input',applyFilters);
+// Search input — debounced so each keystroke doesn't immediately
+// fire a full pass. 30ms is below the 1-frame budget at 30fps and
+// well below human-perceptible lag, but coalesces rapid typing
+// (e.g. "wafffle" → 6 keystrokes collapse to 2 filter passes).
+let _qDebounce = 0;
+qEl.addEventListener('input',()=>{
+  clearTimeout(_qDebounce);
+  _qDebounce = setTimeout(applyFilters, 30);
+});
 chipsEl.addEventListener('click',e=>{
   const chip=e.target.closest('.chip');
   if(!chip)return;
@@ -370,11 +686,180 @@ chipsEl.addEventListener('click',e=>{
   chip.setAttribute('aria-pressed',on);
   updateBanner();
   applyFilters();
+  syncClearAll();
 });
 
+// Invert filter toggle. When on, the avoid set is treated as
+// "show only items that list these" instead of "hide items that
+// list these". The anchor rule is skipped in invert mode (the
+// user is explicitly looking for items with the allergen).
+// Off by default, deliberate to enable, easy to spot when on
+// (yellow pill, bold "(on)", italic hint becomes solid).
+function setInvert(on){
+  invert=on;
+  invertToggleEl.setAttribute('aria-pressed',on?'true':'false');
+  invertStateEl.textContent=on?'(on)':'(off)';
+  modeHintEl.textContent=on
+    ? 'Showing only items that list the selected allergens'
+    : 'Hide items that list the selected allergens';
+  modeHintEl.classList.toggle('inverted',on);
+  updateBanner();
+  applyFilters();
+  // Update URL hash so the mode survives reloads and can be shared
+  const h=new URL(location.href).hash.replace(/^#/,'').split('&').filter(p=>p&&!p.startsWith('invert=')).join('&');
+  const next=on?'invert=1':'';
+  const merged=[h,next].filter(Boolean).join('&');
+  history.replaceState(null,'','#'+(merged||''));
+}
+invertToggleEl.addEventListener('click',()=>setInvert(!invert));
+
+// "Clear all" button: appears the moment any allergen or search is
+// active. Wipes both, gives focus back to the search box.
+const clearAllEl=document.getElementById('clearAll');
+const clearAllCountEl=document.getElementById('clearAllCount');
+const emptyClearEl=document.getElementById('emptyClear');
+const totopEl=document.getElementById('totop');
+const jumpnavEl=document.getElementById('jumpnav');
+
+function syncClearAll(){
+  const n=avoid.size+(qEl.value.trim()?1:0);
+  if(n>0){
+    clearAllEl.hidden=false;
+    clearAllCountEl.textContent=n;
+  }else{
+    clearAllEl.hidden=true;
+  }
+}
+clearAllEl.addEventListener('click',()=>{
+  avoid.clear();
+  for(const c of chipsEl.querySelectorAll('.chip[aria-pressed="true"]')){
+    c.setAttribute('aria-pressed','false');
+  }
+  qEl.value='';
+  updateBanner();
+  applyFilters();
+  syncClearAll();
+  // No qEl.focus() — the user just hit "clear", they don't want
+  // the on-screen keyboard popping up. Focus stays wherever the
+  // user had it (or falls back to body on mobile).
+});
+emptyClearEl.addEventListener('click',()=>clearAllEl.click());
+
+// Keyboard shortcuts:
+//   "/" → focus the search box
+//   "Esc" (in search) → clear search + filters
+//   "Esc" (in body) → close any open item details
+document.addEventListener('keydown',e=>{
+  if(e.key==='/' && document.activeElement!==qEl
+     && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){
+    e.preventDefault();
+    qEl.focus();
+    qEl.select();
+  }else if(e.key==='Escape'){
+    if(document.activeElement===qEl && (qEl.value||avoid.size)){
+      clearAllEl.click();
+    }else if(document.activeElement===qEl){
+      qEl.blur();
+    }else{
+      // Close any expanded items
+      for(const open of menuEl.querySelectorAll('.item.open')){
+        open.classList.remove('open');
+        open.querySelector('.item-row')?.setAttribute('aria-expanded','false');
+      }
+    }
+  }else if(e.key==='i' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)
+     && !e.ctrlKey && !e.metaKey && !e.altKey){
+    // "i" toggles invert-filter mode. Ignored while typing so
+    // search box input is not affected.
+    e.preventDefault();
+    setInvert(!invert);
+  }
+});
+
+// Back-to-top: appears after the user has scrolled past the sign.
+let ticking=false;
+function onScroll(){
+  if(ticking)return;
+  ticking=true;
+  requestAnimationFrame(()=>{
+    totopEl.hidden = window.scrollY < 400;
+    // Highlight the current section in the jump-nav (IntersectionObserver-free,
+    // so no perf hit on a 221-item page).
+    const sections = menuEl.querySelectorAll('details.sec');
+    let current=null;
+    for(const s of sections){
+      if(s.style.display==='none')continue;
+      const r=s.getBoundingClientRect();
+      if(r.top < 120 && r.bottom > 0) current=s;
+    }
+    for(const a of jumpnavEl.querySelectorAll('a')){
+      a.setAttribute('aria-current', current && a.getAttribute('href')==='#'+current.id ? 'true' : 'false');
+    }
+    ticking=false;
+  });
+}
+window.addEventListener('scroll',onScroll,{passive:true});
+totopEl.addEventListener('click',()=>{
+  window.scrollTo({top:0,behavior:'smooth'});
+  menuEl.focus({preventScroll:true});
+});
+
+// Build the quick-jump nav after render() runs.
+function buildJumpnav(){
+  const sections = menuEl.querySelectorAll('details.sec');
+  if(!sections.length)return;
+  // Each section has a unique id assigned by render(); use that as the hash target.
+  let html='<span class="jumpnav-label">Jump to</span>';
+  for(const s of sections){
+    const t=s.querySelector('.sec-title')?.textContent||'';
+    if(!t)continue;
+    html+=`<a href="#${s.id}">${esc(t)}</a>`;
+  }
+  jumpnavEl.innerHTML=html;
+  // Cache the <a> list in the same order as _sectionEls so
+  // applyFilters can mirror visibility in a single tight loop
+  // without querying either side per keystroke.
+  _jumpLinks = sections.map(s => jumpnavEl.querySelector(`a[href="#${s.id}"]`)).filter(Boolean);
+  jumpnavEl.addEventListener('click',e=>{
+    const a=e.target.closest('a');
+    if(!a)return;
+    e.preventDefault();
+    const target=document.getElementById(a.getAttribute('href').slice(1));
+    if(target){
+      // Account for sticky controls (~96px tall: sign + search + chips)
+      const y=target.getBoundingClientRect().top + window.scrollY - 96;
+      window.scrollTo({top:y,behavior:'smooth'});
+    }
+  });
+}
+
+// JSON-LD structured data: Google rich-results for Menu. Generated
+// from the same data the page renders (via buildStructuredData in
+// filter.mjs, the same module the test suite imports).
+function injectStructuredData(data){
+  for(const block of buildStructuredData(data)){
+    const s=document.createElement('script');
+    s.type='application/ld+json';
+    s.textContent=JSON.stringify(block);
+    document.head.appendChild(s);
+  }
+}
+
 if(window.MENU_DATA&&window.MENU_DATA.sections){
+  // Read the invert state from the URL hash before the first
+  // render so the initial paint already reflects the mode.
+  const hash=new URL(location.href).hash.replace(/^#/,'');
+  const params=new URLSearchParams(hash);
+  setInvert(params.get('invert')==='1');
   render(window.MENU_DATA);
+  buildJumpnav();
+  injectStructuredData(window.MENU_DATA);
+  syncClearAll();
+  onScroll();
+  // Hide the loading indicator now that the menu is rendered.
+  document.getElementById('loading').classList.remove('show');
 }else{
+  document.getElementById('loading').classList.remove('show');
   document.getElementById('loadErr').classList.add('show');
 }
 </script>

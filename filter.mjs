@@ -38,13 +38,58 @@ export function annotateSections(sections) {
     let hasSubcat = false;
     let anchorA = null;
     const flatItems = [];
+    // Per-meal state. A "meal" is one or more consecutive
+    // non-subcat groups plus the subcat groups that immediately
+    // follow them. The PDF lists toppings (e.g. "Pecans" under
+    // Waffles) as their own non-subcat lines, not under the
+    // "Toppings:" subcat — we still want them gated by the
+    // Waffle's anchor, not their own. So consecutive non-subcat
+    // groups share one meal; a new meal starts when a non-subcat
+    // group follows a subcat group (or is the first group).
+    let prevWasSubcat = true; // so the first non-subcat opens a meal
+    let mealAnchor = [];
+    let mealHasSubcat = false;
+    let mealItemStart = 0; // flatItems index where current meal's items begin
     for (const gr of sec.groups) {
       const subcat = isSubcat(gr.h);
-      if (subcat) hasSubcat = true;
+      if (subcat) {
+        hasSubcat = true;
+        if (!mealHasSubcat) {
+          mealHasSubcat = true;
+          // Backfill: the items in the meal group (pushed before
+          // this subcat) also need mealHasSubcat=true, so the
+          // anchor rule fires for them too. Without this, a
+          // meal with [main, side, side, subcat, subcat] would
+          // only gate the subcat items.
+          for (let i = mealItemStart; i < flatItems.length; i++) {
+            flatItems[i].mealHasSubcat = true;
+          }
+        }
+        prevWasSubcat = true;
+      } else {
+        if (prevWasSubcat) {
+          // New meal starts. Its anchor is the first item in the
+          // group; mealHasSubcat resets until a subcat group shows up.
+          mealAnchor = gr.items[0] ? (gr.items[0].a || []) : [];
+          mealItemStart = flatItems.length;
+          mealHasSubcat = false;
+          if (anchorA === null) anchorA = mealAnchor;
+        }
+        // If prevWasSubcat is false, this non-subcat group is a
+        // continuation of the current meal (e.g. Pecans after
+        // Waffle). Don't reset the anchor — it stays the first
+        // item of the first non-subcat group in the meal.
+        prevWasSubcat = false;
+      }
       for (const it of gr.items) {
         const a = it.a || [];
-        if (anchorA === null && !subcat) anchorA = a;
-        flatItems.push({ name: it.n, a, subcat });
+        flatItems.push({
+          name: it.n,
+          a,
+          subcat,
+          mealAnchor,
+          mealHasSubcat,
+        });
       }
     }
     return {
@@ -69,18 +114,31 @@ export function annotateSections(sections) {
  * anchor rule — you can still search for "pecan" inside a
  * section that an allergen filter has not gated.
  */
-export function computeVisibility(annotatedSections, avoid, q) {
+export function computeVisibility(annotatedSections, avoid, q, opts) {
   const avoidSet = new Set(avoid || []);
   const qLower = (q || "").toLowerCase();
+  // Invert mode flips the per-item allergen check from "hide
+  // matches" to "show only matches". The anchor rule does NOT
+  // fire in invert mode — the user is explicitly looking for
+  // items with the allergen, so hiding the whole meal just
+  // because the anchor has it would defeat the purpose. Search
+  // is still applied as an AND.
+  const invert = !!(opts && opts.invert);
   return annotatedSections.map((sec) => {
-    const anchorFiltered =
-      sec.hasSubcat &&
-      avoidSet.size > 0 &&
-      sec.anchorA.some((a) => avoidSet.has(a));
     const flatItems = sec.flatItems.map((it) => {
-      if (anchorFiltered) return { ...it, visible: false };
+      if (!invert) {
+        if (
+          avoidSet.size > 0 &&
+          it.mealHasSubcat &&
+          it.mealAnchor.some((a) => avoidSet.has(a))
+        ) {
+          return { ...it, visible: false };
+        }
+      }
       const okQ = !qLower || it.name.toLowerCase().includes(qLower);
-      const okA = !it.a.some((a) => avoidSet.has(a));
+      const okA = invert
+        ? it.a.some((a) => avoidSet.has(a))
+        : !it.a.some((a) => avoidSet.has(a));
       return { ...it, visible: okQ && okA };
     });
     return { ...sec, flatItems };
@@ -92,9 +150,9 @@ export function computeVisibility(annotatedSections, avoid, q) {
  * after filtering. Used by tests and by the section count
  * chip in the header.
  */
-export function countVisibleBySection(annotatedSections, avoid, q) {
+export function countVisibleBySection(annotatedSections, avoid, q, opts) {
   const out = {};
-  for (const sec of computeVisibility(annotatedSections, avoid, q)) {
+  for (const sec of computeVisibility(annotatedSections, avoid, q, opts)) {
     out[sec.title] = sec.flatItems.filter((it) => it.visible).length;
   }
   return out;
@@ -104,10 +162,66 @@ export function countVisibleBySection(annotatedSections, avoid, q) {
  * List of visible item names per section. Used by tests for
  * more specific assertions than a count alone.
  */
-export function visibleBySection(annotatedSections, avoid, q) {
+export function visibleBySection(annotatedSections, avoid, q, opts) {
   const out = {};
-  for (const sec of computeVisibility(annotatedSections, avoid, q)) {
+  for (const sec of computeVisibility(annotatedSections, avoid, q, opts)) {
     out[sec.title] = sec.flatItems.filter((it) => it.visible).map((it) => it.name);
   }
   return out;
+}
+
+/**
+ * Build the JSON-LD structured-data blocks for SEO. Returns an
+ * array of `{ type, payload }` objects; the page appends them as
+ * <script type="application/ld+json"> tags. We return a 2-tuple
+ * — WebSite + Menu — so a future addition (e.g. Organization)
+ * drops in without breaking the contract.
+ *
+ * The Menu schema mirrors the data the page renders, so the
+ * rich-results data never drifts from the on-page menu.
+ */
+export function buildStructuredData(data) {
+  const website = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Waffle Stats",
+    "url": "https://wafflestats.com/",
+    "description":
+      "Full Waffle House menu with per-item calories and the chain's own allergen column.",
+  };
+  const menu = {
+    "@context": "https://schema.org",
+    "@type": "Menu",
+    "name": "Waffle House Menu",
+    "inLanguage": "en",
+    "hasMenuSection": (data.sections || []).map((sec) => ({
+      "@type": "MenuSection",
+      "name": sec.title,
+      "hasMenuItem": sec.groups
+        .flatMap((g) => g.items)
+        .map((it) => {
+          const n = {
+            "@type": "MenuItem",
+            "name": it.n,
+            "nutrition": {
+              "@type": "NutritionInformation",
+              "calories": String(it.d[0] || 0),
+              "fatContent": (it.d[1] || 0) + " g",
+              "saturatedFatContent": (it.d[2] || 0) + " g",
+              "transFatContent": (it.d[3] || 0) + " g",
+              "cholesterolContent": (it.d[4] || 0) + " mg",
+              "sodiumContent": (it.d[5] || 0) + " mg",
+              "carbohydrateContent": (it.d[6] || 0) + " g",
+              "fiberContent": (it.d[7] || 0) + " g",
+              "sugarContent": (it.d[8] || 0) + " g",
+              "proteinContent": (it.d[9] || 0) + " g",
+            },
+          };
+          if (it.note) n.description = it.note;
+          if (it.a && it.a.length) n.suitableForDiet = `Avoid: ${it.a.join(", ")}`;
+          return n;
+        }),
+    })),
+  };
+  return [website, menu];
 }
