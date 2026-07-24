@@ -32,8 +32,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="preload" as="script" href="data/menu.js">
 <link rel="modulepreload" href="filter.mjs">
+<link rel="preload" as="script" href="data/menu.js" crossorigin>
 <style>
 :root{
   --yellow:#FFD200;
@@ -222,11 +222,27 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 .facts dd{font-weight:600}
 .facts .allerg{margin-top:7px;padding-top:7px;border-top:1.5px solid var(--line);font-size:11.5px;color:var(--brown)}
 
-.empty,.load-err{
+.empty,.load-err,.loading{
   display:none;text-align:center;padding:44px 20px;color:var(--brown);
   font-family:"IBM Plex Mono",monospace;font-size:13px;
 }
-.empty.show,.load-err.show{display:block}
+.empty.show,.load-err.show,.loading.show{display:block}
+/* Loading indicator. Shown until render() replaces the menu
+   with the rendered sections. The 3 dots use a CSS-only
+   animation so they don't depend on JS. */
+.loading{color:var(--ink)}
+.loading-dots::after{
+  content:"";
+  display:inline-block;width:1.4em;text-align:left;
+  animation:ldots 1.2s steps(4,end) infinite;
+}
+@keyframes ldots{
+  0%{content:""}
+  25%{content:"."}
+  50%{content:".."}
+  75%{content:"..."}
+  100%{content:""}
+}
 
 footer{
   max-width:640px;margin:0 auto;padding:18px 16px 34px;
@@ -396,6 +412,9 @@ main:focus{outline:none}
   <p class="empty-title">Nothing matches.</p>
   <p class="empty-sub">Try a shorter search or <button type="button" class="empty-clear" id="emptyClear">clear your filters</button>.</p>
 </div>
+<div class="loading show" id="loading" role="status" aria-live="polite" aria-busy="true">
+  <span class="loading-dots" aria-hidden="true"></span>Loading the menu…
+</div>
 <div class="load-err" id="loadErr" role="alert">Menu data not found. Run <code>python scripts/sync.py</code> to generate data/menu.js.</div>
 
 <button type="button" class="totop" id="totop" aria-label="Back to top" hidden>↑ Top</button>
@@ -413,7 +432,7 @@ main:focus{outline:none}
   <p>This site auto-syncs from wafflehouse.com and is not affiliated with Waffle House, Inc.</p>
 </footer>
 
-<script src="data/menu.js"></script>
+<script src="data/menu.js" defer></script>
 <script type="module">
 // filter.mjs is the single source of truth for the filter rule.
 // Imported here for the page and by test/filter.test.mjs for the
@@ -837,7 +856,10 @@ if(window.MENU_DATA&&window.MENU_DATA.sections){
   injectStructuredData(window.MENU_DATA);
   syncClearAll();
   onScroll();
+  // Hide the loading indicator now that the menu is rendered.
+  document.getElementById('loading').classList.remove('show');
 }else{
+  document.getElementById('loading').classList.remove('show');
   document.getElementById('loadErr').classList.add('show');
 }
 </script>
