@@ -494,17 +494,20 @@ test("jumpnav: scroll-spy picks the section the user is in (header at/above cont
   );
 });
 
-test("jumpnav: --jump-offset matches the controls bar height", () => {
-  // The scroll-margin-top value (--jump-offset) is what
-  // determines where a jumped-to section lands relative to
-  // the viewport top. It should match the actual controls
-  // bar height (179px) so the section title lands right
-  // below the controls, not floating with a gap.
+test("jumpnav: --jump-offset accounts for the 16px summary padding", () => {
+  // The scroll-margin-top value (--jump-offset) positions
+  // the <details> top at that offset from the viewport top.
+  // The <summary> (the visible title) has padding:16px 2px
+  // 14px, so the title text is 16px below the <details> top.
+  //
+  // For the title to land right at the controls bottom
+  // (~179px), --jump-offset must be ~163px. We allow
+  // 155-175px to account for controls height variations.
   const rootMatch = indexHtml.match(/:root\s*\{[^}]*--jump-offset\s*:\s*(\d+)px/u);
   assert.ok(rootMatch, "--jump-offset not found in :root");
   const offset = parseInt(rootMatch[1], 10);
   assert.ok(
-    offset >= 170 && offset <= 200,
-    `--jump-offset must be 170-200px (matches the ~179px controls bar). Got: ${offset}px`
+    offset >= 155 && offset <= 175,
+    `--jump-offset must be 155-175px (controls ~179px minus 16px summary padding = ~163px). Got: ${offset}px`
   );
 });
