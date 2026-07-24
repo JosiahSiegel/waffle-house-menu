@@ -60,6 +60,11 @@ UPDATED_RE = re.compile(r"Updated (\d{2}/\d{2}/\d{2})")
 GROUP_LABEL_RE = re.compile(
     r"^(Toppings|Add-?Ons?|Meats|Includes|Plus your choice of)\s*:?\s*", re.I
 )
+# Subcategory labels always start a fresh group on each occurrence. "Plus
+# your choice of:" maps to "Choices" and can appear many times per section
+# (one per meal); without this, the parser collapses every "Plus your
+# choice of:" block in a multi-meal section into a single group.
+SUBCAT_LABELS = {"Choices", "Toppings", "Add-ons", "Meats", "Includes"}
 
 # Canonical section key -> display title. Keys are normalized (lowercase, no
 # trademark glyphs, "continued" stripped). Covers section names seen across
@@ -229,17 +234,32 @@ def parse_pdf(pdf_path):
         nonlocal cur_group
         if cur_sec is None:
             ensure_section("Menu")
+        is_explicit_subcat = group is not None and group in SUBCAT_LABELS
         if group is not None:
             cur_group = group
         # a new "... Bowl" total line ends any Includes component block
         if cur_group == "Includes" and group is None and re.search(r"Bowl$", name):
             cur_group = None
+        # Look up the current group. We scan in REVERSE so that, for
+        # subcat labels ("Choices", "Meats", etc.) that appear multiple
+        # times in one section, we always pick the most recently created
+        # group — i.e. the one we just opened on this "Plus your choice
+        # of:" line. The parser is strictly sequential, so "last with
+        # this header" == "the one we just made."
+        grp = None
+        if not is_explicit_subcat and cur_group is not None:
+            for g in reversed(cur_sec["groups"]):
+                if g["h"] == cur_group:
+                    grp = g
+                    break
+        # De-dup within the current group only. Scanning every group in the
+        # section dropped legitimate repeats (e.g. White Toast appears in
+        # every omelet meal with identical nutrition).
         key = (name, tuple(nums))
-        for g in cur_sec["groups"]:
-            for it in g["items"]:
+        if grp is not None:
+            for it in grp["items"]:
                 if (it["n"], tuple(it["d"])) == key:
-                    return  # de-dup repeated choice blocks within a section
-        grp = next((g for g in cur_sec["groups"] if g["h"] == cur_group), None)
+                    return
         if grp is None:
             grp = {"h": cur_group, "items": []}
             cur_sec["groups"].append(grp)
@@ -258,6 +278,13 @@ def parse_pdf(pdf_path):
         else:
             g, n, _ = split_name(ln)
             cur_group = n or g or ln
+            # Standalone "Plus your choice of:" (no items after the colon,
+            # e.g. Fiesta Omelet) lands here. split_name returns the group
+            # "Choices" with no name. We must open a FRESH group, not just
+            # set cur_group — otherwise the next item gets bucketed into
+            # the previous meal's "Choices" group.
+            if n is None and g in SUBCAT_LABELS:
+                cur_sec["groups"].append({"h": cur_group, "items": []})
 
     for ln in lines:
         if SKIP_RE.match(ln):
