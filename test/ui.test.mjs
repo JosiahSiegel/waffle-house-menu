@@ -335,3 +335,36 @@ test("kids-meals: star marker (★) appears in both the jump link and the sectio
     "kids section summary ::before must contain a star marker"
   );
 });
+
+test("jumpnav-label: is styled as a prominent pill button, not plain text", () => {
+  // The "Jump to" label was a small brown text — easy to miss.
+  // It should look like a proper pill/button (black bg, white
+  // text) so it stands out from the category links it labels.
+  const labelMatch = indexHtml.match(/\.jumpnav-label\s*\{[^}]*\}/u);
+  assert.ok(labelMatch, ".jumpnav-label CSS not found");
+  assert.match(
+    labelMatch[0],
+    /background\s*:\s*var\(--black\)|background\s*:\s*#000/u,
+    ".jumpnav-label must have a black pill background"
+  );
+  assert.match(
+    labelMatch[0],
+    /color\s*:\s*#fff/u,
+    ".jumpnav-label must have white text (contrast on black pill)"
+  );
+  assert.match(
+    labelMatch[0],
+    /border-radius\s*:\s*999px/u,
+    ".jumpnav-label must be rounded (pill shape)"
+  );
+});
+
+test("jumpnav-label: has a downward arrow icon (↓) to signal 'scroll to'", () => {
+  // The arrow reinforces the meaning of the label — this is
+  // a navigation control, not just a heading.
+  assert.match(
+    indexHtml,
+    /\.jumpnav-label::before\s*\{[^}]*content\s*:\s*['"]↓/u,
+    ".jumpnav-label ::before must contain a down-arrow"
+  );
+});
