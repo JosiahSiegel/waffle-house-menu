@@ -409,3 +409,49 @@ test("jumpnav: nested inside .controls so it sticks to the top on scroll", () =>
     `<nav class="jumpnav"> (at index ${jumpnavIdx}) must be INSIDE <div class="controls"> (closes at index ${controlsEnd})`
   );
 });
+
+test("jumpnav: pills are vertically centered (symmetric padding)", () => {
+  // User: "the jump to buttons are not centered between the
+  // top and bottom lines". Caused by asymmetric padding
+  // (2px top, 4px bottom) which pushed the pills toward the
+  // top of the row. Fix: symmetric padding 6px 14px with
+  // min-height 40px and align-items:center.
+  const jnMatch = indexHtml.match(/\.jumpnav\s*\{[^}]*\}/u);
+  assert.ok(jnMatch, ".jumpnav CSS not found");
+  const css = jnMatch[0];
+  // Padding should be 6px on top and bottom (symmetric)
+  assert.match(
+    css,
+    /padding\s*:\s*6px\s+14px/u,
+    ".jumpnav padding must be symmetric (6px vertical, 14px horizontal)"
+  );
+  // min-height ensures the row is tall enough for the pills
+  // to be visibly centered even if content is shorter
+  assert.match(
+    css,
+    /min-height\s*:\s*\d+px/u,
+    ".jumpnav must have a min-height to anchor the vertical centering"
+  );
+  // align-items:center is required for the flex children to
+  // sit on the cross axis center
+  assert.match(
+    css,
+    /align-items\s*:\s*center/u,
+    ".jumpnav must use align-items:center to center pills on the cross axis"
+  );
+});
+
+test("jumpnav: scroll-spy scrolls the active link into the visible center", () => {
+  // User: "can we have the jump to buttons stay in sync with
+  // menu item scrolling". The jumpnav is horizontally
+  // scrollable (overflow-x:auto). When the user scrolls into
+  // a section whose link is off-screen to the right, the
+  // active state changes but the user can't SEE which section
+  // they're in. Fix: scrollIntoView({inline:'center'}) on
+  // the active link so the jumpnav auto-scrolls to show it.
+  assert.match(
+    indexHtml,
+    /scrollIntoView\s*\(\s*\{[^}]*inline\s*:\s*['"]center['"]/u,
+    "setActiveJumpLink must call scrollIntoView with inline:'center' to keep the active link visible"
+  );
+});
