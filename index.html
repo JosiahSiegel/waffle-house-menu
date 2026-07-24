@@ -876,6 +876,13 @@ if(window.MENU_DATA&&window.MENU_DATA.sections){
   onScroll();
   // Hide the loading indicator now that the menu is rendered.
   document.getElementById('loading').classList.remove('show');
+  // Now that the menu is in the DOM, run the filter pass so
+  // the empty state is correctly managed. Without this,
+  // setInvert() above would have added .show to the empty div
+  // (because _sectionEls was empty at the time), and the empty
+  // "Nothing matches" message would stay visible on top of the
+  // freshly rendered menu.
+  applyFilters();
 }else{
   document.getElementById('loading').classList.remove('show');
   document.getElementById('loadErr').classList.add('show');
