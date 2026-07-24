@@ -38,13 +38,45 @@ export function annotateSections(sections) {
     let hasSubcat = false;
     let anchorA = null;
     const flatItems = [];
+    // Per-meal state. A "meal" is a non-subcat group plus the
+    // subcat groups that immediately follow it. Each meal has
+    // its own anchor (first item in the meal group) and its
+    // own hasSubcat flag, so the per-meal anchor rule can fire.
+    let mealAnchor = [];
+    let mealHasSubcat = false;
+    let mealItemStart = 0; // flatItems index where current meal's items begin
     for (const gr of sec.groups) {
       const subcat = isSubcat(gr.h);
-      if (subcat) hasSubcat = true;
+      if (subcat) {
+        hasSubcat = true;
+        if (!mealHasSubcat) {
+          mealHasSubcat = true;
+          // Backfill: the items in the meal group (pushed before
+          // this subcat) also need mealHasSubcat=true, so the
+          // anchor rule fires for them too. Without this, a
+          // meal with [main, side, side, subcat, subcat] would
+          // only gate the subcat items.
+          for (let i = mealItemStart; i < flatItems.length; i++) {
+            flatItems[i].mealHasSubcat = true;
+          }
+        }
+      } else {
+        // New meal starts. Its anchor is the first item in the
+        // group; mealHasSubcat resets until a subcat group shows up.
+        mealAnchor = gr.items[0] ? (gr.items[0].a || []) : [];
+        mealItemStart = flatItems.length;
+        mealHasSubcat = false;
+        if (anchorA === null) anchorA = mealAnchor;
+      }
       for (const it of gr.items) {
         const a = it.a || [];
-        if (anchorA === null && !subcat) anchorA = a;
-        flatItems.push({ name: it.n, a, subcat });
+        flatItems.push({
+          name: it.n,
+          a,
+          subcat,
+          mealAnchor,
+          mealHasSubcat,
+        });
       }
     }
     return {
@@ -73,12 +105,18 @@ export function computeVisibility(annotatedSections, avoid, q) {
   const avoidSet = new Set(avoid || []);
   const qLower = (q || "").toLowerCase();
   return annotatedSections.map((sec) => {
-    const anchorFiltered =
-      sec.hasSubcat &&
-      avoidSet.size > 0 &&
-      sec.anchorA.some((a) => avoidSet.has(a));
     const flatItems = sec.flatItems.map((it) => {
-      if (anchorFiltered) return { ...it, visible: false };
+      // Per-meal anchor rule. Only fires when an allergen
+      // filter is active and THIS item's meal has subcats and
+      // that meal's anchor overlaps the avoid set. Other meals
+      // in the same section are unaffected.
+      if (
+        avoidSet.size > 0 &&
+        it.mealHasSubcat &&
+        it.mealAnchor.some((a) => avoidSet.has(a))
+      ) {
+        return { ...it, visible: false };
+      }
       const okQ = !qLower || it.name.toLowerCase().includes(qLower);
       const okA = !it.a.some((a) => avoidSet.has(a));
       return { ...it, visible: okQ && okA };

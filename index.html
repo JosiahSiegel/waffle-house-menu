@@ -511,8 +511,10 @@ function applyFilters(){
     sec.style.display=visCount?"":"none";
     sec.querySelector('.sec-count').textContent=visCount;
     if(visCount)anyVisible=true;
-    if(filtering&&visCount)sec.open=true;
-    if(!filtering)sec.open=false;
+    // No auto-open/close on filter — the user controls which
+    // sections are expanded. Section counts (sec-count) update
+    // regardless so they can see which sections have matches
+    // without clicking.
   });
   emptyEl.classList.toggle('show',!anyVisible);
   // Mirror section visibility onto the quick-jump nav: hidden
