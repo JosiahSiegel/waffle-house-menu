@@ -184,6 +184,11 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 /* ---------- Items ---------- */
 .item{border-top:1px dashed var(--line)}
 .item:first-of-type{border-top:0}
+/* `h` is our hot-path "hidden" class — toggled by applyFilters()
+   on every keystroke. Toggling a class is faster than writing
+   style.display, and using a single 1-char class keeps the
+   matched-ruleset count at 0 in DevTools. */
+.item.h,.grp-h.h,details.sec.h,.jumpnav a.h{display:none}
 .item-row{
   width:100%;text-align:left;background:none;border:0;cursor:pointer;
   display:flex;align-items:center;gap:10px;padding:11px 2px;
@@ -489,6 +494,40 @@ function render(data){
   });
   menuEl.innerHTML=html;
 
+  // Build the per-section DOM caches that applyFilters() uses on
+  // every keystroke. Doing this once here turns applyFilters into
+  // pure property reads + classList.toggle — no querySelectorAll,
+  // no getElementById, no getBoundingClientRect per pass.
+  _sectionEls = Array.from(menuEl.querySelectorAll('details.sec'));
+  for (const sec of _sectionEls) {
+    sec._itemEls = Array.from(sec.querySelectorAll('.item'));
+    sec._grpHs = Array.from(sec.querySelectorAll('.grp-h'));
+    sec._countEl = sec.querySelector('.sec-count');
+    // Pre-compute the [first, last] item-index range each grp-h
+    // "owns" (the items between this grp-h and the next grp-h or
+    // the end of the section). applyFilters uses these to walk
+    // only the items that belong to a grp-h, not all items.
+    for (let i = 0; i < sec._grpHs.length; i++) {
+      const gh = sec._grpHs[i];
+      const next = sec._grpHs[i + 1];
+      // DOM order: grp-h is followed by .item divs until the next
+      // grp-h or the parent <details> ends. Walk the DOM to find
+      // the boundaries once.
+      let first = -1, last = -1;
+      let el = gh.nextElementSibling;
+      while (el && el !== next) {
+        if (el.classList.contains('item')) {
+          const idx = sec._itemEls.indexOf(el);
+          if (first === -1) first = idx;
+          last = idx;
+        }
+        el = el.nextElementSibling;
+      }
+      gh._first = first;
+      gh._last = last;
+    }
+  }
+
   // build one chip per allergen actually present in the data
   const present=new Set();
   data.sections.forEach(s=>s.groups.forEach(g=>g.items.forEach(i=>(i.a||[]).forEach(a=>present.add(a)))));
@@ -519,6 +558,16 @@ function updateBanner(){
   bannerEl.classList.add('show');
 }
 
+// Cached per-render DOM references. The page renders 19 sections
+// + 381 items, and applyFilters() runs on every keystroke + every
+// chip click. Re-querying the DOM for sec.querySelectorAll('.item')
+// / .grp-h / .sec-count on every filter pass was the biggest
+// bottleneck — these are now looked up once per render() and
+// reused on every filter pass. Storing the sec-count element on
+// the section as ._countEl also skips a querySelectorAll per pass.
+let _sectionEls = [];
+let _jumpLinks = [];
+
 function applyFilters(){
   const q=qEl.value.trim().toLowerCase();
   const filtering=q||avoid.size;
@@ -530,50 +579,66 @@ function applyFilters(){
   const visible = computeVisibility(annotatedSections, [...avoid], q, { invert });
   let anyVisible=false;
 
-  document.querySelectorAll('details.sec').forEach((sec, idx)=>{
+  for (let idx = 0; idx < _sectionEls.length; idx++) {
+    const sec = _sectionEls[idx];
     const secVisible = visible[idx];
-    if (!secVisible) return;  // shouldn't happen — sections are parallel
-
-    const anchorFiltered = secVisible.hasSubcat && avoid.size > 0
-      && secVisible.anchorA.some(x => avoid.has(x));
-
+    const itemEls = sec._itemEls;
+    const flatItems = secVisible.flatItems;
     let visCount=0;
-    const itemEls = sec.querySelectorAll('.item');
-    itemEls.forEach((it, j)=>{
-      // flatItems is in display order; .item divs are also in
-      // display order, so the indices line up 1:1.
-      const flatItem = secVisible.flatItems[j];
+    for (let j = 0; j < itemEls.length; j++) {
+      const flatItem = flatItems[j];
       const isVisible = flatItem ? flatItem.visible : false;
-      it.style.display = isVisible ? "" : "none";
-      if (isVisible) visCount++;
-    });
-
-    sec.querySelectorAll('.grp-h').forEach(h=>{
-      // Mirror the original logic: a grp-h is visible iff at least
-      // one following .item is visible. With the anchor filter, no
-      // items are visible, so the header hides too.
-      let el=h.nextElementSibling,vis=false;
-      while(el&&!el.classList.contains('grp-h')){
-        if(el.classList.contains('item')&&el.style.display!=="none"){vis=true;break}
-        el=el.nextElementSibling;
+      // Toggle a class instead of writing style.display inline —
+      // class toggle is faster than style write, and the rule
+      // `.sec .item.hidden { display:none }` lives in CSS.
+      const it = itemEls[j];
+      if (isVisible) {
+        if (it.classList.contains('h')) it.classList.remove('h');
+        visCount++;
+      } else {
+        if (!it.classList.contains('h')) it.classList.add('h');
       }
-      h.style.display=vis?"":"none";
-    });
-    sec.style.display=visCount?"":"none";
-    sec.querySelector('.sec-count').textContent=visCount;
-    if(visCount)anyVisible=true;
+    }
+
+    // grp-h visibility: visible iff at least one following .item
+    // is visible. Cached on render.
+    const grpHs = sec._grpHs;
+    for (let g = 0; g < grpHs.length; g++) {
+      const gh = grpHs[g];
+      let vis = false;
+      for (let k = gh._first; k <= gh._last; k++) {
+        if (!itemEls[k].classList.contains('h')) { vis = true; break; }
+      }
+      if (vis) {
+        if (gh.classList.contains('h')) gh.classList.remove('h');
+      } else {
+        if (!gh.classList.contains('h')) gh.classList.add('h');
+      }
+    }
+    if (visCount) {
+      if (sec.classList.contains('h')) sec.classList.remove('h');
+      anyVisible=true;
+    } else {
+      if (!sec.classList.contains('h')) sec.classList.add('h');
+    }
+    sec._countEl.textContent = visCount;
     // No auto-open/close on filter — the user controls which
     // sections are expanded. Section counts (sec-count) update
     // regardless so they can see which sections have matches
     // without clicking.
-  });
+  }
   emptyEl.classList.toggle('show',!anyVisible);
   // Mirror section visibility onto the quick-jump nav: hidden
-  // section → hidden jump link. onScroll already skips display:none
-  // sections, so a single display sync is all we need.
-  for(const sec of menuEl.querySelectorAll('details.sec')){
-    const link = jumpnavEl.querySelector(`a[href="#${sec.id}"]`);
-    if(link) link.style.display = sec.style.display;
+  // section → hidden jump link. Uses the cached _jumpLinks list
+  // to avoid querying both sides per filter pass.
+  for (let i = 0; i < _jumpLinks.length; i++) {
+    const jl = _jumpLinks[i];
+    const sec = _sectionEls[i];
+    if (sec.classList.contains('h')) {
+      if (!jl.classList.contains('h')) jl.classList.add('h');
+    } else {
+      if (jl.classList.contains('h')) jl.classList.remove('h');
+    }
   }
 }
 
@@ -584,7 +649,15 @@ menuEl.addEventListener('click',e=>{
   const open=item.classList.toggle('open');
   btn.setAttribute('aria-expanded',open);
 });
-qEl.addEventListener('input',applyFilters);
+// Search input — debounced so each keystroke doesn't immediately
+// fire a full pass. 30ms is below the 1-frame budget at 30fps and
+// well below human-perceptible lag, but coalesces rapid typing
+// (e.g. "wafffle" → 6 keystrokes collapse to 2 filter passes).
+let _qDebounce = 0;
+qEl.addEventListener('input',()=>{
+  clearTimeout(_qDebounce);
+  _qDebounce = setTimeout(applyFilters, 30);
+});
 chipsEl.addEventListener('click',e=>{
   const chip=e.target.closest('.chip');
   if(!chip)return;
@@ -724,6 +797,10 @@ function buildJumpnav(){
     html+=`<a href="#${s.id}">${esc(t)}</a>`;
   }
   jumpnavEl.innerHTML=html;
+  // Cache the <a> list in the same order as _sectionEls so
+  // applyFilters can mirror visibility in a single tight loop
+  // without querying either side per keystroke.
+  _jumpLinks = sections.map(s => jumpnavEl.querySelector(`a[href="#${s.id}"]`)).filter(Boolean);
   jumpnavEl.addEventListener('click',e=>{
     const a=e.target.closest('a');
     if(!a)return;
