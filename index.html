@@ -261,11 +261,13 @@ main:focus{outline:none}
 
 /* ---------- Clear-all button ---------- */
 /* Lives in the sign header, so it's always visible and never
-   pushes the controls/jump nav. Margin is small so the sign
-   height grows by ~28px when shown. */
+   pushes the controls/jump nav. Now lives in the mode-bar
+   alongside the invert toggle (clear-all is first, then invert,
+   then the hint). When shown it appears in-place rather than
+   jumping the sign down by 28px. */
 .clear-all{
   display:inline-flex;align-items:center;gap:6px;
-  margin:8px auto 0;padding:4px 12px;
+  margin:0;padding:4px 12px;
   font:inherit;font-size:11.5px;font-weight:600;
   background:var(--yellow);color:var(--black);
   border:0;border-radius:999px;
@@ -361,7 +363,6 @@ main:focus{outline:none}
   </div>
   <p class="sign-sub">Full Menu · Nutrition · Allergens</p>
   <p class="sign-meta" id="meta"></p>
-  <button type="button" class="clear-all" id="clearAll" hidden>Clear all filters <span class="clear-all-count" id="clearAllCount"></span></button>
 </header>
 
 <div class="controls" role="search">
@@ -374,6 +375,7 @@ main:focus{outline:none}
     <span class="chips-label">Avoid:</span>
   </div>
   <div class="mode-bar">
+    <button type="button" class="clear-all" id="clearAll" hidden>Clear all filters <span class="clear-all-count" id="clearAllCount"></span></button>
     <button type="button" class="invert-toggle" id="invertToggle" aria-pressed="false" title="Show only items that list the selected allergens, instead of hiding them. Keyboard: i">
       <span class="invert-dot" aria-hidden="true"></span>
       Invert filter <span class="invert-state" id="invertState">(off)</span>
