@@ -77,29 +77,10 @@ on every PR and every push to `main`.
 
 ## PR previews
 
-Every PR gets a live preview URL automatically. Pick one of these
-free services (both take ~2 min to set up; do it once and forget):
-
-**Netlify** (recommended — easiest)
-
-1. Sign up at <https://app.netlify.com/> with your GitHub account.
-2. Click "Add new site" → "Import an existing project" → pick
-   `JosiahSiegel/waffle-house-menu`.
-3. Netlify reads `netlify.toml` in the repo, auto-fills the build
-   settings, and deploys. Done.
-4. From then on, every PR has a comment like:
-   > "Deploy Preview ready: <https://deploy-preview-2--waffle-house-menu.netlify.app>"
-
-**Cloudflare Pages** (if you already have Cloudflare for wafflestats.com)
-
-1. Sign in at <https://dash.cloudflare.com/>.
-2. Workers & Pages → Create → Pages → Connect to Git → pick the repo.
-3. Build command: *(empty)* · Build output: `/`.
-4. Done. Cloudflare auto-comments with a `*.waffle-house-menu.pages.dev`
-   URL per PR.
-
-The repo is configured for both. If you don't want either, you can
-always download a PR's branch as a zip and `open index.html` locally.
+`netlify.toml` is in the repo so Netlify auto-detects the static
+site. Sign up at <https://app.netlify.com/>, import this repo, and
+every PR gets a preview URL in its comment thread. Takes ~2 min,
+free, doesn't touch GitHub Pages or the live site.
 
 ## Notes
 
