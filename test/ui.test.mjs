@@ -245,8 +245,8 @@ test("jump-nav: scroll-spy uses IntersectionObserver with --jump-offset rootMarg
   );
   assert.match(
     indexHtml,
-    /rootMargin\s*:\s*['"]-200px/u,
-    "scroll-spy rootMargin must start with -200px (matches --jump-offset)"
+    /rootMargin\s*:\s*['"]-179px/u,
+    "scroll-spy rootMargin must start with -179px (matches the 179px controls bar height so the active band starts right below the controls)"
   );
   assert.match(
     indexHtml,
@@ -453,5 +453,47 @@ test("jumpnav: scroll-spy scrolls the active link into the visible center", () =
     indexHtml,
     /scrollIntoView\s*\(\s*\{[^}]*inline\s*:\s*['"]center['"]/u,
     "setActiveJumpLink must call scrollIntoView with inline:'center' to keep the active link visible"
+  );
+});
+
+test("jumpnav: scroll-spy rootMargin targets the section RIGHT UNDER the controls", () => {
+  // User: "have it aligned a little better so the visible
+  // category right under the jump to nav is the one selected".
+  //
+  // Old rootMargin was -200px 0 -60% 0 — the active band
+  // extended from 200px to 40% of viewport (360px on 900h),
+  // so a section in the middle of the screen would activate,
+  // not the one at the top.
+  //
+  // New rootMargin is -179px 0 -75% 0 — active band is from
+  // 179px (bottom of controls) to 25% of viewport (~225px
+  // on 900h). The active section is the one whose title is
+  // RIGHT BELOW the jumpnav, not further down.
+  const rootMargin = indexHtml.match(/rootMargin\s*:\s*['"]([^'"]+)['"]/u);
+  assert.ok(rootMargin, "rootMargin not found in scroll-spy");
+  assert.match(
+    rootMargin[1],
+    /-179px/u,
+    "rootMargin top must be -179px (matches the 179px-tall controls bar) so the active band starts at the bottom of the controls"
+  );
+  assert.match(
+    rootMargin[1],
+    /-75%/u,
+    "rootMargin bottom must be -75% (active band is only the top 25% of the viewport) so the section right under the controls is the one selected"
+  );
+});
+
+test("jumpnav: --jump-offset matches the controls bar height", () => {
+  // The scroll-margin-top value (--jump-offset) is what
+  // determines where a jumped-to section lands relative to
+  // the viewport top. It should match the actual controls
+  // bar height (179px) so the section title lands right
+  // below the controls, not floating with a gap.
+  const rootMatch = indexHtml.match(/:root\s*\{[^}]*--jump-offset\s*:\s*(\d+)px/u);
+  assert.ok(rootMatch, "--jump-offset not found in :root");
+  const offset = parseInt(rootMatch[1], 10);
+  assert.ok(
+    offset >= 170 && offset <= 200,
+    `--jump-offset must be 170-200px (matches the ~179px controls bar). Got: ${offset}px`
   );
 });
