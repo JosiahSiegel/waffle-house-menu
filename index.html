@@ -357,6 +357,46 @@ main:focus{outline:none}
 .jumpnav a:focus-visible{outline:3px solid var(--yellow);outline-offset:1px}
 .jumpnav a[aria-current="true"]{background:var(--black);color:var(--yellow);border-color:var(--black)}
 
+/* Fun colors for the Kids Meals section header + its jump link.
+   "Kids" is the one category that gets a playful palette — bright
+   candy-pink and sky-blue accents so kids can spot their menu
+   section without asking. The header background uses a
+   pink→blue gradient (top→bottom); the jump link uses the same
+   gradient at idle and a flipped blue→pink when active. */
+.jumpnav a[href="#sec-kids-meals"]{
+  background:linear-gradient(90deg,#ff5b9c 0%,#ffb13a 50%,#3ec5f1 100%);
+  color:#fff;border-color:#ff5b9c;font-weight:700;
+  box-shadow:0 1px 0 rgba(0,0,0,.08);
+}
+.jumpnav a[href="#sec-kids-meals"]:hover{
+  filter:brightness(1.05);
+  border-color:#ff3d8a;
+  box-shadow:0 2px 4px rgba(255,91,156,.35);
+}
+.jumpnav a[href="#sec-kids-meals"][aria-current="true"]{
+  background:linear-gradient(90deg,#3ec5f1 0%,#ffb13a 50%,#ff5b9c 100%);
+  color:#fff;border-color:#3ec5f1;
+}
+.jumpnav a[href="#sec-kids-meals"]::before{
+  content:"★ ";font-weight:700;letter-spacing:0;
+}
+details#sec-kids-meals>summary{
+  background:linear-gradient(180deg,#ff5b9c 0%,#ffb13a 55%,#3ec5f1 100%);
+  color:#fff;border-radius:6px 6px 0 0;padding:6px 10px;margin:0 -10px;
+}
+details#sec-kids-meals>summary .sec-caret{color:#fff}
+details#sec-kids-meals>summary .sec-count{
+  color:#fff;background:rgba(0,0,0,.18);padding:1px 8px;border-radius:999px;
+}
+details#sec-kids-meals>summary:focus-visible{
+  outline:3px solid #fff;outline-offset:-3px;
+}
+details#sec-kids-meals[open]>summary{border-radius:6px 6px 0 0}
+details#sec-kids-meals:not([open])>summary{border-radius:6px}
+details#sec-kids-meals>summary::before{
+  content:"★ ";font-weight:700;margin-right:4px;
+}
+
 /* ---------- Empty state ---------- */
 .empty{padding:36px 20px;text-align:center}
 .empty-title{font-family:Anton,sans-serif;font-size:22px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}

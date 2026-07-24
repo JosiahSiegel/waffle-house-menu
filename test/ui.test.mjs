@@ -278,3 +278,60 @@ test("jump-nav: no legacy scroll-spy in onScroll that sets aria-current='false' 
     "onScroll must NOT iterate over jumpnav links (scroll-spy moved out)"
   );
 });
+
+// ---------------------------------------------------------------------------
+// Kids Meals — fun-color theme (the one section that gets a playful palette)
+// ---------------------------------------------------------------------------
+
+test("kids-meals: jump-nav link uses a fun gradient background (not the default ink color)", () => {
+  // The kids jump link should stand out from the other categories
+  // with a bright pink→orange→blue gradient. Catch a regression
+  // where the default `.jumpnav a` color scheme is used for it.
+  assert.match(
+    indexHtml,
+    /\.jumpnav\s+a\[href="#sec-kids-meals"\]\s*\{[^}]*background\s*:\s*linear-gradient/u,
+    "kids jump link must use a linear-gradient background (fun colors)"
+  );
+  assert.match(
+    indexHtml,
+    /\.jumpnav\s+a\[href="#sec-kids-meals"\][^}]*font-weight\s*:\s*700/u,
+    "kids jump link must be bold (extra emphasis for the kids audience)"
+  );
+  // Bright candy-pink + sky-blue are the signal colors
+  assert.match(
+    indexHtml,
+    /#ff5b9c.*#3ec5f1|#3ec5f1.*#ff5b9c/u,
+    "kids theme must include both the candy-pink and sky-blue signal colors"
+  );
+});
+
+test("kids-meals: section header uses the same fun gradient", () => {
+  // The Kids Meals section header (<summary>) should match the
+  // jump link's palette so the two read as one theme.
+  assert.match(
+    indexHtml,
+    /details#sec-kids-meals>summary\s*\{[^}]*background\s*:\s*linear-gradient/u,
+    "kids section summary must use a linear-gradient background"
+  );
+  assert.match(
+    indexHtml,
+    /details#sec-kids-meals>summary\s*\{[^}]*color\s*:\s*#fff/u,
+    "kids section summary must have white text (contrast on the gradient)"
+  );
+});
+
+test("kids-meals: star marker (★) appears in both the jump link and the section header", () => {
+  // A small star glyph in front of "Kids Meals" labels makes
+  // it visually distinct and signals "this is the playful one"
+  // without needing a separate emoji or icon.
+  assert.match(
+    indexHtml,
+    /\.jumpnav\s+a\[href="#sec-kids-meals"\][^{]*::before\s*\{[^}]*content\s*:\s*['"]★/u,
+    "kids jump link ::before must contain a star marker"
+  );
+  assert.match(
+    indexHtml,
+    /details#sec-kids-meals>summary::before\s*\{[^}]*content\s*:\s*['"]★/u,
+    "kids section summary ::before must contain a star marker"
+  );
+});
