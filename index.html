@@ -222,6 +222,13 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 .facts dd{font-weight:600}
 .facts .allerg{margin-top:7px;padding-top:7px;border-top:1.5px solid var(--line);font-size:11.5px;color:var(--brown)}
 
+/* Status area sits above the menu. Both the loading indicator
+   and the "nothing matches" empty state live here so they
+   appear at the top of the page (not at the bottom of an
+   empty <main>). Only one is visible at a time — when the
+   menu is loading, loading shows; when filtering returns
+   zero results, empty shows. */
+.status-area{min-height:0}
 .empty,.load-err,.loading{
   display:none;text-align:center;padding:44px 20px;color:var(--brown);
   font-family:"IBM Plex Mono",monospace;font-size:13px;
@@ -231,6 +238,14 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
    with the rendered sections. The 3 dots use a CSS-only
    animation so they don't depend on JS. */
 .loading{color:var(--ink)}
+.empty-title{font-size:15px;font-weight:700;color:var(--ink);margin:0 0 6px}
+.empty-sub{font-size:12px;color:var(--brown);margin:0}
+.empty-clear{
+  background:transparent;border:0;padding:0;
+  font:inherit;color:var(--ink);text-decoration:underline;
+  cursor:pointer;
+}
+.empty-clear:hover{color:var(--yellow)}
 .loading-dots::after{
   content:"";
   display:inline-block;width:1.4em;text-align:left;
@@ -407,15 +422,17 @@ main:focus{outline:none}
 
 <nav class="jumpnav" id="jumpnav" aria-label="Jump to section"></nav>
 
-<div class="loading show" id="loading" role="status" aria-live="polite" aria-busy="true">
-  <span class="loading-dots" aria-hidden="true"></span>Loading the menu…
+<div class="status-area">
+  <div class="loading show" id="loading" role="status" aria-live="polite" aria-busy="true">
+    <span class="loading-dots" aria-hidden="true"></span>Loading the menu…
+  </div>
+  <div class="empty" id="empty" role="status" aria-live="polite">
+    <p class="empty-title">Nothing matches.</p>
+    <p class="empty-sub">Try a shorter search or <button type="button" class="empty-clear" id="emptyClear">clear your filters</button>.</p>
+  </div>
 </div>
 
 <main id="menu" tabindex="-1"></main>
-<div class="empty" id="empty" role="status" aria-live="polite">
-  <p class="empty-title">Nothing matches.</p>
-  <p class="empty-sub">Try a shorter search or <button type="button" class="empty-clear" id="emptyClear">clear your filters</button>.</p>
-</div>
 <div class="load-err" id="loadErr" role="alert">Menu data not found. Run <code>python scripts/sync.py</code> to generate data/menu.js.</div>
 
 <button type="button" class="totop" id="totop" aria-label="Back to top" hidden>↑ Top</button>
