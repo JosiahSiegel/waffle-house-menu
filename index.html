@@ -334,10 +334,11 @@ main:focus{outline:none}
 /* ---------- Quick-jump nav ---------- */
 .jumpnav{
   display:flex;gap:6px;align-items:center;
-  padding:6px 14px 8px;overflow-x:auto;
-  scrollbar-width:none;background:var(--paper);
-  border-bottom:1px solid var(--line);
+  padding:2px 0 4px;overflow-x:auto;
+  scrollbar-width:none;
   -webkit-overflow-scrolling:touch;scroll-behavior:smooth;
+  margin:0 -14px;padding-left:14px;padding-right:14px;
+  border-top:1px solid var(--line);margin-top:6px;
 }
 .jumpnav::-webkit-scrollbar{display:none}
 .jumpnav-label{
@@ -483,9 +484,8 @@ details#sec-kids-meals>summary::before{
     </button>
     <span class="mode-hint" id="modeHint">Hide items that list the selected allergens</span>
   </div>
+  <nav class="jumpnav" id="jumpnav" aria-label="Jump to section"></nav>
 </div>
-
-<nav class="jumpnav" id="jumpnav" aria-label="Jump to section"></nav>
 
 <div class="status-area">
   <div class="loading" id="loading" role="status" aria-live="polite" aria-busy="true">

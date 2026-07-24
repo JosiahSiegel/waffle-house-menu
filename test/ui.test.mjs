@@ -368,3 +368,44 @@ test("jumpnav-label: has a downward arrow icon (↓) to signal 'scroll to'", () 
     ".jumpnav-label ::before must contain a down-arrow"
   );
 });
+
+test("jumpnav: nested inside .controls so it sticks to the top on scroll", () => {
+  // The user reported: "I don't see jump to staying fixed to nav
+  // as I scroll down". Root cause: <nav class="jumpnav"> was a
+  // SIBLING of <div class="controls">, not a child. Only the
+  // .controls element had position:sticky, so the jumpnav
+  // scrolled off-screen with the page.
+  //
+  // The fix: nest the <nav> inside the <div class="controls">,
+  // so it sticks with the rest of the controls bar.
+  //
+  // This test counts <div> open/close tags after the
+  // <div class="controls"> opening to find the matching
+  // </div>, and asserts that <nav class="jumpnav"> appears
+  // BEFORE that closing tag.
+  const start = indexHtml.indexOf('<div class="controls"');
+  assert.ok(start > -1, ".controls div not found");
+  let depth = 1;
+  let i = start + '<div class="controls"'.length;
+  const jumpnavIdx = indexHtml.indexOf('<nav class="jumpnav"', start);
+  assert.ok(jumpnavIdx > -1, ".jumpnav not found");
+  // Walk through the HTML, tracking <div> depth
+  const tagRe = /<div\b|<\/div>/gu;
+  tagRe.lastIndex = i;
+  let controlsEnd = -1;
+  while (depth > 0) {
+    const m = tagRe.exec(indexHtml);
+    if (!m) break;
+    if (m[0] === '</div>') {
+      depth--;
+      if (depth === 0) controlsEnd = m.index;
+    } else {
+      depth++;
+    }
+  }
+  assert.ok(controlsEnd > -1, "could not find matching </div> for .controls");
+  assert.ok(
+    jumpnavIdx < controlsEnd,
+    `<nav class="jumpnav"> (at index ${jumpnavIdx}) must be INSIDE <div class="controls"> (closes at index ${controlsEnd})`
+  );
+});
