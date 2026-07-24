@@ -223,14 +223,11 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 .facts .allerg{margin-top:7px;padding-top:7px;border-top:1.5px solid var(--line);font-size:11.5px;color:var(--brown)}
 
 /* Status area sits above the menu. Both the loading indicator
-   and the "nothing matches" empty state live here. Both are
-   hidden by default and only one is visible at a time, toggled
-   by JavaScript via the .show class. The loading div does NOT
-   have .show in the HTML — a small inline script below adds it
-   once the document is parsed, so the loading text only appears
-   if JavaScript actually runs. This prevents the "stuck loading
-   indicator" case where a JS error or slow data load leaves
-   both messages visible above the menu. */
+   and the "nothing matches" empty state live here so they
+   appear at the top of the page (not at the bottom of an
+   empty menu area). Only one is visible at a time — when
+   the menu is loading, loading shows; when filtering
+   returns zero results, empty shows. */
 .status-area{min-height:0}
 .empty,.load-err,.loading{
   display:none;text-align:center;padding:44px 20px;color:var(--brown);
@@ -390,13 +387,6 @@ main:focus{outline:none}
 </head>
 <body>
 
-<!-- Tiny bootstrap: show the loading indicator only when JS
-     actually runs. If the script tag below fails to execute
-     (parse error, CSP block, etc.), the loading text stays
-     hidden so the user sees the sign + a blank menu area
-     instead of a stuck "Loading..." message. -->
-<script>document.getElementById('loading').classList.add('show');</script>
-
 <a class="skip" href="#menu">Skip to menu</a>
 
 <header class="sign" role="banner">
@@ -433,7 +423,7 @@ main:focus{outline:none}
 <nav class="jumpnav" id="jumpnav" aria-label="Jump to section"></nav>
 
 <div class="status-area">
-  <div class="loading" id="loading" role="status" aria-live="polite" aria-busy="true">
+  <div class="loading show" id="loading" role="status" aria-live="polite" aria-busy="true">
     <span class="loading-dots" aria-hidden="true"></span>Loading the menu…
   </div>
   <div class="empty" id="empty" role="status" aria-live="polite">
