@@ -873,6 +873,15 @@ function buildJumpnav(){
     e.preventDefault();
     const target=document.getElementById(a.getAttribute('href').slice(1));
     if(target){
+      // Accordion behavior: close every <details.sec> and open only
+      // the target. Without this, users land in a sea of expanded
+      // sections and have to scroll-past the rest to find the one
+      // they jumped to. With it, the page becomes a single focused
+      // category view.
+      for(const sec of _sectionEls){
+        if(sec !== target) sec.removeAttribute('open');
+      }
+      target.setAttribute('open','');
       // scroll-margin-top on details.sec (set in CSS via --jump-offset)
       // handles the sticky-controls offset natively. browser will
       // scroll the section to the top, leaving --jump-offset px
