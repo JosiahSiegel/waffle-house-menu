@@ -964,21 +964,34 @@ function buildJumpnav(){
     }
   }
   if('IntersectionObserver' in window){
-    const spy = new IntersectionObserver(entries=>{
-      // Pick the entry closest to the top of the viewport
-      // (smallest boundingClientRect.top that's still >= 0,
-      // else the most-negative one if all are above).
-      let best = null, bestTop = -Infinity;
-      for(const e of entries){
-        if(!e.isIntersecting) continue;
-        const top = e.boundingClientRect.top;
-        if(top > bestTop){ bestTop = top; best = e.target; }
+    // The active section is the one the user is "in" — its
+    // header is at or above the controls bottom, or just
+    // below them. The user is reading the items below the
+    // header, so the section should be active as soon as
+    // the header approaches the controls, not only when it's
+    // in a thin band right at the top of the content.
+    //
+    // We observe the entire viewport (rootMargin:0) and on
+    // any intersection change, iterate ALL sections to find
+    // the one with the largest top that's still ≤ controls
+    // bottom. Fallback to the first section if none qualify
+    // (user is at the top of the page, hasn't scrolled).
+    const controls = document.querySelector('.controls');
+    const spy = new IntersectionObserver(()=>{
+      const controlsBottom = controls.getBoundingClientRect().bottom;
+      let active = null, bestTop = -Infinity;
+      for(const sec of _sectionEls){
+        const top = sec.getBoundingClientRect().top;
+        if(top <= controlsBottom && top > bestTop){
+          bestTop = top;
+          active = sec;
+        }
       }
-      if(best){
-        const link = _jumpLinks[_sectionEls.indexOf(best)];
-        if(link) setActiveJumpLink(link);
-      }
-    }, {rootMargin:'-179px 0px -75% 0px',threshold:0});
+      if(!active) active = _sectionEls[0];
+      const idx = _sectionEls.indexOf(active);
+      const link = _jumpLinks[idx];
+      if(link) setActiveJumpLink(link);
+    }, {rootMargin:'0px 0px 0px 0px',threshold:[0,1]});
     for(const sec of _sectionEls) spy.observe(sec);
   }
 }
