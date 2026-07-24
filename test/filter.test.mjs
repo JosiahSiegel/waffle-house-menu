@@ -388,3 +388,73 @@ test("query='' (empty) is treated as no search, not 'match nothing'", () => {
   const b = countVisibleBySection(annotated, [], "");   // explicit empty
   assert.deepEqual(a, b);
 });
+
+// ---------------------------------------------------------------------------
+// 8) Invert filter — show only items that match the avoid set.
+//    When invert is on, the anchor rule is skipped (the user is
+//    explicitly looking for items with the allergen, so hiding the
+//    whole meal would defeat the purpose). Search still applies.
+// ---------------------------------------------------------------------------
+
+test("invert: Waffles + Wheat shows only items WITH Wheat", () => {
+  const vis = visibleBySection(annotated, ["Wheat"], "", { invert: true })["Waffles"];
+  // All 5 items in Waffles have Wheat (Waffle + Pecans + 3 toppings).
+  // Invert: show only the ones that list Wheat.
+  for (const name of vis) {
+    assert.ok(["Classic Waffle House Waffle","Chocolate Chips","Blueberry Nougat","Peanut Butter Chips"].includes(name)
+      || name === "Pecans",
+      `${name} shouldn't appear in invert+Wheat (Pecans has no Wheat)`);
+  }
+  assert.ok(!vis.includes("Pecans"), "Pecans has no Wheat and must be hidden in invert mode");
+});
+
+test("invert: Kids Meals + Milk shows only the items that list Milk", () => {
+  const vis = visibleBySection(annotated, ["Milk"], "", { invert: true })["Kids Meals"];
+  // Items in Kids Meals that list Milk: Waffle, White Toast, Wheat Toast,
+  // Raisin Toast, Grilled Biscuit, Texas Toast, Grits, Melted American
+  // Cheese isn't in Kids. So the Waffle meal's anchor is irrelevant —
+  // invert mode just shows items with Milk.
+  assert.ok(vis.includes("Waffle"));
+  assert.ok(vis.includes("White Toast - 2 Slices"));
+  assert.ok(!vis.includes("1 Egg Scrambled"), "1 Egg Scrambled has no Milk, must be hidden");
+  assert.ok(!vis.includes("Hashbrowns"), "Hashbrowns has no Milk, must be hidden");
+  assert.ok(!vis.includes("Kid's Bacon"), "Kid's Bacon has no Milk, must be hidden");
+});
+
+test("invert: anchor rule does NOT fire in invert mode", () => {
+  // Waffles + Wheat: normal mode hides everything (anchor Waffle has
+  // Wheat). Invert mode: anchor rule skipped, just per-item (inverted)
+  // filtering. 4 of 5 items list Wheat, so 4 visible.
+  const normal = countVisibleBySection(annotated, ["Wheat"], "")["Waffles"];
+  const inv = countVisibleBySection(annotated, ["Wheat"], "", { invert: true })["Waffles"];
+  assert.equal(normal, 0);
+  assert.ok(inv > 0, `invert should show items with Wheat, got ${inv}`);
+});
+
+test("invert: search still applies as an AND with the allergen match", () => {
+  // Waffles + Wheat (invert) shows only items with Wheat: Waffle +
+  // Blueberry Nougat. Adding search 'nougat' narrows to just one.
+  const vis = visibleBySection(annotated, ["Wheat"], "nougat", { invert: true })["Waffles"];
+  assert.deepEqual(vis, ["Blueberry Nougat"]);
+});
+
+test("invert: empty avoid set in invert mode shows nothing", () => {
+  // No allergens selected → nothing to match against → everything hidden
+  // (matching the spirit of invert: show only items that match the
+  // filter; an empty filter matches nothing).
+  const total = Object.values(
+    countVisibleBySection(annotated, [], "", { invert: true })
+  ).reduce((a, b) => a + b, 0);
+  assert.equal(total, 0, "invert with no avoid set should hide everything");
+});
+
+test("invert: opts parameter is optional, default behavior unchanged", () => {
+  // The existing tests call computeVisibility without opts — they must
+  // still work as before (invert defaults to false).
+  const a = computeVisibility(annotated, ["Wheat"], "");
+  const b = computeVisibility(annotated, ["Wheat"], "", { invert: false });
+  assert.deepEqual(
+    a.map((s) => s.flatItems.map((it) => it.visible)),
+    b.map((s) => s.flatItems.map((it) => it.visible)),
+  );
+});

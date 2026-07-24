@@ -114,24 +114,31 @@ export function annotateSections(sections) {
  * anchor rule — you can still search for "pecan" inside a
  * section that an allergen filter has not gated.
  */
-export function computeVisibility(annotatedSections, avoid, q) {
+export function computeVisibility(annotatedSections, avoid, q, opts) {
   const avoidSet = new Set(avoid || []);
   const qLower = (q || "").toLowerCase();
+  // Invert mode flips the per-item allergen check from "hide
+  // matches" to "show only matches". The anchor rule does NOT
+  // fire in invert mode — the user is explicitly looking for
+  // items with the allergen, so hiding the whole meal just
+  // because the anchor has it would defeat the purpose. Search
+  // is still applied as an AND.
+  const invert = !!(opts && opts.invert);
   return annotatedSections.map((sec) => {
     const flatItems = sec.flatItems.map((it) => {
-      // Per-meal anchor rule. Only fires when an allergen
-      // filter is active and THIS item's meal has subcats and
-      // that meal's anchor overlaps the avoid set. Other meals
-      // in the same section are unaffected.
-      if (
-        avoidSet.size > 0 &&
-        it.mealHasSubcat &&
-        it.mealAnchor.some((a) => avoidSet.has(a))
-      ) {
-        return { ...it, visible: false };
+      if (!invert) {
+        if (
+          avoidSet.size > 0 &&
+          it.mealHasSubcat &&
+          it.mealAnchor.some((a) => avoidSet.has(a))
+        ) {
+          return { ...it, visible: false };
+        }
       }
       const okQ = !qLower || it.name.toLowerCase().includes(qLower);
-      const okA = !it.a.some((a) => avoidSet.has(a));
+      const okA = invert
+        ? it.a.some((a) => avoidSet.has(a))
+        : !it.a.some((a) => avoidSet.has(a));
       return { ...it, visible: okQ && okA };
     });
     return { ...sec, flatItems };
@@ -143,9 +150,9 @@ export function computeVisibility(annotatedSections, avoid, q) {
  * after filtering. Used by tests and by the section count
  * chip in the header.
  */
-export function countVisibleBySection(annotatedSections, avoid, q) {
+export function countVisibleBySection(annotatedSections, avoid, q, opts) {
   const out = {};
-  for (const sec of computeVisibility(annotatedSections, avoid, q)) {
+  for (const sec of computeVisibility(annotatedSections, avoid, q, opts)) {
     out[sec.title] = sec.flatItems.filter((it) => it.visible).length;
   }
   return out;
@@ -155,9 +162,9 @@ export function countVisibleBySection(annotatedSections, avoid, q) {
  * List of visible item names per section. Used by tests for
  * more specific assertions than a count alone.
  */
-export function visibleBySection(annotatedSections, avoid, q) {
+export function visibleBySection(annotatedSections, avoid, q, opts) {
   const out = {};
-  for (const sec of computeVisibility(annotatedSections, avoid, q)) {
+  for (const sec of computeVisibility(annotatedSections, avoid, q, opts)) {
     out[sec.title] = sec.flatItems.filter((it) => it.visible).map((it) => it.name);
   }
   return out;
