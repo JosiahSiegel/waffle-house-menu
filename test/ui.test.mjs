@@ -233,11 +233,14 @@ test("jump-nav: setActiveJumpLink removes aria-current from all links first", ()
   );
 });
 
-test("jump-nav: scroll-spy uses IntersectionObserver with --jump-offset rootMargin", () => {
-  // The observer's rootMargin pushes the detection line below
-  // the sticky controls bar so the link activates when its
-  // section title crosses into view (not when it scrolls behind
-  // the header).
+test("jump-nav: scroll-spy picks the section the user is 'in' (largest top <= controls bottom)", () => {
+  // The active section is the one the user is reading:
+  // its header is at or above the controls bottom (scrolled
+  // past), or just below them. The spy iterates ALL sections
+  // and picks the one with the largest top that's still ≤
+  // controls bottom. This way, the section is active as
+  // soon as the header approaches the controls — not only
+  // when it's in a thin band right at the top of the content.
   assert.match(
     indexHtml,
     /IntersectionObserver/,
@@ -245,8 +248,18 @@ test("jump-nav: scroll-spy uses IntersectionObserver with --jump-offset rootMarg
   );
   assert.match(
     indexHtml,
-    /rootMargin\s*:\s*['"]-179px/u,
-    "scroll-spy rootMargin must start with -179px (matches the 179px controls bar height so the active band starts right below the controls)"
+    /rootMargin\s*:\s*['"]0px\s+0px\s+0px\s+0px['"]/u,
+    "scroll-spy must observe the entire viewport (rootMargin 0) so it fires on any section entering/leaving"
+  );
+  assert.match(
+    indexHtml,
+    /top\s*<=\s*controlsBottom/u,
+    "scroll-spy must pick sections whose top is <= controls bottom (the section the user is 'in')"
+  );
+  assert.match(
+    indexHtml,
+    /if\s*\(\s*!active\s*\)\s*active\s*=\s*_sectionEls\[0\]/u,
+    "scroll-spy must fall back to the first section when none have scrolled past the controls yet"
   );
   assert.match(
     indexHtml,
@@ -456,30 +469,28 @@ test("jumpnav: scroll-spy scrolls the active link into the visible center", () =
   );
 });
 
-test("jumpnav: scroll-spy rootMargin targets the section RIGHT UNDER the controls", () => {
-  // User: "have it aligned a little better so the visible
-  // category right under the jump to nav is the one selected".
+test("jumpnav: scroll-spy picks the section the user is in (header at/above controls)", () => {
+  // User: "its a little too overcorrected with the item
+  // scrolled to only selected in the jump to menu when
+  // it's already behind it"
   //
-  // Old rootMargin was -200px 0 -60% 0 — the active band
-  // extended from 200px to 40% of viewport (360px on 900h),
-  // so a section in the middle of the screen would activate,
-  // not the one at the top.
+  // Previous fix: rootMargin -179px 0 -75% 0 — active band
+  // was only 179-225px (46px wide). A section was only
+  // active when its top was in that thin band right at
+  // the top of the content. Once the header scrolled
+  // behind the controls (top < 179px), the section was
+  // no longer active, even though the user was still
+  // reading its items.
   //
-  // New rootMargin is -179px 0 -75% 0 — active band is from
-  // 179px (bottom of controls) to 25% of viewport (~225px
-  // on 900h). The active section is the one whose title is
-  // RIGHT BELOW the jumpnav, not further down.
-  const rootMargin = indexHtml.match(/rootMargin\s*:\s*['"]([^'"]+)['"]/u);
-  assert.ok(rootMargin, "rootMargin not found in scroll-spy");
+  // New approach: observe the entire viewport, iterate
+  // ALL sections, pick the one with the largest top that
+  // is still <= controls bottom. The section the user is
+  // "in" is the one whose header is at or above the
+  // controls (they're reading its items below).
   assert.match(
-    rootMargin[1],
-    /-179px/u,
-    "rootMargin top must be -179px (matches the 179px-tall controls bar) so the active band starts at the bottom of the controls"
-  );
-  assert.match(
-    rootMargin[1],
-    /-75%/u,
-    "rootMargin bottom must be -75% (active band is only the top 25% of the viewport) so the section right under the controls is the one selected"
+    indexHtml,
+    /top\s*<=\s*controlsBottom\s*&&\s*top\s*>\s*bestTop/u,
+    "scroll-spy must iterate sections and pick the one with the largest top that is still <= controls bottom (the section the user is in)"
   );
 });
 
