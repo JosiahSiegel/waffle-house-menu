@@ -17,11 +17,6 @@
 #
 # How cleanup works:
 #   On PR close, the pr-N/ directory is removed from gh-pages.
-#
-# Page source for GitHub Pages is set to the `gh-pages` branch
-# (was `main` before this workflow landed). The first push to
-# gh-pages copied main's tree verbatim, so the switch is
-# byte-for-byte equivalent — no downtime.
 
 name: Deploy
 
@@ -41,14 +36,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event.action != 'closed' || github.event.pull_request.head.repo.full_name == 'JosiahSiegel/waffle-house-menu'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 1
-
       - name: Classify event
         id: cls
         run: |
@@ -61,60 +49,69 @@ jobs:
             echo "action=push"         >> "$GITHUB_OUTPUT"
           fi
 
-      # Skip the build step on PR close: there's nothing to copy
-      # in, we just need the deploy step to remove the pr-N/ dir.
+      # --- 1. Get the PR/main source into a known directory ---
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+          path: src
+
+      # --- 2. Build into ./build (skip for PR close) ---
       - name: Build site tree
         if: steps.cls.outputs.action != 'closed'
+        working-directory: src
         run: |
-          mkdir -p build
+          mkdir -p ../build
           if [ "${{ steps.cls.outputs.is_pr }}" = "true" ]; then
             PR_N=${{ steps.cls.outputs.pr_number }}
-            mkdir -p "build/pr-${PR_N}"
-            # Copy everything except the deploy workflow itself
-            # (we don't want recursive workflow triggers).
-            rsync -a --exclude='.github' --exclude='node_modules' ./ "build/pr-${PR_N}/"
-            # Inject <base href> right before </head> so relative
-            # paths resolve under /pr-N/.
-            sed -i "s|</head>|  <base href=\"/pr-${PR_N}/\">\n  </head>|" "build/pr-${PR_N}/index.html"
+            mkdir -p "../build/pr-${PR_N}"
+            # Copy everything except .github (no recursive workflow triggers)
+            # and CNAME (it's owned by the main site at root, not by previews).
+            tar --exclude='.github' --exclude='CNAME' -cf - . \
+              | tar -xf - -C "../build/pr-${PR_N}/"
+            # Inject <base href> right before </head>
+            sed -i "s|</head>|  <base href=\"/pr-${PR_N}/\">\n  </head>|" \
+              "../build/pr-${PR_N}/index.html"
           else
-            rsync -a --exclude='.github' --exclude='node_modules' ./ build/
+            tar --exclude='.github' -cf - . | tar -xf - -C ../build/
           fi
 
-      - name: Deploy to gh-pages
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # --- 3. Get the gh-pages branch into a known directory ---
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+          path: gh-pages-src
+          # Don't fail the run if the branch is brand new (first deploy)
+          continue-on-error: false
+
+      - name: Ensure CNAME present in gh-pages
+        working-directory: gh-pages-src
         run: |
-          set -euo pipefail
-          git config --global user.email "bot@wafflestats.com"
-          git config --global user.name  "wafflestats-bot"
-
-          # Clone the existing gh-pages branch so we can mutate it
-          # in place (peaceiris/actions-gh-pages can only add, not
-          # delete — we need delete for PR-close cleanup).
-          git clone --depth 1 --branch gh-pages \
-            "https://x-access-token:${GH_TOKEN}@github.com/JosiahSiegel/waffle-house-menu.git" \
-            gh-pages
-
-          cd gh-pages
-
-          # Preserve CNAME if main is the source of truth for it.
-          # (It is — main ships a CNAME = wafflestats.com file.)
-          if [ -f ../CNAME ]; then
-            cp ../CNAME .
+          if [ ! -f CNAME ] && [ -f ../src/CNAME ]; then
+            cp ../src/CNAME CNAME
+            echo "CNAME copied from src"
+          else
+            echo "CNAME already in place"
           fi
 
+      # --- 4. Mutate gh-pages-src in place ---
+      - name: Update gh-pages
+        run: |
           if [ "${{ steps.cls.outputs.is_pr }}" = "true" ]; then
             PR_N=${{ steps.cls.outputs.pr_number }}
-            # Always start from a clean slate for this PR's dir.
+            cd gh-pages-src
             rm -rf "pr-${PR_N}"
             if [ "${{ steps.cls.outputs.action }}" != "closed" ]; then
               mkdir -p "pr-${PR_N}"
-              cp -r ../build/pr-${PR_N}/. "pr-${PR_N}/"
+              cp -r "../build/pr-${PR_N}/." "pr-${PR_N}/"
             fi
             MSG="deploy: PR #${PR_N} ${{ steps.cls.outputs.action }}"
           else
-            # Production deploy: replace everything except pr-*
-            # (we never want a main deploy to nuke live previews).
+            cd gh-pages-src
+            # Production deploy: wipe everything except pr-* dirs and CNAME
             find . -mindepth 1 -maxdepth 1 \
               ! -name 'pr-*' ! -name '.git' ! -name 'CNAME' \
               -exec rm -rf {} +
@@ -122,12 +119,22 @@ jobs:
             MSG="deploy: main @ ${{ github.sha }}"
           fi
 
-          # If nothing changed (e.g. close after a re-open), bail.
-          if git diff --cached --quiet; then
+      # --- 5. Commit and push ---
+      - name: Commit and push
+        working-directory: gh-pages-src
+        run: |
+          git config user.email "bot@wafflestats.com"
+          git config user.name  "wafflestats-bot"
+
+          if git diff --cached --quiet && git status --porcelain | grep -q '^??'; then
+            # new untracked files (e.g. brand new pr-N/) — stage them
+            git add -A
+          elif git diff --cached --quiet; then
             echo "no changes to commit"
             exit 0
+          else
+            git add -A
           fi
 
-          git add -A
           git commit -m "$MSG"
           git push origin gh-pages
