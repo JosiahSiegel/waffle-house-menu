@@ -197,3 +197,60 @@ test("empty: applyFilters only toggles .show when _sectionEls is populated", () 
     "applyFilters must toggle empty .show based on !anyVisible"
   );
 });
+
+// ---------------------------------------------------------------------------
+// Jump-nav active state (aria-current) — like pressed chips
+// ---------------------------------------------------------------------------
+
+test("jump-nav: click handler sets aria-current on the clicked link", () => {
+  // The CSS rule `.jumpnav a[aria-current="true"]` paints the
+  // active link with black bg + yellow text (same as a pressed
+  // chip). The click handler must actually set this attribute,
+  // or the rule never fires.
+  const handlerMatch = indexHtml.match(
+    /jumpnavEl\.addEventListener\('click',[\s\S]*?\}\);/u
+  );
+  assert.ok(handlerMatch, "jumpnav click handler block not found");
+  assert.match(
+    handlerMatch[0],
+    /setActiveJumpLink\(/,
+    "click handler must call setActiveJumpLink to mark the active link"
+  );
+});
+
+test("jump-nav: setActiveJumpLink removes aria-current from all links first", () => {
+  // Without the clear pass, multiple links would carry aria-current
+  // and the CSS would paint them all as active.
+  assert.match(
+    indexHtml,
+    /function\s+setActiveJumpLink\s*\([\s\S]*?for\s*\(\s*const\s+jl\s+of\s+_jumpLinks\s*\)[\s\S]*?removeAttribute\(\s*['"]aria-current['"]\s*\)/u,
+    "setActiveJumpLink must clear aria-current from all _jumpLinks first"
+  );
+  assert.match(
+    indexHtml,
+    /setAttribute\(\s*['"]aria-current['"]\s*,\s*['"]true['"]\s*\)/,
+    "setActiveJumpLink must set aria-current='true' on the new active link"
+  );
+});
+
+test("jump-nav: scroll-spy uses IntersectionObserver with --jump-offset rootMargin", () => {
+  // The observer's rootMargin pushes the detection line below
+  // the sticky controls bar so the link activates when its
+  // section title crosses into view (not when it scrolls behind
+  // the header).
+  assert.match(
+    indexHtml,
+    /IntersectionObserver/,
+    "scroll-spy must use IntersectionObserver (not a scroll listener)"
+  );
+  assert.match(
+    indexHtml,
+    /rootMargin\s*:\s*['"]-200px/u,
+    "scroll-spy rootMargin must start with -200px (matches --jump-offset)"
+  );
+  assert.match(
+    indexHtml,
+    /for\s*\(\s*const\s+sec\s+of\s+_sectionEls\s*\)\s*spy\.observe/,
+    "scroll-spy must observe all cached _sectionEls"
+  );
+});

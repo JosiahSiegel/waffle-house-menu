@@ -887,6 +887,12 @@ function buildJumpnav(){
         if(sec !== target) sec.removeAttribute('open');
       }
       target.setAttribute('open','');
+      // Mark this jump link as the current section so the
+      // aria-current="true" CSS rule (black bg, yellow text —
+      // same visual treatment as a pressed chip) actually fires.
+      // The scroll-spy below will keep this in sync as the user
+      // scrolls past the jumped-to section.
+      setActiveJumpLink(a);
       // scroll-margin-top on details.sec (set in CSS via --jump-offset)
       // handles the sticky-controls offset natively. browser will
       // scroll the section to the top, leaving --jump-offset px
@@ -895,6 +901,39 @@ function buildJumpnav(){
       target.scrollIntoView({behavior:'smooth',block:'start'});
     }
   });
+
+  // Scroll-spy: as the user scrolls (or after a jump), mark the
+  // jump link whose section is currently the topmost-visible one.
+  // Uses IntersectionObserver (no scroll listener, no per-frame
+  // math) and the cached _sectionEls so it's a single tight pass.
+  // The rootMargin pushes the detection line 200px below the
+  // viewport top — matches --jump-offset, so the link activates
+  // when the section title crosses the visible area below the
+  // sticky controls bar.
+  function setActiveJumpLink(link){
+    for(const jl of _jumpLinks){
+      if(jl) jl.removeAttribute('aria-current');
+    }
+    if(link) link.setAttribute('aria-current','true');
+  }
+  if('IntersectionObserver' in window){
+    const spy = new IntersectionObserver(entries=>{
+      // Pick the entry closest to the top of the viewport
+      // (smallest boundingClientRect.top that's still >= 0,
+      // else the most-negative one if all are above).
+      let best = null, bestTop = -Infinity;
+      for(const e of entries){
+        if(!e.isIntersecting) continue;
+        const top = e.boundingClientRect.top;
+        if(top > bestTop){ bestTop = top; best = e.target; }
+      }
+      if(best){
+        const link = _jumpLinks[_sectionEls.indexOf(best)];
+        if(link) setActiveJumpLink(link);
+      }
+    }, {rootMargin:'-200px 0px -60% 0px',threshold:0});
+    for(const sec of _sectionEls) spy.observe(sec);
+  }
 }
 
 // JSON-LD structured data: Google rich-results for Menu. Generated
