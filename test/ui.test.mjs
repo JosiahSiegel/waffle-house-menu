@@ -506,20 +506,26 @@ test("jumpnav: scroll-spy aligns pill when category title hits controls bottom",
   );
 });
 
-test("jumpnav: --jump-offset accounts for the 16px summary padding", () => {
+test("jumpnav: --jump-offset puts the title right at the bottom of the line", () => {
   // The scroll-margin-top value (--jump-offset) positions
   // the <details> top at that offset from the viewport top.
-  // The <summary> (the visible title) has padding:16px 2px
-  // 14px, so the title text is 16px below the <details> top.
+  // The <summary> (the visible title) has padding-top:16px,
+  // so the title text is 16px below the <details> top.
   //
-  // For the title to land right at the controls bottom
-  // (~179px), --jump-offset must be ~163px. We allow
-  // 155-175px to account for controls height variations.
+  // The "line below the pills" is the 2px black border at
+  // the bottom of the controls (controlsBottom). The title
+  // should land right at the bottom of this line — not
+  // overlapping it, not below it. So:
+  //   controlsBottom = ~182px (includes 2px border)
+  //   titleTop = sectionTop + 16
+  //   sectionTop = --jump-offset
+  //   titleTop = --jump-offset + 16 = controlsBottom
+  //   --jump-offset = controlsBottom - 16 = ~166px
   const rootMatch = indexHtml.match(/:root\s*\{[^}]*--jump-offset\s*:\s*(\d+)px/u);
   assert.ok(rootMatch, "--jump-offset not found in :root");
   const offset = parseInt(rootMatch[1], 10);
   assert.ok(
-    offset >= 155 && offset <= 175,
-    `--jump-offset must be 155-175px (controls ~179px minus 16px summary padding = ~163px). Got: ${offset}px`
+    offset >= 160 && offset <= 172,
+    `--jump-offset must be 160-172px (controls bottom ~182px minus 16px summary padding = ~166px). Got: ${offset}px`
   );
 });
