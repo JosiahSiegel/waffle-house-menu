@@ -1,0 +1,199 @@
+// test/ui.test.mjs — UI behavior tests for the rendered HTML.
+//
+// These tests read the source index.html and assert that the
+// critical UI behaviors the user has asked for are present in
+// the code. They're a regression net for:
+//   - jump-nav accordion (clicking closes all, opens target)
+//   - scroll-margin-top on sections (jump lands below sticky bar)
+//   - loading indicator (hidden in HTML, shown by JS bootstrap)
+//   - empty state (never has .show in HTML)
+//
+// Mutation tested: removing the close-all loop in the jump
+// handler does NOT break these tests (they're structural, not
+// behavioral). The puppeteer-based scripts/snap.mjs covers
+// behavioral validation. These tests catch the case where
+// someone deletes the accordion code entirely.
+
+import { test } from "node:test";
+import { strict as assert } from "node:assert";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const indexHtml = readFileSync(resolve(__dirname, "../index.html"), "utf8");
+
+// ---------------------------------------------------------------------------
+// Jump-nav accordion
+// ---------------------------------------------------------------------------
+
+test("jump-nav: handler exists and calls e.preventDefault", () => {
+  assert.match(
+    indexHtml,
+    /jumpnavEl\.addEventListener\('click'/,
+    "jumpnav click handler must be registered"
+  );
+  assert.match(
+    indexHtml,
+    /e\.preventDefault\(\)/,
+    "jump handler must preventDefault to block native hash navigation"
+  );
+});
+
+test("jump-nav: handler iterates over _sectionEls (cached) to close all sections", () => {
+  // The accordion logic must use the cached _sectionEls array
+  // (set in render()), not a fresh querySelectorAll per click.
+  const handlerMatch = indexHtml.match(
+    /jumpnavEl\.addEventListener\('click',[\s\S]*?\}\);/u
+  );
+  assert.ok(handlerMatch, "jumpnav click handler block not found");
+  const handler = handlerMatch[0];
+  assert.match(
+    handler,
+    /for\s*\(\s*const\s+sec\s+of\s+_sectionEls\s*\)/,
+    "handler must iterate over cached _sectionEls (not querySelectorAll)"
+  );
+  assert.match(
+    handler,
+    /sec\.removeAttribute\(\s*['"]open['"]\s*\)/,
+    "handler must removeAttribute('open') to close sections"
+  );
+  assert.match(
+    handler,
+    /target\.setAttribute\(\s*['"]open['"]\s*,\s*['"]['"]\s*\)/,
+    "handler must setAttribute('open', '') on the target"
+  );
+});
+
+test("jump-nav: target is looked up by id from the href hash", () => {
+  const handlerMatch = indexHtml.match(
+    /jumpnavEl\.addEventListener\('click',[\s\S]*?\}\);/u
+  );
+  assert.ok(handlerMatch, "jumpnav click handler block not found");
+  assert.match(
+    handlerMatch[0],
+    /getElementById\(a\.getAttribute\(['"]href['"]\)\.slice\(1\)\)/,
+    "handler must resolve target by id from href"
+  );
+});
+
+// ---------------------------------------------------------------------------
+// scroll-margin-top
+// ---------------------------------------------------------------------------
+
+test("scroll-margin-top: --jump-offset custom property is defined", () => {
+  assert.match(
+    indexHtml,
+    /--jump-offset\s*:\s*\d+px/,
+    "--jump-offset CSS custom property must be defined"
+  );
+});
+
+test("scroll-margin-top: details.sec uses scroll-margin-top with the var", () => {
+  assert.match(
+    indexHtml,
+    /details\.sec\s*\{[^}]*scroll-margin-top\s*:\s*var\(\s*--jump-offset\s*\)/u,
+    "details.sec must use scroll-margin-top: var(--jump-offset)"
+  );
+});
+
+test("scroll-margin-top: jump handler uses scrollIntoView, not manual offset math", () => {
+  // After PR #6, we replaced the -96 magic number with native
+  // scrollIntoView. Make sure no one re-introduces a manual offset.
+  const handlerMatch = indexHtml.match(
+    /jumpnavEl\.addEventListener\('click',[\s\S]*?\}\);/u
+  );
+  assert.ok(handlerMatch, "jumpnav click handler block not found");
+  assert.match(
+    handlerMatch[0],
+    /target\.scrollIntoView\(/,
+    "handler must use target.scrollIntoView (not manual offset math)"
+  );
+  assert.doesNotMatch(
+    handlerMatch[0],
+    /getBoundingClientRect\(\)\.top\s*\+\s*window\.scrollY/,
+    "handler must NOT use manual getBoundingClientRect offset math"
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Loading indicator — hidden in HTML, shown by JS bootstrap
+// ---------------------------------------------------------------------------
+
+test("loading: indicator does NOT have .show in the HTML by default", () => {
+  // The fix from PR (loading-indicator) was to remove .show from
+  // the HTML so the loading text doesn't show on initial page load
+  // when JavaScript is broken or slow.
+  const loadingMatch = indexHtml.match(
+    /<div[^>]*id=["']loading["'][^>]*>/u
+  );
+  assert.ok(loadingMatch, "loading div not found in HTML");
+  const tag = loadingMatch[0];
+  assert.doesNotMatch(
+    tag,
+    /class=["'][^"']*\bshow\b/u,
+    `loading div must not have .show in HTML (got: ${tag})`
+  );
+});
+
+test("loading: tiny inline bootstrap script adds .show to loading div", () => {
+  // The fix added a <script> at the top of <body> that adds .show
+  // to the loading div only if JavaScript actually runs.
+  assert.match(
+    indexHtml,
+    /<script>\s*document\.getElementById\(['"]loading['"]\)\.classList\.add\(['"]show['"]\)\s*;?\s*<\/script>/u,
+    "missing inline bootstrap script that adds .show to loading div"
+  );
+});
+
+test("loading: render() removes .show from loading div", () => {
+  // After the menu renders, the loading indicator must be hidden.
+  // Look in the initial-load path for the remove call.
+  const initialPath = indexHtml.match(
+    /if\s*\(window\.MENU_DATA[\s\S]*?else\s*\{[\s\S]*?loadErrEl[\s\S]*?\}/u
+  );
+  if (initialPath) {
+    assert.match(
+      initialPath[0],
+      /getElementById\(['"]loading['"]\)\.classList\.remove\(['"]show['"]\)/,
+      "render path must remove .show from loading div"
+    );
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Empty state — never has .show in HTML, only added by applyFilters
+// ---------------------------------------------------------------------------
+
+test("empty: empty div does NOT have .show in the HTML", () => {
+  const emptyMatch = indexHtml.match(/<div[^>]*id=["']empty["'][^>]*>/u);
+  assert.ok(emptyMatch, "empty div not found in HTML");
+  const tag = emptyMatch[0];
+  assert.doesNotMatch(
+    tag,
+    /class=["'][^"']*\bshow\b/u,
+    `empty div must not have .show in HTML (got: ${tag})`
+  );
+});
+
+test("empty: applyFilters only toggles .show when _sectionEls is populated", () => {
+  // The fix from PR (loading-indicator) was to wrap the empty
+  // state toggle in `if (_sectionEls.length > 0)` so the initial
+  // setInvert() call (which runs applyFilters() before render())
+  // doesn't accidentally add .show to the empty div.
+  const applyFiltersMatch = indexHtml.match(
+    /function\s+applyFilters\s*\(\s*\)\s*\{[\s\S]*?\n\}/u
+  );
+  assert.ok(applyFiltersMatch, "applyFilters function not found");
+  const fn = applyFiltersMatch[0];
+  assert.match(
+    fn,
+    /if\s*\(\s*_sectionEls\.length\s*>\s*0\s*\)/,
+    "applyFilters must guard the empty-state toggle with _sectionEls.length > 0"
+  );
+  assert.match(
+    fn,
+    /emptyEl\.classList\.toggle\(\s*['"]show['"]\s*,\s*!anyVisible\s*\)/,
+    "applyFilters must toggle empty .show based on !anyVisible"
+  );
+});
