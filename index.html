@@ -334,12 +334,16 @@ main:focus{outline:none}
 /* ---------- Quick-jump nav ---------- */
 .jumpnav{
   display:flex;gap:6px;align-items:center;
-  padding:6px 14px;overflow-x:auto;
+  padding:8px 14px;overflow-x:auto;
   scrollbar-width:none;
   -webkit-overflow-scrolling:touch;scroll-behavior:smooth;
   margin:0 -14px;
-  border-top:1px solid var(--line);
-  min-height:40px;
+  /* No border at the top: it created a visible line above
+     the pills that made them look top-heavy. The mode-bar
+     above has a different background, so there's already
+     a visual separation. align-items centers the pills in
+     the content box, which is now symmetric (8px padding
+     top and bottom, no min-height). */
 }
 .jumpnav::-webkit-scrollbar{display:none}
 .jumpnav-label{
@@ -979,11 +983,19 @@ function buildJumpnav(){
     const controls = document.querySelector('.controls');
     const spy = new IntersectionObserver(()=>{
       const controlsBottom = controls.getBoundingClientRect().bottom;
-      let active = null, bestTop = -Infinity;
+      // Pick the section whose top is CLOSEST to the
+      // controls bottom — whether it's just above (header
+      // behind the controls, user reading its items) or
+      // just below (header approaching the controls from
+      // below, user about to reach it). This way the
+      // section becomes active as soon as it approaches
+      // the controls, not only when it's already behind.
+      let active = null, bestDist = Infinity;
       for(const sec of _sectionEls){
         const top = sec.getBoundingClientRect().top;
-        if(top <= controlsBottom && top > bestTop){
-          bestTop = top;
+        const dist = Math.abs(top - controlsBottom);
+        if(dist < bestDist){
+          bestDist = dist;
           active = sec;
         }
       }

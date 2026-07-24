@@ -233,14 +233,13 @@ test("jump-nav: setActiveJumpLink removes aria-current from all links first", ()
   );
 });
 
-test("jump-nav: scroll-spy picks the section the user is 'in' (largest top <= controls bottom)", () => {
-  // The active section is the one the user is reading:
-  // its header is at or above the controls bottom (scrolled
-  // past), or just below them. The spy iterates ALL sections
-  // and picks the one with the largest top that's still ≤
-  // controls bottom. This way, the section is active as
-  // soon as the header approaches the controls — not only
-  // when it's in a thin band right at the top of the content.
+test("jump-nav: scroll-spy picks the section CLOSEST to the controls bottom", () => {
+  // The active section is the one whose header is closest
+  // to the controls bottom — whether it's just above
+  // (header behind the controls, user reading its items)
+  // or just below (header approaching, user about to
+  // reach it). This gives smooth, responsive active-state
+  // updates as the user scrolls.
   assert.match(
     indexHtml,
     /IntersectionObserver/,
@@ -253,13 +252,13 @@ test("jump-nav: scroll-spy picks the section the user is 'in' (largest top <= co
   );
   assert.match(
     indexHtml,
-    /top\s*<=\s*controlsBottom/u,
-    "scroll-spy must pick sections whose top is <= controls bottom (the section the user is 'in')"
+    /Math\.abs\s*\(\s*top\s*-\s*controlsBottom\s*\)/u,
+    "scroll-spy must compute distance from each section top to controls bottom and pick the closest"
   );
   assert.match(
     indexHtml,
     /if\s*\(\s*!active\s*\)\s*active\s*=\s*_sectionEls\[0\]/u,
-    "scroll-spy must fall back to the first section when none have scrolled past the controls yet"
+    "scroll-spy must fall back to the first section when none are visible (e.g. at the top of the page)"
   );
   assert.match(
     indexHtml,
@@ -423,30 +422,36 @@ test("jumpnav: nested inside .controls so it sticks to the top on scroll", () =>
   );
 });
 
-test("jumpnav: pills are vertically centered (symmetric padding)", () => {
-  // User: "the jump to buttons are not centered between the
-  // top and bottom lines". Caused by asymmetric padding
-  // (2px top, 4px bottom) which pushed the pills toward the
-  // top of the row. Fix: symmetric padding 6px 14px with
-  // min-height 40px and align-items:center.
+test("jumpnav: pills are vertically centered (symmetric padding, no border-top)", () => {
+  // User: "jump nav pills STILL aren't centered vertically
+  // between the lines". Caused by border-top:1px which
+  // created a visible line above the pills and made them
+  // look top-heavy. Fix: removed border-top, removed
+  // min-height, symmetric padding 8px 14px.
   const jnMatch = indexHtml.match(/\.jumpnav\s*\{[^}]*\}/u);
   assert.ok(jnMatch, ".jumpnav CSS not found");
   const css = jnMatch[0];
-  // Padding should be 6px on top and bottom (symmetric)
+  // No border-top (it created the visible top line that
+  // made pills look off-center)
+  assert.doesNotMatch(
+    css,
+    /border-top\s*:/u,
+    ".jumpnav must NOT have a border-top (it creates a visible line above the pills that breaks vertical centering)"
+  );
+  // No min-height (it forced the row taller than the content,
+  // creating uneven space around the pills)
+  assert.doesNotMatch(
+    css,
+    /min-height\s*:/u,
+    ".jumpnav must NOT have a min-height (let the content + padding determine the height)"
+  );
+  // Symmetric padding
   assert.match(
     css,
-    /padding\s*:\s*6px\s+14px/u,
-    ".jumpnav padding must be symmetric (6px vertical, 14px horizontal)"
+    /padding\s*:\s*8px\s+14px/u,
+    ".jumpnav padding must be symmetric (8px vertical, 14px horizontal)"
   );
-  // min-height ensures the row is tall enough for the pills
-  // to be visibly centered even if content is shorter
-  assert.match(
-    css,
-    /min-height\s*:\s*\d+px/u,
-    ".jumpnav must have a min-height to anchor the vertical centering"
-  );
-  // align-items:center is required for the flex children to
-  // sit on the cross axis center
+  // align-items:center is required
   assert.match(
     css,
     /align-items\s*:\s*center/u,
@@ -469,28 +474,31 @@ test("jumpnav: scroll-spy scrolls the active link into the visible center", () =
   );
 });
 
-test("jumpnav: scroll-spy picks the section the user is in (header at/above controls)", () => {
-  // User: "its a little too overcorrected with the item
-  // scrolled to only selected in the jump to menu when
-  // it's already behind it"
+test("jumpnav: scroll-spy picks the section CLOSEST to the controls bottom", () => {
+  // User: "still needs to be pushed too far behind the jump
+  // nav before nav updates"
   //
-  // Previous fix: rootMargin -179px 0 -75% 0 — active band
-  // was only 179-225px (46px wide). A section was only
-  // active when its top was in that thin band right at
-  // the top of the content. Once the header scrolled
-  // behind the controls (top < 179px), the section was
-  // no longer active, even though the user was still
-  // reading its items.
+  // Previous fix: picked the section with the largest top
+  // <= controls bottom. The section was only active when
+  // its header was at or above the controls (behind them).
+  // The user had to scroll the new section's header well
+  // behind the controls before it became active.
   //
-  // New approach: observe the entire viewport, iterate
-  // ALL sections, pick the one with the largest top that
-  // is still <= controls bottom. The section the user is
-  // "in" is the one whose header is at or above the
-  // controls (they're reading its items below).
+  // New approach: pick the section whose top is CLOSEST
+  // to the controls bottom (smallest absolute distance).
+  // This way, the section becomes active as soon as its
+  // header approaches the controls from below, AND stays
+  // active as it scrolls behind. The user sees the active
+  // state update smoothly as they scroll.
   assert.match(
     indexHtml,
-    /top\s*<=\s*controlsBottom\s*&&\s*top\s*>\s*bestTop/u,
-    "scroll-spy must iterate sections and pick the one with the largest top that is still <= controls bottom (the section the user is in)"
+    /Math\.abs\s*\(\s*top\s*-\s*controlsBottom\s*\)/u,
+    "scroll-spy must pick the section whose top is closest to the controls bottom (Math.abs(top - controlsBottom))"
+  );
+  assert.match(
+    indexHtml,
+    /dist\s*<\s*bestDist/u,
+    "scroll-spy must track the smallest distance to controls bottom"
   );
 });
 
