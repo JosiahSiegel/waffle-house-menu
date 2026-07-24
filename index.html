@@ -112,9 +112,13 @@ header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
 .chip:focus-visible{outline:3px solid var(--yellow);outline-offset:1px}
 
 .banner{
-  display:none;margin:12px 14px 0;padding:10px 12px;
-  background:#FDF0E4;border:1.5px solid var(--brown);border-radius:8px;
+  display:none;
+  position:fixed;left:12px;right:12px;bottom:12px;z-index:50;
+  margin:0;padding:10px 14px;
+  background:#FDF0E4;border:1.5px solid var(--brown);border-radius:10px;
+  box-shadow:0 6px 20px rgba(0,0,0,.18);
   font-size:13px;color:#6B4013;
+  text-align:center;
 }
 .banner.show{display:block}
 
@@ -220,18 +224,21 @@ main:focus{outline:none}
 @media (max-width:540px){.search-hint{display:none}}
 
 /* ---------- Clear-all button ---------- */
+/* Lives in the sign header, so it's always visible and never
+   pushes the controls/jump nav. Margin is small so the sign
+   height grows by ~28px when shown. */
 .clear-all{
   display:inline-flex;align-items:center;gap:6px;
-  margin-top:6px;padding:4px 10px;
+  margin:8px auto 0;padding:4px 12px;
   font:inherit;font-size:11.5px;font-weight:600;
-  background:transparent;color:var(--brown);
-  border:1px dashed var(--brown);border-radius:999px;
+  background:var(--yellow);color:var(--black);
+  border:0;border-radius:999px;
   cursor:pointer;-webkit-tap-highlight-color:transparent;
 }
-.clear-all:hover{color:var(--ink);border-color:var(--ink)}
-.clear-all:focus-visible{outline:3px solid var(--yellow);outline-offset:1px}
+.clear-all:hover{background:#fff;color:var(--black)}
+.clear-all:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .clear-all-count{
-  background:var(--brown);color:var(--paper);
+  background:var(--black);color:var(--yellow);
   font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:700;
   padding:1px 6px;border-radius:999px;min-width:16px;text-align:center;
 }
@@ -318,6 +325,7 @@ main:focus{outline:none}
   </div>
   <p class="sign-sub">Full Menu · Nutrition · Allergens</p>
   <p class="sign-meta" id="meta"></p>
+  <button type="button" class="clear-all" id="clearAll" hidden>Clear all filters <span class="clear-all-count" id="clearAllCount"></span></button>
 </header>
 
 <div class="controls" role="search">
@@ -329,10 +337,7 @@ main:focus{outline:none}
   <div class="chips" id="chips" role="group" aria-label="Filter out allergens">
     <span class="chips-label">Avoid:</span>
   </div>
-  <button type="button" class="clear-all" id="clearAll" hidden>Clear all filters <span class="clear-all-count" id="clearAllCount"></span></button>
 </div>
-
-<div class="banner" id="avoidBanner" role="status" aria-live="polite"></div>
 
 <nav class="jumpnav" id="jumpnav" aria-label="Jump to section"></nav>
 
@@ -344,6 +349,12 @@ main:focus{outline:none}
 <div class="load-err" id="loadErr" role="alert">Menu data not found. Run <code>python scripts/sync.py</code> to generate data/menu.js.</div>
 
 <button type="button" class="totop" id="totop" aria-label="Back to top" hidden>↑ Top</button>
+
+<!-- Avoid-allergen info panel: position:fixed bottom bar so it
+     doesn't push the jump nav. It's part of the document flow at
+     the end so screen readers find it, but visually it docks to the
+     bottom of the viewport. -->
+<div class="banner" id="avoidBanner" role="status" aria-live="polite"></div>
 
 <footer>
   <p id="srcLine">Source: Waffle House official nutritionals PDF.</p>
