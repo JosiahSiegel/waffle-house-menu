@@ -866,7 +866,12 @@ function buildJumpnav(){
   // Cache the <a> list in the same order as _sectionEls so
   // applyFilters can mirror visibility in a single tight loop
   // without querying either side per keystroke.
-  _jumpLinks = sections.map(s => jumpnavEl.querySelector(`a[href="#${s.id}"]`)).filter(Boolean);
+  // sections is a NodeList from querySelectorAll — it has no
+  // .map, so we have to Array.from() it first. (Pre-fix this
+  // threw "sections.map is not a function" which aborted
+  // buildJumpnav() before the click listener was registered,
+  // so the jump handler never ran at all.)
+  _jumpLinks = Array.from(sections, s => jumpnavEl.querySelector(`a[href="#${s.id}"]`)).filter(Boolean);
   jumpnavEl.addEventListener('click',e=>{
     const a=e.target.closest('a');
     if(!a)return;
