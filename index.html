@@ -664,7 +664,16 @@ function applyFilters(){
     // regardless so they can see which sections have matches
     // without clicking.
   }
-  emptyEl.classList.toggle('show',!anyVisible);
+  // Only manage the empty state when there are actually sections
+  // to filter. During the first setInvert() call on initial load,
+  // _sectionEls is still empty (render() hasn't run yet) and
+  // anyVisible is false — toggling .show on the empty div would
+  // make "Nothing matches" appear above the not-yet-rendered
+  // menu. The post-render applyFilters() call then does the real
+  // empty-state management with populated _sectionEls.
+  if (_sectionEls.length > 0) {
+    emptyEl.classList.toggle('show',!anyVisible);
+  }
   // Mirror section visibility onto the quick-jump nav: hidden
   // section → hidden jump link. Uses the cached _jumpLinks list
   // to avoid querying both sides per filter pass.
