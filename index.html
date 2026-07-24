@@ -84,6 +84,16 @@ header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
   background:var(--paper);border-bottom:2px solid var(--black);
   padding:10px 14px 8px;
 }
+
+/* When the jump-nav scrolls to a section, leave enough room at
+   the top so the section title isn't hidden behind the sticky
+   controls bar (search + chips + mode-bar = ~180px). Using
+   scroll-margin-top on the section targets is the modern
+   way: the browser handles the offset for both jump-nav
+   clicks AND direct hash navigation (#sec-xyz). */
+:root{--jump-offset:200px}
+details.sec{scroll-margin-top:var(--jump-offset)}
+@media (max-width:600px){:root{--jump-offset:220px}}
 .controls input{
   width:100%;font:inherit;padding:9px 12px;
   border:2px solid var(--black);border-radius:8px;background:#fff;color:var(--ink);
@@ -863,9 +873,12 @@ function buildJumpnav(){
     e.preventDefault();
     const target=document.getElementById(a.getAttribute('href').slice(1));
     if(target){
-      // Account for sticky controls (~96px tall: sign + search + chips)
-      const y=target.getBoundingClientRect().top + window.scrollY - 96;
-      window.scrollTo({top:y,behavior:'smooth'});
+      // scroll-margin-top on details.sec (set in CSS via --jump-offset)
+      // handles the sticky-controls offset natively. browser will
+      // scroll the section to the top, leaving --jump-offset px
+      // of breathing room so the section title isn't hidden behind
+      // the search/chips/mode-bar.
+      target.scrollIntoView({behavior:'smooth',block:'start'});
     }
   });
 }
