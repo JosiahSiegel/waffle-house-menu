@@ -56,13 +56,17 @@
   --ink:#F2EAD8;
   --brown:#D9B27A;
   --line:#3A2F23;
-  --black:#F2EAD8; /* flip: used as a foreground "ink" on yellow in dark mode */
+  /* --black intentionally NOT flipped — it represents
+     "always-dark" foreground/border that sits on yellow
+     (sign header background, yellow tile text, etc.)
+     These elements need to stay dark in both themes for
+     the yellow brand color to remain readable. */
 }
 [data-theme="dark"] body{background:var(--paper);color:var(--ink)}
 [data-theme="dark"] .controls input{background:#26201A;border-color:var(--line);color:var(--ink)}
 [data-theme="dark"] .chip{background:transparent;border-color:#3A3328;color:#B8A878}
 [data-theme="dark"] .chip[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:var(--black)}
-[data-theme="dark"] details.sec{border:2px solid var(--brown);background:#26201A;color:var(--ink)}
+[data-theme="dark"] details.sec{background:#26201A;color:var(--ink)}
 [data-theme="dark"] .meal{border-left-color:var(--line)}
 [data-theme="dark"] .item.main-item{background:rgba(241,196,15,0.08)}
 [data-theme="dark"] .item.main-item .item-name{color:var(--yellow)}
@@ -71,10 +75,13 @@
 [data-theme="dark"] .facts .allerg{border-top-color:var(--line)}
 [data-theme="dark"] .jumpnav a{background:transparent;color:var(--ink);border-color:var(--line)}
 [data-theme="dark"] .jumpnav a:hover{background:#26201A;border-color:var(--brown)}
+[data-theme="dark"] .jumpnav a[aria-current="true"]{background:var(--yellow);color:var(--black);border-color:var(--yellow)}
 [data-theme="dark"] .sign-sub{color:#8A7A5A}
 [data-theme="dark"] .al-tip{background:#26201A;border-color:var(--brown);color:var(--brown)}
 [data-theme="dark"] .empty{color:var(--brown)}
 [data-theme="dark"] footer{border-top-color:var(--line)}
+/* Sign header keeps its dark background in both themes so
+   the yellow Waffle Stats tiles stay readable. */
 [data-theme="dark"] .sign{background:#0F0C09}
 [data-theme="dark"] .nav{background:var(--paper);border-bottom-color:var(--brown)}
 [data-theme="dark"] .nav .brand{color:var(--yellow)}
