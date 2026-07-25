@@ -97,22 +97,28 @@ test("scroll-margin-top: details.sec uses scroll-margin-top with the var", () =>
   );
 });
 
-test("scroll-margin-top: jump handler uses scrollIntoView, not manual offset math", () => {
-  // After PR #6, we replaced the -96 magic number with native
-  // scrollIntoView. Make sure no one re-introduces a manual offset.
+test("scroll-margin-top: jump handler uses window.scrollTo for grey-line alignment", () => {
+  // After PR #23, we replaced scrollIntoView with a manual
+  // window.scrollTo because we need precise positioning: the
+  // grey divider line at the top of the category must meet
+  // the bottom border line of the pill navbar. scrollIntoView
+  // can't do fractional positioning relative to a sibling
+  // element's border. The handler computes
+  //   scrollY = prevSectionBottomInDocument - 183
+  // so the 1px grey line at prevSectionBottom-1 lands at y=182.
   const handlerMatch = indexHtml.match(
     /jumpnavEl\.addEventListener\('click',[\s\S]*?\}\);/u
   );
   assert.ok(handlerMatch, "jumpnav click handler block not found");
   assert.match(
     handlerMatch[0],
-    /target\.scrollIntoView\(/,
-    "handler must use target.scrollIntoView (not manual offset math)"
+    /window\.scrollTo\(/,
+    "handler must use window.scrollTo (to precisely position the grey line at the bottom border)"
   );
-  assert.doesNotMatch(
+  assert.match(
     handlerMatch[0],
-    /getBoundingClientRect\(\)\.top\s*\+\s*window\.scrollY/,
-    "handler must NOT use manual getBoundingClientRect offset math"
+    /prevBottomDoc\s*-\s*183/u,
+    "handler must compute scrollY = prevSectionBottomInDocument - 183 (grey line meets bottom border)"
   );
 });
 
@@ -233,22 +239,23 @@ test("jump-nav: setActiveJumpLink removes aria-current from all links first", ()
   );
 });
 
-test("jump-nav: scroll-spy uses a scroll listener (not just IntersectionObserver)", () => {
-  // The "line above the category name" is the top of the
-  // <summary> (16px above the visible title text). The pill
-  // becomes active when this line hits the bottom of the
-  // controls (controlsBottom = ~182). The title text itself
-  // sits 16px BELOW that line, so the title does NOT touch
-  // the controls — only the line above it does.
+test("jump-nav: scroll-spy aligns pill when DIVIDER GREY LINE meets bottom border", () => {
+  // User: "the divider grey line at the top of a category
+  // needs to meet the bottom border line of the pill navbar"
   //
-  // The scroll-spy must fire on EVERY scroll position change
-  // (not just when sections enter/leave the viewport), so a
-  // scroll listener (rAF-throttled) is required. IntersectionObserver
-  // alone misses the final position after smooth scrollIntoView.
+  // The "divider grey line" is the 1px border-bottom of the
+  // PREVIOUS section (`details.sec{border-bottom:1px solid var(--line)}`).
+  // The "bottom border line" is the 2px black border at the
+  // bottom of the controls (y=180-182).
+  //
+  // The pill becomes active when the grey line meets the
+  // bottom of the black border (grey line at y=182).
+  // For the first section, the "divider" is the controls
+  // bottom border itself (always at y=182).
   assert.match(
     indexHtml,
     /window\.addEventListener\(\s*['"]scroll['"]/u,
-    "scroll-spy must listen to scroll events (so it fires after smooth scrollIntoView completes)"
+    "scroll-spy must listen to scroll events (so it fires after smooth scroll completes)"
   );
   assert.match(
     indexHtml,
@@ -257,13 +264,18 @@ test("jump-nav: scroll-spy uses a scroll listener (not just IntersectionObserver
   );
   assert.match(
     indexHtml,
-    /lineAboveTitle\s*=\s*top\b/u,
-    "scroll-spy must use lineAboveTitle = sectionTop (the line above the title), NOT titleTop = sectionTop + 16"
+    /greyLineY/u,
+    "scroll-spy must use greyLineY (previous section's border-bottom) as the reference point, NOT lineAboveTitle"
   );
   assert.match(
     indexHtml,
-    /Math\.abs\s*\(\s*lineAboveTitle\s*-\s*controlsBottom\s*\)/u,
-    "scroll-spy must measure distance from lineAboveTitle to controlsBottom"
+    /prevRect\.bottom\s*-\s*1/u,
+    "scroll-spy must compute greyLineY = prevSectionBottom - 1 (the 1px border-bottom of the previous section)"
+  );
+  assert.match(
+    indexHtml,
+    /Math\.abs\s*\(\s*greyLineY\s*-\s*controlsBottom\s*\)/u,
+    "scroll-spy must measure distance from greyLineY to controlsBottom"
   );
   assert.match(
     indexHtml,
@@ -474,43 +486,45 @@ test("jumpnav: scroll-spy scrolls the active link into the visible center", () =
   );
 });
 
-test("jumpnav: scroll-spy uses lineAboveTitle (not titleTop) for the alignment reference", () => {
-  // User: "it needs to be the line above the category name
-  // hitting the pill bottom line and NOT the category name"
+test("jumpnav: scroll-spy uses greyLineY (previous section's border-bottom)", () => {
+  // User: "the divider grey line at the top of a category
+  // needs to meet the bottom border line of the pill navbar"
   //
-  // The "line above the category name" is the top of the
-  // <summary> (sectionTop), NOT sectionTop + 16 (the title
-  // text). The pill should activate when this line hits
-  // the controls bottom — not when the title text does.
+  // The "divider grey line" is the 1px border-bottom of the
+  // PREVIOUS section, NOT the title text and NOT the line
+  // above the title. The pill should activate when this
+  // grey line hits the bottom of the black border.
   assert.match(
     indexHtml,
-    /lineAboveTitle\s*=\s*top\b/u,
-    "scroll-spy must use lineAboveTitle = sectionTop (the line above the title), NOT titleTop = sectionTop + 16"
+    /greyLineY/u,
+    "scroll-spy must use greyLineY (previous section's border-bottom) as the reference"
   );
   assert.match(
     indexHtml,
-    /Math\.abs\s*\(\s*lineAboveTitle\s*-\s*controlsBottom\s*\)/u,
-    "scroll-spy must measure distance from lineAboveTitle (not titleTop) to controlsBottom"
+    /prevRect\.bottom\s*-\s*1/u,
+    "scroll-spy must compute greyLineY = prevSectionBottom - 1 (the 1px border-bottom of the previous section)"
+  );
+  assert.doesNotMatch(
+    indexHtml,
+    /lineAboveTitle/u,
+    "scroll-spy must NOT use lineAboveTitle (that was the previous fix; now we use the grey divider line)"
   );
 });
 
-test("jumpnav: --jump-offset puts the LINE ABOVE the title at controls bottom", () => {
-  // The scroll-margin-top value (--jump-offset) positions
-  // the <details> top at that offset from the viewport top.
-  // The "line above the category name" is the top of the
-  // <summary> (16px above the visible title text).
-  //
-  // The pill should align when this line hits the bottom
-  // of the controls (controlsBottom = ~182). The title
-  // text itself sits 16px BELOW that line. So:
-  //   lineAboveTitle = sectionTop = --jump-offset
-  //   lineAboveTitle = controlsBottom
-  //   --jump-offset = controlsBottom = ~182px
-  const rootMatch = indexHtml.match(/:root\s*\{[^}]*--jump-offset\s*:\s*(\d+)px/u);
-  assert.ok(rootMatch, "--jump-offset not found in :root");
-  const offset = parseInt(rootMatch[1], 10);
-  assert.ok(
-    offset >= 178 && offset <= 186,
-    `--jump-offset must be 178-186px (controls bottom ~182px). Got: ${offset}px`
+test("jumpnav: click handler scrolls so grey line meets bottom border", () => {
+  // The click handler must compute the scroll position so
+  // that the previous section's border-bottom (the grey
+  // divider line) is at y=183 in the viewport (so the 1px
+  // grey line is at y=182, meeting the bottom of the black
+  // border at the controls bottom).
+  assert.match(
+    indexHtml,
+    /window\.scrollTo/u,
+    "click handler must use window.scrollTo (not scrollIntoView) to precisely position the grey line"
+  );
+  assert.match(
+    indexHtml,
+    /prevBottomDoc\s*-\s*183/u,
+    "click handler must compute scrollY = prevSectionBottomInDocument - 183 (so grey line at prevBottom-1 = 182)"
   );
 });
