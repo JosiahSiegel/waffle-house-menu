@@ -537,7 +537,7 @@ details#sec-kids-meals>summary::before{
 // filter.mjs is the single source of truth for the filter rule.
 // Imported here for the page and by test/filter.test.mjs for the
 // PR-CI regression suite. If you change the rule, change both.
-import { annotateSections, isSubcat, computeVisibility, buildStructuredData } from "./filter.mjs";
+import { annotateSections, isSubcat, choicesLabel, computeVisibility, buildStructuredData } from "./filter.mjs";
 
 const LABELS=["Calories","Fat","Sat Fat","Trans Fat","Cholesterol","Sodium","Carbs","Fiber","Sugars","Protein"];
 const UNITS=["","g","g","g","mg","mg","g","g","g","g"];
@@ -628,7 +628,11 @@ function render(data){
             <span class="cal-tile">${it.d[0]}<small>CAL</small></span>
           </button>${factsHTML(it)}</div>`;
       });
-      itemsHTML+=closeMeal+openMeal+(gr.h?`<div class="grp-h${subcat?' subcat':''}">${esc(gr.h)}</div>`:'')+gItems;
+      // For "Choices" groups with multiple instances in one meal,
+      // show a specific label (e.g. "Choose Your Bread") so the
+      // user knows what each set of choices is for.
+      const groupLabel = gr.h === "Choices" ? choicesLabel(gr.items) : gr.h;
+      itemsHTML+=closeMeal+openMeal+(groupLabel?`<div class="grp-h${subcat?' subcat':''}">${esc(groupLabel)}</div>`:'')+gItems;
     });
     // Close the last meal if one is still open
     if(mealOpen) itemsHTML += "</div>";

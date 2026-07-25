@@ -20,6 +20,82 @@ export function isSubcat(h) {
   return typeof h === "string" && SUBCAT_RE.test(h.trim());
 }
 
+// Category-specific labels for "Choices" groups. The generic
+// "CHOICES" label is confusing when a meal has multiple choices
+// groups (e.g. Kids 1 Egg Breakfast has 3: bread, side, meat).
+// By detecting what the items are, we can show a self-describing
+// label like "Choose Your Bread" or "Choose Your Side".
+const TOAST_NAMES = new Set([
+  "White Toast - 2 Slices",
+  "Wheat Toast - 2 Slices",
+  "Raisin Toast - 2 Slices",
+  "Grilled Biscuit",
+  "Texas Toast - 1 Slice"
+]);
+const SIDE_NAMES = new Set([
+  "Grits",
+  "Cheese Grits",
+  "Hashbrowns",
+  "Regular Hashbrowns",
+  "Sliced Tomatoes",
+  "Tomatoes"
+]);
+const MEAT_NAMES = new Set([
+  "Bacon",
+  "Bacon - 3 Slices",
+  "Sausage",
+  "Sausage - 2 patties",
+  "Chicken Sausage",
+  "Chicken Sausage - 2 patties",
+  "Kid's Bacon",
+  "Kid's Sausage",
+  "Kid's Chicken Sausage",
+  "City Ham",
+  "City Ham - 1 Slice",
+  "Country Ham",
+  "Country Ham - 1 Slice"
+]);
+const CHEESESTEAK_NAMES = new Set([
+  "Cheesesteak",
+  "Grilled Chicken",
+  "Hickory Smoked Ham",
+  "Diced Ham",
+  "Sautéed Onions",
+  "Grilled Onions",
+  "Melted American Cheese",
+  "American Cheese (2 Slices)",
+  "Jalapeno Peppers",
+  "Grilled Tomatoes",
+  "Grilled Mushrooms",
+  "Bert's Chili™"
+]);
+
+/**
+ * Given a "Choices" group's items, return a specific label
+ * that describes what the user is choosing. Falls back to
+ * "Choices" if the items don't match a known category.
+ *
+ * Examples:
+ *   [White Toast, Wheat Toast, Raisin Toast, Grilled Biscuit, Texas Toast]
+ *     → "Choose Your Bread"
+ *   [Grits, Hashbrowns, Sliced Tomatoes]
+ *     → "Choose Your Side"
+ *   [Kid's Bacon, Kid's Sausage, Kid's Chicken Sausage]
+ *     → "Choose Your Meat"
+ */
+export function choicesLabel(items) {
+  if (!items || items.length === 0) return "Choices";
+  const names = items.map(it => it.n);
+  // If ALL items are toast → "Choose Your Bread"
+  if (names.every(n => TOAST_NAMES.has(n))) return "Choose Your Bread";
+  // If ALL items are sides → "Choose Your Side"
+  if (names.every(n => SIDE_NAMES.has(n))) return "Choose Your Side";
+  // If ALL items are meats → "Choose Your Meat"
+  if (names.every(n => MEAT_NAMES.has(n))) return "Choose Your Meat";
+  // Mixed/other (e.g. omelet meats/add-ons) → "Choices"
+  return "Choices";
+}
+
 /**
  * Attach hasSubcat + anchorA + flatItems to each section.
  *   - hasSubcat: section has at least one subcategory group

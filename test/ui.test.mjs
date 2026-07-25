@@ -19,6 +19,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { choicesLabel } from "../filter.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const indexHtml = readFileSync(resolve(__dirname, "../index.html"), "utf8");
@@ -588,3 +589,71 @@ test('menu: white/wheat toast are in the Choices group, not the main item', () =
   assert.ok(raisinIdx > choicesIdx, 'Raisin Toast must be AFTER the Choices header in the 1 Egg meal');
 });
 
+
+test("menu: choices groups show specific labels (Choose Your Bread/Side/Meat)", () => {
+  // User: "the kids egg has 3 sets of choices included"
+  // When a meal has multiple "Choices" groups, they all just
+  // said "CHOICES" — the user couldn't tell what each set was
+  // for. Now we show specific labels based on the items:
+  //   - All toast items → "Choose Your Bread"
+  //   - All side items → "Choose Your Side"
+  //   - All meat items → "Choose Your Meat"
+  //   - Mixed → "Choices"
+  assert.match(
+    indexHtml,
+    /choicesLabel/,
+    "index.html must import and use choicesLabel() for Choices groups"
+  );
+  // The function must exist in filter.mjs
+  const filterMjs = readFileSync("filter.mjs", "utf8");
+  assert.match(
+    filterMjs,
+    /export function choicesLabel/,
+    "filter.mjs must export choicesLabel()"
+  );
+  // Test the function directly
+  // (imported at top of file: choicesLabel)
+  // Toast group
+  assert.equal(
+    choicesLabel([
+      {n: "White Toast - 2 Slices"},
+      {n: "Wheat Toast - 2 Slices"},
+      {n: "Raisin Toast - 2 Slices"},
+      {n: "Grilled Biscuit"},
+      {n: "Texas Toast - 1 Slice"}
+    ]),
+    "Choose Your Bread",
+    "All toast items should produce 'Choose Your Bread'"
+  );
+  // Side group
+  assert.equal(
+    choicesLabel([
+      {n: "Grits"},
+      {n: "Hashbrowns"},
+      {n: "Sliced Tomatoes"}
+    ]),
+    "Choose Your Side",
+    "All side items should produce 'Choose Your Side'"
+  );
+  // Meat group
+  assert.equal(
+    choicesLabel([
+      {n: "Kid's Bacon"},
+      {n: "Kid's Sausage"},
+      {n: "Kid's Chicken Sausage"}
+    ]),
+    "Choose Your Meat",
+    "All meat items should produce 'Choose Your Meat'"
+  );
+  // Empty/mixed → fallback
+  assert.equal(
+    choicesLabel([]),
+    "Choices",
+    "Empty items should fall back to 'Choices'"
+  );
+  assert.equal(
+    choicesLabel([{n: "Something Mixed"}, {n: "Another Thing"}]),
+    "Choices",
+    "Mixed/unknown items should fall back to 'Choices'"
+  );
+});
