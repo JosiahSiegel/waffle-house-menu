@@ -668,3 +668,44 @@ test("menu: main items stand out visually (main-item class + styling)", () => {
   assert.match(indexHtml, /\.item\.main-item/, "CSS must style .item.main-item distinctly");
   assert.match(indexHtml, /isMain\s*=\s*!subcat/, "isMain must be !subcat");
 });
+
+test("menu: dark mode toggle exists with persistence and OS preference", () => {
+  // User: "allow the user to switch to dark mode"
+  assert.match(
+    indexHtml,
+    /id="themeToggle"/,
+    "index.html must have a #themeToggle button"
+  );
+  assert.match(
+    indexHtml,
+    /\[data-theme="dark"\]/,
+    "index.html must define a [data-theme=\"dark\"] CSS block"
+  );
+  assert.match(
+    indexHtml,
+    /localStorage\.(get|set)Item\(THEME_KEY/,
+    "index.html must persist theme preference in localStorage"
+  );
+  assert.match(
+    indexHtml,
+    /prefers-color-scheme: dark/,
+    "index.html must respect OS-level prefers-color-scheme"
+  );
+  // The dark theme block must override the core color variables
+  assert.match(
+    indexHtml,
+    /\[data-theme="dark"\][\s\S]{0,400}--paper:/,
+    "Dark theme must override --paper"
+  );
+  assert.match(
+    indexHtml,
+    /\[data-theme="dark"\][\s\S]{0,400}--ink:/,
+    "Dark theme must override --ink"
+  );
+  // Keyboard shortcut "t" must toggle theme
+  assert.match(
+    indexHtml,
+    /e\.key==='t'[\s\S]{0,500}toggleTheme\(\)/,
+    "Pressing 't' must toggle the theme"
+  );
+});

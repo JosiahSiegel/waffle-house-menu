@@ -45,6 +45,49 @@
   --line:#E5DAC0;
   --tile-r:3px;
 }
+/* Dark mode — applied via [data-theme="dark"] on <html>.
+   Overrides only the colors that need to change; the yellow
+   accent stays the same (it's the brand color). The paper
+   background becomes a warm dark gray, the ink becomes a
+   warm off-white, and the brown shifts lighter so it stays
+   readable. The line color also shifts to a darker tone. */
+[data-theme="dark"]{
+  --paper:#1C1814;
+  --ink:#F2EAD8;
+  --brown:#D9B27A;
+  --line:#3A2F23;
+  --black:#F2EAD8; /* flip: used as a foreground "ink" on yellow in dark mode */
+}
+[data-theme="dark"] body{background:var(--paper);color:var(--ink)}
+[data-theme="dark"] .controls input{background:#26201A;border-color:var(--line);color:var(--ink)}
+[data-theme="dark"] .chip{background:transparent;border-color:#3A3328;color:#B8A878}
+[data-theme="dark"] .chip[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:var(--black)}
+[data-theme="dark"] details.sec{border:2px solid var(--brown);background:#26201A;color:var(--ink)}
+[data-theme="dark"] .meal{border-left-color:var(--line)}
+[data-theme="dark"] .item.main-item{background:rgba(241,196,15,0.08)}
+[data-theme="dark"] .item.main-item .item-name{color:var(--yellow)}
+[data-theme="dark"] .facts{background:#26201A;border-color:var(--brown)}
+[data-theme="dark"] .facts .dots{border-bottom-color:var(--line)}
+[data-theme="dark"] .facts .allerg{border-top-color:var(--line)}
+[data-theme="dark"] .jumpnav a{background:transparent;color:var(--ink);border-color:var(--line)}
+[data-theme="dark"] .jumpnav a:hover{background:#26201A;border-color:var(--brown)}
+[data-theme="dark"] .sign-sub{color:#8A7A5A}
+[data-theme="dark"] .al-tip{background:#26201A;border-color:var(--brown);color:var(--brown)}
+[data-theme="dark"] .empty{color:var(--brown)}
+[data-theme="dark"] footer{border-top-color:var(--line)}
+[data-theme="dark"] .sign{background:#0F0C09}
+[data-theme="dark"] .nav{background:var(--paper);border-bottom-color:var(--brown)}
+[data-theme="dark"] .nav .brand{color:var(--yellow)}
+[data-theme="dark"] .nav .brand small{color:var(--brown)}
+[data-theme="dark"] .nav summary{color:var(--ink)}
+[data-theme="dark"] .theme-toggle{background:transparent;border-color:#3A3328;color:#B8A878}
+[data-theme="dark"] .theme-toggle[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:var(--black)}
+[data-theme="dark"] .invert-toggle{border-color:#3A3328;color:#B8A878}
+[data-theme="dark"] .invert-toggle[aria-pressed="true"]{background:var(--yellow);color:var(--black);border-color:var(--yellow)}
+[data-theme="dark"] .clear-all{background:var(--yellow);color:var(--black)}
+[data-theme="dark"] .clear-all:hover{background:#fff;color:var(--black)}
+[data-theme="dark"] .totop{background:var(--yellow);color:var(--black);border-color:var(--brown)}
+[data-theme="dark"] .items-found-pill{background:var(--brown);color:var(--paper);border-color:rgba(255,255,255,0.15)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{
@@ -141,6 +184,20 @@ details.sec{scroll-margin-top:var(--jump-offset)}
 .invert-toggle[aria-pressed="true"]:hover{filter:brightness(.95)}
 .invert-state{font-weight:400;opacity:.7}
 .invert-toggle[aria-pressed="true"] .invert-state{opacity:.9}
+/* Theme toggle (light/dark). Same shape as the invert-toggle
+   so the two sit nicely side by side in the controls bar. */
+.theme-toggle{
+  background:transparent;border:1px solid #d4d4d4;border-radius:999px;
+  padding:4px 12px 4px 10px;font:inherit;font-size:.82em;color:#666;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  -webkit-tap-highlight-color:transparent;
+}
+.theme-toggle:hover{border-color:#999;color:#333}
+.theme-toggle:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.theme-toggle .theme-icon{font-size:1.1em;line-height:1}
+.theme-toggle[aria-pressed="true"]{
+  background:#0F0C09;color:#FFD200;border-color:#0F0C09;
+}
 .mode-hint{
   font-size:.78em;color:#888;font-style:italic;flex:1 1 auto;
   min-width:0;
@@ -523,6 +580,10 @@ details#sec-kids-meals>summary::before{
       <span class="invert-dot" aria-hidden="true"></span>
       Invert filter <span class="invert-state" id="invertState">(off)</span>
     </button>
+    <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" title="Switch between light and dark mode. Keyboard: t">
+      <span class="theme-icon" aria-hidden="true">☀</span>
+      <span class="theme-label">Light</span>
+    </button>
     <span class="mode-hint" id="modeHint">Hide items that list the selected allergens</span>
   </div>
   <nav class="jumpnav" id="jumpnav" aria-label="Jump to section"></nav>
@@ -882,6 +943,50 @@ function setInvert(on){
 }
 invertToggleEl.addEventListener('click',()=>setInvert(!invert));
 
+// Theme toggle (light/dark). Preference is persisted in
+// localStorage so it survives reloads. If no preference is
+// stored, we follow the OS-level prefers-color-scheme.
+// Applied via [data-theme="dark"] on <html> so all the
+// CSS variable overrides kick in instantly.
+const themeToggleEl=document.getElementById('themeToggle');
+const themeLabelEl=themeToggleEl.querySelector('.theme-label');
+const themeIconEl=themeToggleEl.querySelector('.theme-icon');
+const THEME_KEY='wh_menu_theme';
+function getStoredTheme(){
+  try{return localStorage.getItem(THEME_KEY)}catch(e){return null}
+}
+function systemPrefersDark(){
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function applyTheme(theme,persist){
+  const root=document.documentElement;
+  const isDark=theme==='dark';
+  root.setAttribute('data-theme',isDark?'dark':'light');
+  themeToggleEl.setAttribute('aria-pressed',isDark?'true':'false');
+  themeLabelEl.textContent=isDark?'Dark':'Light';
+  themeIconEl.textContent=isDark?'☾':'☀';
+  if(persist){
+    try{localStorage.setItem(THEME_KEY,theme)}catch(e){}
+  }
+}
+function toggleTheme(){
+  const current=document.documentElement.getAttribute('data-theme');
+  applyTheme(current==='dark'?'light':'dark',true);
+}
+themeToggleEl.addEventListener('click',toggleTheme);
+// Apply stored or system theme as early as possible.
+// Stored takes priority; fall back to OS preference.
+const storedTheme=getStoredTheme();
+const initialTheme=storedTheme||(systemPrefersDark()?'dark':'light');
+applyTheme(initialTheme,false);
+// Keep the toggle in sync if the OS preference changes and
+// the user has no explicit override stored.
+if(window.matchMedia){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{
+    if(!getStoredTheme()) applyTheme(e.matches?'dark':'light',false);
+  });
+}
+
 // "Clear all" button: appears the moment any allergen or search is
 // active. Wipes both, gives focus back to the search box.
 const clearAllEl=document.getElementById('clearAll');
@@ -942,6 +1047,12 @@ document.addEventListener('keydown',e=>{
     // search box input is not affected.
     e.preventDefault();
     setInvert(!invert);
+  }else if(e.key==='t' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)
+     && !e.ctrlKey && !e.metaKey && !e.altKey){
+    // "t" toggles light/dark theme. Ignored while typing so
+    // search box input is not affected.
+    e.preventDefault();
+    toggleTheme();
   }
 });
 
