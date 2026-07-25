@@ -91,9 +91,9 @@ header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
    scroll-margin-top on the section targets is the modern
    way: the browser handles the offset for both jump-nav
    clicks AND direct hash navigation (#sec-xyz). */
-:root{--jump-offset:182px}
+:root{--jump-offset:183px}
 details.sec{scroll-margin-top:var(--jump-offset)}
-@media (max-width:600px){:root{--jump-offset:202px}}
+@media (max-width:600px){:root{--jump-offset:203px}}
 .controls input{
   width:100%;font:inherit;padding:9px 12px;
   border:2px solid var(--black);border-radius:8px;background:#fff;color:var(--ink);
@@ -931,12 +931,47 @@ function buildJumpnav(){
       // The scroll-spy below will keep this in sync as the user
       // scrolls past the jumped-to section.
       setActiveJumpLink(a);
-      // scroll-margin-top on details.sec (set in CSS via --jump-offset)
-      // handles the sticky-controls offset natively. browser will
-      // scroll the section to the top, leaving --jump-offset px
-      // of breathing room so the section title isn't hidden behind
-      // the search/chips/mode-bar.
-      target.scrollIntoView({behavior:'smooth',block:'start'});
+      // Scroll so the DIVIDER GREY LINE at the top of the
+      // category (the 1px border-bottom of the PREVIOUS section,
+      // `details.sec{border-bottom:1px solid var(--line)}`) meets
+      // the BOTTOM BORDER LINE of the pill navbar (the 2px black
+      // line at the bottom of the controls, y=182).
+      //
+      // The grey line is at `prevSectionBottom - 1` in viewport
+      // coords. For it to meet the bottom of the black border,
+      // `prevSectionBottom = 183` in viewport coords. So:
+      //   window.scrollY = prevSectionBottomInDocument - 183
+      //
+      // For the FIRST section there's no previous section — the
+      // "divider" is the controls bottom border itself (always at
+      // y=182), so we scroll to the section top with the standard
+      // 183px offset.
+      const targetIdx = _sectionEls.indexOf(target);
+      let scrollY;
+      if(targetIdx > 0){
+        const prev = _sectionEls[targetIdx - 1];
+        const prevBottomDoc = prev.getBoundingClientRect().bottom + window.scrollY;
+        scrollY = prevBottomDoc - 183;
+      } else {
+        const topDoc = target.getBoundingClientRect().top + window.scrollY;
+        scrollY = topDoc - 183;
+      }
+      window.scrollTo({top: scrollY, behavior: 'smooth'});
+      // Set the active pill directly from the click handler.
+      // The scroll-spy (in the IntersectionObserver block below)
+      // will keep it in sync for user-initiated scrolls, but
+      // window.scrollTo({behavior:'smooth'}) doesn't reliably
+      // fire scroll events on all browsers, so we set it here.
+      setActiveJumpLink(a);
+      // Suppress the scroll-spy for 1 second after a click.
+      // The scroll-spy runs on every rAF tick during the smooth
+      // scroll, and at intermediate positions section 2's grey
+      // line hasn't reached the controls bottom yet, so the spy
+      // (correctly) picks section 0 (whose grey line is always
+      // at the controls bottom). We don't want it to override
+      // the pill we just set. After the scroll completes, the
+      // spy takes over for user-initiated scrolls.
+      window._suppressSpyUntil = Date.now() + 1000;
     }
   });
 
@@ -990,23 +1025,43 @@ function buildJumpnav(){
     // position change and re-evaluates which section is at
     // the controls bottom.
     const updateActive = ()=>{
+      // Suppress the spy for 1s after a click — the click
+      // handler already set the correct pill, and during the
+      // smooth scroll the grey line for the target section
+      // hasn't reached the controls bottom yet, so the spy
+      // would (correctly) pick section 0 instead.
+      if(Date.now() < (window._suppressSpyUntil || 0)) return;
       const controlsBottom = controls.getBoundingClientRect().bottom;
-      // The active section is the one whose VISIBLE TITLE
-      // TEXT (the <summary> with padding-top:16px) is
-      // The "line above the category name" is the top of
-      // the <summary> (16px above the title text). The
-      // pill updates when this line hits the bottom of
-      // the controls (controlsBottom = 182). The title
-      // itself sits 16px below that line, so the title
-      // text is at controlsBottom + 16 = 198 when the
-      // pill activates — not touching the controls.
-      const TITLE_PAD = 16; // matches details.sec>summary padding-top
+      // The active section is the one whose DIVIDER GREY LINE
+      // (the 1px border-bottom of the PREVIOUS section, or
+      // the controls bottom border for the first section) is
+      // at the BOTTOM BORDER LINE of the pill navbar
+      // (controlsBottom = 182).
+      //
+      // The grey line is at `prevSectionBottom - 1`. For the
+      // first section there's no previous section, so the
+      // "grey line" is the controls bottom border itself
+      // (always at y=182).
       let active = null, bestDist = Infinity;
-      for(const sec of _sectionEls){
-        const top = sec.getBoundingClientRect().top;
-        const lineAboveTitle = top; // top of <summary> = line above the title text
-        const dist = Math.abs(lineAboveTitle - controlsBottom);
-        if(dist < bestDist){
+      for(let i = 0; i < _sectionEls.length; i++){
+        const sec = _sectionEls[i];
+        let greyLineY;
+        if(i === 0){
+          // First section: the "divider" is the controls bottom border
+          greyLineY = controlsBottom;
+        } else {
+          // Subsequent sections: the divider is the previous section's border-bottom
+          const prevRect = _sectionEls[i - 1].getBoundingClientRect();
+          greyLineY = prevRect.bottom - 1;
+        }
+        const dist = Math.abs(greyLineY - controlsBottom);
+        // Tie-breaker: if two sections are equidistant, pick
+        // the LATER one (larger index). Without this, the
+        // first section always wins the tie (it has greyLineY
+        // = controlsBottom = 182, same as any subsequent
+        // section whose grey line is also at 182). The later
+        // section is the one the user actually scrolled to.
+        if(dist < bestDist || (dist === bestDist && i > _sectionEls.indexOf(active))){
           bestDist = dist;
           active = sec;
         }
