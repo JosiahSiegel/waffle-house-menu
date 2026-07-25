@@ -203,6 +203,30 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   margin:6px 0 10px;
   border-radius:0 4px 4px 0;
 }
+/* The main item of each meal stands out as the "parent" of
+   the choices below it. Larger name, bolder weight, a soft
+   background tint, and a slightly larger calorie tile so
+   the user immediately sees which item is THE meal and
+   which items are alternatives. */
+.item.main-item{
+  background:rgba(241,196,15,0.10);
+  border-radius:6px;
+  margin:2px -6px 6px;
+  padding:2px 6px;
+  border-top:0;
+}
+.item.main-item .item-name{
+  font-size:16px;
+  font-weight:700;
+  color:var(--brown);
+}
+.item.main-item .cal-tile{
+  font-size:18px;
+  padding:6px 10px;
+  background:var(--yellow);
+  color:var(--brown);
+  box-shadow:0 1px 3px rgba(0,0,0,0.12);
+}
 .meal:first-child{margin-top:0}
 .meal:last-child{margin-bottom:0}
 .item:first-of-type{border-top:0}
@@ -617,12 +641,15 @@ function render(data){
         openMeal = `<div class="meal">`;
         mealOpen = true;
       }
+      // Mark items in non-subcat groups as "main" so they can
+      // be styled to stand out as the parent of the meal.
+      const isMain = !subcat;
       gr.items.forEach(it=>{
         count++;
         const a=it.a||[];
         const tags=a.length?`<span class="al-tags">${a.map(x=>ABBR[x]||x).join("·")}</span>`:"";
         const note=it.note?`<span class="item-note">${esc(it.note)}</span>`:'';
-        gItems+=`<div class="item" data-name="${esc(it.n.toLowerCase())}" data-a="${esc(a.join("|"))}">
+        gItems+=`<div class="item${isMain?' main-item':''}" data-name="${esc(it.n.toLowerCase())}" data-a="${esc(a.join("|"))}">
           <button class="item-row" aria-expanded="false">
             <span class="item-name">${esc(it.n)}${note}${tags}</span>
             <span class="cal-tile">${it.d[0]}<small>CAL</small></span>

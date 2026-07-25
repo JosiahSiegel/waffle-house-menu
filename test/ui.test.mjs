@@ -657,3 +657,14 @@ test("menu: choices groups show specific labels (Choose Your Bread/Side/Meat)", 
     "Mixed/unknown items should fall back to 'Choices'"
   );
 });
+
+test("menu: main items stand out visually (main-item class + styling)", () => {
+  // Template literal in source: `class="item${isMain?' main-item':''}"`
+  assert.match(
+    indexHtml,
+    /class="item\$\{isMain\?/,
+    "index.html must add .main-item class via the isMain template tag"
+  );
+  assert.match(indexHtml, /\.item\.main-item/, "CSS must style .item.main-item distinctly");
+  assert.match(indexHtml, /isMain\s*=\s*!subcat/, "isMain must be !subcat");
+});
