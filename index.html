@@ -91,9 +91,9 @@ header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
    scroll-margin-top on the section targets is the modern
    way: the browser handles the offset for both jump-nav
    clicks AND direct hash navigation (#sec-xyz). */
-:root{--jump-offset:166px}
+:root{--jump-offset:182px}
 details.sec{scroll-margin-top:var(--jump-offset)}
-@media (max-width:600px){:root{--jump-offset:186px}}
+@media (max-width:600px){:root{--jump-offset:202px}}
 .controls input{
   width:100%;font:inherit;padding:9px 12px;
   border:2px solid var(--black);border-radius:8px;background:#fff;color:var(--ink);
@@ -985,17 +985,19 @@ function buildJumpnav(){
       const controlsBottom = controls.getBoundingClientRect().bottom;
       // The active section is the one whose VISIBLE TITLE
       // TEXT (the <summary> with padding-top:16px) is
-      // closest to the controls bottom. This way the pill
-      // aligns exactly when the top line of the category
-      // hits the bottom line of the navbar — and vice
-      // versa (clicking the pill scrolls the title to
-      // that position).
+      // The "line above the category name" is the top of
+      // the <summary> (16px above the title text). The
+      // pill updates when this line hits the bottom of
+      // the controls (controlsBottom = 182). The title
+      // itself sits 16px below that line, so the title
+      // text is at controlsBottom + 16 = 198 when the
+      // pill activates — not touching the controls.
       const TITLE_PAD = 16; // matches details.sec>summary padding-top
       let active = null, bestDist = Infinity;
       for(const sec of _sectionEls){
         const top = sec.getBoundingClientRect().top;
-        const titleTop = top + TITLE_PAD;
-        const dist = Math.abs(titleTop - controlsBottom);
+        const lineAboveTitle = top; // top of <summary> = line above the title text
+        const dist = Math.abs(lineAboveTitle - controlsBottom);
         if(dist < bestDist){
           bestDist = dist;
           active = sec;
