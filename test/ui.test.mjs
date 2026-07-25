@@ -233,12 +233,13 @@ test("jump-nav: setActiveJumpLink removes aria-current from all links first", ()
   );
 });
 
-test("jump-nav: scroll-spy aligns pill when category title hits controls bottom", () => {
-  // The active section is the one whose VISIBLE TITLE TEXT
-  // (the <summary> with padding-top:16px) is closest to the
-  // controls bottom. The pill becomes active when the title
-  // line approaches the controls bottom from below, and
-  // stays active as the title scrolls behind.
+test("jump-nav: scroll-spy aligns pill when LINE ABOVE category name hits controls bottom", () => {
+  // The "line above the category name" is the top of the
+  // <summary> (16px above the visible title text). The pill
+  // becomes active when this line hits the bottom of the
+  // controls (controlsBottom = ~182). The title text itself
+  // sits 16px BELOW that line, so the title does NOT touch
+  // the controls — only the line above it does.
   assert.match(
     indexHtml,
     /IntersectionObserver/,
@@ -251,13 +252,13 @@ test("jump-nav: scroll-spy aligns pill when category title hits controls bottom"
   );
   assert.match(
     indexHtml,
-    /titleTop\s*=\s*top\s*\+/u,
-    "scroll-spy must compute titleTop = sectionTop + padding (the visible title position, not the <details> top)"
+    /lineAboveTitle\s*=\s*top\b/u,
+    "scroll-spy must use lineAboveTitle = sectionTop (the line above the title, NOT titleTop = sectionTop + 16)"
   );
   assert.match(
     indexHtml,
-    /Math\.abs\s*\(\s*titleTop\s*-\s*controlsBottom\s*\)/u,
-    "scroll-spy must measure distance from titleTop to controlsBottom"
+    /Math\.abs\s*\(\s*lineAboveTitle\s*-\s*controlsBottom\s*\)/u,
+    "scroll-spy must measure distance from lineAboveTitle to controlsBottom"
   );
   assert.match(
     indexHtml,
@@ -478,54 +479,43 @@ test("jumpnav: scroll-spy scrolls the active link into the visible center", () =
   );
 });
 
-test("jumpnav: scroll-spy aligns pill when category title hits controls bottom", () => {
-  // User: "when the top line of a category hits the bottom
-  // line of the navbar, that's when the jump to pill should
-  // align and vice versa"
+test("jumpnav: scroll-spy uses lineAboveTitle (not titleTop) for the alignment reference", () => {
+  // User: "it needs to be the line above the category name
+  // hitting the pill bottom line and NOT the category name"
   //
-  // The active section is the one whose VISIBLE TITLE TEXT
-  // (the <summary> with padding-top:16px) is closest to the
-  // controls bottom. This way:
-  //   - Pill becomes active when the title line approaches
-  //     the controls bottom from below
-  //   - Pill stays active as the title scrolls behind
-  //   - Clicking the pill scrolls the title to the controls
-  //     bottom (the "vice versa" direction)
-  //
-  // The title position is sectionTop + 16 (the summary
-  // padding-top), not just sectionTop.
+  // The "line above the category name" is the top of the
+  // <summary> (sectionTop), NOT sectionTop + 16 (the title
+  // text). The pill should activate when this line hits
+  // the controls bottom — not when the title text does.
   assert.match(
     indexHtml,
-    /TITLE_PAD|summary.*padding|titleTop\s*=\s*top\s*\+/u,
-    "scroll-spy must account for the 16px summary padding-top when computing the title position (not just the <details> top)"
+    /lineAboveTitle\s*=\s*top\b/u,
+    "scroll-spy must use lineAboveTitle = sectionTop (the line above the title), NOT titleTop = sectionTop + 16"
   );
   assert.match(
     indexHtml,
-    /Math\.abs\s*\(\s*titleTop\s*-\s*controlsBottom\s*\)/u,
-    "scroll-spy must measure distance from the title position to the controls bottom"
+    /Math\.abs\s*\(\s*lineAboveTitle\s*-\s*controlsBottom\s*\)/u,
+    "scroll-spy must measure distance from lineAboveTitle (not titleTop) to controlsBottom"
   );
 });
 
-test("jumpnav: --jump-offset puts the title right at the bottom of the line", () => {
+test("jumpnav: --jump-offset puts the LINE ABOVE the title at controls bottom", () => {
   // The scroll-margin-top value (--jump-offset) positions
   // the <details> top at that offset from the viewport top.
-  // The <summary> (the visible title) has padding-top:16px,
-  // so the title text is 16px below the <details> top.
+  // The "line above the category name" is the top of the
+  // <summary> (16px above the visible title text).
   //
-  // The "line below the pills" is the 2px black border at
-  // the bottom of the controls (controlsBottom). The title
-  // should land right at the bottom of this line — not
-  // overlapping it, not below it. So:
-  //   controlsBottom = ~182px (includes 2px border)
-  //   titleTop = sectionTop + 16
-  //   sectionTop = --jump-offset
-  //   titleTop = --jump-offset + 16 = controlsBottom
-  //   --jump-offset = controlsBottom - 16 = ~166px
+  // The pill should align when this line hits the bottom
+  // of the controls (controlsBottom = ~182). The title
+  // text itself sits 16px BELOW that line. So:
+  //   lineAboveTitle = sectionTop = --jump-offset
+  //   lineAboveTitle = controlsBottom
+  //   --jump-offset = controlsBottom = ~182px
   const rootMatch = indexHtml.match(/:root\s*\{[^}]*--jump-offset\s*:\s*(\d+)px/u);
   assert.ok(rootMatch, "--jump-offset not found in :root");
   const offset = parseInt(rootMatch[1], 10);
   assert.ok(
-    offset >= 160 && offset <= 172,
-    `--jump-offset must be 160-172px (controls bottom ~182px minus 16px summary padding = ~166px). Got: ${offset}px`
+    offset >= 178 && offset <= 186,
+    `--jump-offset must be 178-186px (controls bottom ~182px). Got: ${offset}px`
   );
 });
