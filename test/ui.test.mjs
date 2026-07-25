@@ -234,24 +234,24 @@ test("jump-nav: setActiveJumpLink removes aria-current from all links first", ()
   );
 });
 
-test("jump-nav: scroll-spy picks the section the user is 'in' (title just below controls)", () => {
-  // User: scrolling should change the active pill to reflect
-  // which section the user is currently reading. The click
-  // handler and the scroll-spy must produce the SAME active
-  // pill for the same scroll position.
+test("jump-nav: scroll-spy aligns pill when category divider meets controls bottom", () => {
+  // User: "pill align on category divider meeting bottom pill
+  // navbar border, not before or after"
   //
-  // Approach: the active section is the one whose <details>
-  // top is the SMALLEST value that is still > controlsBottom
-  // - TITLE_PAD (16). The title (summary padding-top:16) is
-  // just below the controls bottom — the user is reading the
-  // content below that title.
+  // The "category divider" is the 1px border-bottom of the
+  // PREVIOUS section. The "bottom pill navbar border" is the
+  // 2px black border at the bottom of the controls (y=182).
   //
-  // This correctly handles:
-  // - At top of page: first section (no section's top is below
-  //   the threshold, so the init `updateActive()` runs and
-  //   sets the first section as active)
-  // - Mid-scroll: the section whose title is just below controls
-  // - At bottom: the last section
+  // Approach: the active section is the one whose divider
+  // position is the LARGEST value that is still ≤
+  // controlsBottom. This is the section whose grey line has
+  // just reached (or is at) the controls bottom.
+  //
+  // For the first section there's no previous section, so
+  // the "divider" is the controls bottom border itself
+  // (always at y=182). The tie-breaker (largest dividerY)
+  // handles the case where multiple sections have the same
+  // divider position — it picks the LATEST one.
   assert.match(
     indexHtml,
     /window\.addEventListener\(\s*['"]scroll['"]/u,
@@ -260,22 +260,17 @@ test("jump-nav: scroll-spy picks the section the user is 'in' (title just below 
   assert.match(
     indexHtml,
     /requestAnimationFrame/u,
-    "scroll-spy must throttle with rAF to avoid running on every pixel of a smooth scroll"
+    "scroll-spy must throttle with rAF"
   );
   assert.match(
     indexHtml,
-    /TITLE_PAD|threshold\s*=\s*controlsBottom\s*-\s*TITLE_PAD/u,
-    "scroll-spy must compute threshold = controlsBottom - TITLE_PAD (16)"
+    /dividerY\s*=\s*top\s*-\s*1/u,
+    "scroll-spy must compute dividerY = sectionTop - 1 (the 1px grey line just above the section top)"
   );
   assert.match(
     indexHtml,
-    /top\s*>\s*threshold\s*&&\s*top\s*<\s*bestTop/u,
-    "scroll-spy must pick the section with the smallest top that is still > threshold (title just below controls)"
-  );
-  assert.doesNotMatch(
-    indexHtml,
-    /greyLineY/u,
-    "scroll-spy must NOT use greyLineY (that approach left section 0 always-tied at dist=0)"
+    /dividerY\s*<=\s*controlsBottom\s*&&\s*dividerY\s*>\s*bestDividerY/u,
+    "scroll-spy must pick the section with the largest dividerY still ≤ controlsBottom"
   );
 });
 
@@ -481,21 +476,25 @@ test("jumpnav: scroll-spy scrolls the active link into the visible center", () =
   );
 });
 
-test("jumpnav: scroll-spy picks section whose title is just below controls", () => {
-  // The active section is the one whose <details> top is
-  // the smallest value that is still > controlsBottom - 16.
-  // This is the section whose title is just below the
-  // controls — the one the user is currently reading.
-  // Click and scroll produce the SAME active pill.
+test("jumpnav: scroll-spy picks section whose divider meets controls bottom", () => {
+  // The active section is the one whose DIVIDER GREY LINE
+  // (the 1px border-bottom of the previous section, at
+  // prevSection.bottom - 1) is at the controls bottom
+  // (y=182). The tie-breaker (largest dividerY) picks the
+  // latest section when multiple sections have the same
+  // divider position (e.g. the first section, whose
+  // "divider" is always the controls bottom border at 182,
+  // and the next section, whose divider has just reached
+  // 182).
   assert.match(
     indexHtml,
-    /top\s*>\s*threshold\s*&&\s*top\s*<\s*bestTop/u,
-    "scroll-spy must pick the section with the smallest top that is still > threshold"
+    /dividerY\s*=\s*top\s*-\s*1/u,
+    "scroll-spy must compute dividerY = sectionTop - 1"
   );
-  assert.doesNotMatch(
+  assert.match(
     indexHtml,
-    /greyLineY/u,
-    "scroll-spy must NOT use greyLineY (left section 0 always-tied)"
+    /dividerY\s*<=\s*controlsBottom\s*&&\s*dividerY\s*>\s*bestDividerY/u,
+    "scroll-spy must pick the section with the largest dividerY still ≤ controlsBottom"
   );
   assert.doesNotMatch(
     indexHtml,
@@ -504,14 +503,15 @@ test("jumpnav: scroll-spy picks section whose title is just below controls", () 
   );
 });
 
-test("jumpnav: click handler uses scrollIntoView so title lands at controls bottom", () => {
+test("jumpnav: click handler uses scrollIntoView so divider meets controls bottom", () => {
   // The click handler must use scrollIntoView with
   // scroll-margin-top: var(--jump-offset) on details.sec.
-  // This positions the section's <details> top at
-  // (controlsBottom - 16) = y=166, so the title (16px below
-  // the top) lands at y=182 — exactly at the controls
-  // bottom border. This is the SAME alignment the
-  // scroll-spy produces when the user scrolls manually.
+  // With --jump-offset: 183px, the section's <details> top
+  // lands at y=183, so the PREVIOUS section's bottom is at
+  // y=183, and the 1px grey divider (at prevBottom - 1)
+  // meets the controls bottom border (y=182). This is the
+  // SAME alignment the scroll-spy produces when the user
+  // scrolls manually.
   const handlerMatch = indexHtml.match(
     /jumpnavEl\.addEventListener\('click',[\s\S]*?\}\);/u
   );
@@ -523,7 +523,7 @@ test("jumpnav: click handler uses scrollIntoView so title lands at controls bott
   );
   assert.match(
     indexHtml,
-    /--jump-offset\s*:\s*166px/,
-    "--jump-offset must be 166px (controlsBottom 182 - 16 title padding)"
+    /--jump-offset\s*:\s*183px/,
+    "--jump-offset must be 183px (so prevSection.bottom lands at 183, divider at 182 = controls bottom)"
   );
 });
