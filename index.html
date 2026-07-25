@@ -101,6 +101,11 @@
 [data-theme="dark"] .nav .brand small{color:var(--brown)}
 [data-theme="dark"] .nav summary{color:var(--ink)}
 [data-theme="dark"] .invert-toggle{border-color:#3A3328;color:#B8A878}
+/* Dark mode hover: must override the base :hover rule which
+   sets light-mode colors (#999 / #333) — those are barely
+   visible on a dark background. The .invert-dot stays gray
+   (same as base) since it works on both backgrounds. */
+[data-theme="dark"] .invert-toggle:hover{border-color:var(--brown);color:var(--ink)}
 [data-theme="dark"] .invert-toggle[aria-pressed="true"]{background:var(--yellow);color:var(--black);border-color:var(--yellow)}
 [data-theme="dark"] .clear-all{background:var(--yellow);color:var(--black)}
 [data-theme="dark"] .clear-all:hover{background:#fff;color:var(--black)}
