@@ -56,7 +56,12 @@
                 "Wheat",
                 "Tree Nuts"
               ]
-            },
+            }
+          ]
+        },
+        {
+          "h": "Choices",
+          "items": [
             {
               "n": "White Toast - 2 Slices",
               "d": [
@@ -96,12 +101,7 @@
                 "Soy",
                 "Wheat"
               ]
-            }
-          ]
-        },
-        {
-          "h": "Choices",
-          "items": [
+            },
             {
               "n": "Raisin Toast - 2 Slices",
               "d": [
