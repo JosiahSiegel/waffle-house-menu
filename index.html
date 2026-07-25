@@ -91,9 +91,9 @@ header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
    scroll-margin-top on the section targets is the modern
    way: the browser handles the offset for both jump-nav
    clicks AND direct hash navigation (#sec-xyz). */
-:root{--jump-offset:183px}
+:root{--jump-offset:166px}
 details.sec{scroll-margin-top:var(--jump-offset)}
-@media (max-width:600px){:root{--jump-offset:203px}}
+@media (max-width:600px){:root{--jump-offset:186px}}
 .controls input{
   width:100%;font:inherit;padding:9px 12px;
   border:2px solid var(--black);border-radius:8px;background:#fff;color:var(--ink);
@@ -937,34 +937,27 @@ function buildJumpnav(){
       // the BOTTOM BORDER LINE of the pill navbar (the 2px black
       // line at the bottom of the controls, y=182).
       //
-      // The grey line is at `prevSectionBottom - 1` in viewport
-      // coords. For it to meet the bottom of the black border,
-      // `prevSectionBottom = 183` in viewport coords. So:
-      //   window.scrollY = prevSectionBottomInDocument - 183
+      // Scroll so the target section's title lands at the same
+      // position the scroll-spy uses: title just below the
+      // controls bottom. The <summary> has padding-top:16px,
+      // so the title is 16px below the <details> top. With
+      // scroll-margin-top: var(--jump-offset) on details.sec
+      // (set in CSS), browser native scrollIntoView positions
+      // the section top at (controlsBottom - 16) = y=166 in
+      // the viewport, so the title sits at y=182 — exactly
+      // at the controls bottom border.
       //
-      // For the FIRST section there's no previous section — the
-      // "divider" is the controls bottom border itself (always at
-      // y=182), so we scroll to the section top with the standard
-      // 183px offset.
-      const targetIdx = _sectionEls.indexOf(target);
-      let scrollY;
-      if(targetIdx > 0){
-        const prev = _sectionEls[targetIdx - 1];
-        const prevBottomDoc = prev.getBoundingClientRect().bottom + window.scrollY;
-        scrollY = prevBottomDoc - 183;
-      } else {
-        const topDoc = target.getBoundingClientRect().top + window.scrollY;
-        scrollY = topDoc - 183;
-      }
-      window.scrollTo({top: scrollY, behavior: 'smooth'});
+      // This is the SAME alignment the scroll-spy produces
+      // when the user scrolls manually: the section whose
+      // title is just below the controls. Click and scroll
+      // now produce identical alignment.
+      target.scrollIntoView({behavior: 'smooth', block: 'start'});
       // Set the active pill directly from the click handler.
-      // The scroll-spy uses "largest top ≤ controls bottom"
-      // — during the smooth scroll the target section's top
-      // hasn't crossed controlsBottom yet, so the spy would
-      // (correctly) pick the PREVIOUS section. We don't want
-      // it to override the pill we just set. Suppress the spy
-      // for 800ms (covers smooth scroll duration on modern
-      // browsers). After that, the spy takes over for
+      // During the smooth scroll the target section's top
+      // hasn't crossed the threshold yet, so the spy would
+      // (correctly) pick a different section. Suppress the
+      // spy for 800ms (covers smooth scroll duration on
+      // modern browsers). After that, the spy takes over for
       // user-initiated scrolls.
       setActiveJumpLink(a);
       window._suppressSpyUntil = Date.now() + 800;
@@ -1030,35 +1023,45 @@ function buildJumpnav(){
       if(Date.now() < (window._suppressSpyUntil || 0)) return;
       const controlsBottom = controls.getBoundingClientRect().bottom;
       // The active section is the one the user is currently
-      // READING — its title has crossed the controls bottom
-      // (or is just below it). This is the "largest top ≤
-      // controls bottom" approach: the section whose <details>
-      // top is the largest value that is still ≤ controlsBottom.
+      // READING — its title (summary padding-top:16px below
+      // the <details> top) is just below the controls bottom.
       //
-      // Fallback to the first section if no section qualifies
-      // (user is above the first section — shouldn't happen
-      // since the first section starts at the top of the menu,
-      // but kept as a safety net).
-      let active = null, bestTop = -Infinity;
+      // Approach: the section whose <details> top is the
+      // SMALLEST value that is still > controlsBottom - 16.
+      // In other words: the first section whose title has
+      // NOT YET been scrolled past the controls. The user is
+      // reading the content below that title, so this section
+      // is "active".
+      //
+      // Example: if section[i].top = 166 (the threshold,
+      // title at y=182 = controls bottom), and section[i+1]
+      // .top = 400 (further down), then the user is reading
+      // section[i] — the title is at the controls bottom.
+      //
+      // We use `top > threshold - 1` (not `> threshold`) so
+      // a section whose top is exactly at the threshold (the
+      // click target) is included. Without the -1, a click
+      // would put the target at top=166 but the spy would
+      // skip it and pick the NEXT section.
+      //
+      // Fallback: if no section qualifies (user is above the
+      // first section), pick the first section. This handles
+      // page load — the first section should be active.
+      const TITLE_PAD = 16; // matches details.sec>summary padding-top
+      const threshold = controlsBottom - TITLE_PAD - 1; // 182 - 16 - 1 = 165
+      let active = null, bestTop = Infinity;
       for(const sec of _sectionEls){
         const top = sec.getBoundingClientRect().top;
-        if(top <= controlsBottom && top > bestTop){
+        if(top > threshold && top < bestTop){
           bestTop = top;
           active = sec;
         }
       }
       if(!active){
-        // No section has crossed the controls yet — user is
-        // above the first section. Pick the first one whose
-        // top is closest to (but ≤) controlsBottom, i.e. the
-        // topmost section in the viewport.
-        for(const sec of _sectionEls){
-          const top = sec.getBoundingClientRect().top;
-          if(top > bestTop){
-            bestTop = top;
-            active = sec;
-          }
-        }
+        // No section's top is below the threshold — the user
+        // has scrolled past ALL sections (shouldn't happen in
+        // normal use, but as a safety net pick the last one).
+        active = _sectionEls[_sectionEls.length - 1];
       }
       if(!active) active = _sectionEls[0];
       const idx = _sectionEls.indexOf(active);
