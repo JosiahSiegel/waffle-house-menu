@@ -958,20 +958,16 @@ function buildJumpnav(){
       }
       window.scrollTo({top: scrollY, behavior: 'smooth'});
       // Set the active pill directly from the click handler.
-      // The scroll-spy (in the IntersectionObserver block below)
-      // will keep it in sync for user-initiated scrolls, but
-      // window.scrollTo({behavior:'smooth'}) doesn't reliably
-      // fire scroll events on all browsers, so we set it here.
+      // The scroll-spy uses "largest top ≤ controls bottom"
+      // — during the smooth scroll the target section's top
+      // hasn't crossed controlsBottom yet, so the spy would
+      // (correctly) pick the PREVIOUS section. We don't want
+      // it to override the pill we just set. Suppress the spy
+      // for 800ms (covers smooth scroll duration on modern
+      // browsers). After that, the spy takes over for
+      // user-initiated scrolls.
       setActiveJumpLink(a);
-      // Suppress the scroll-spy for 1 second after a click.
-      // The scroll-spy runs on every rAF tick during the smooth
-      // scroll, and at intermediate positions section 2's grey
-      // line hasn't reached the controls bottom yet, so the spy
-      // (correctly) picks section 0 (whose grey line is always
-      // at the controls bottom). We don't want it to override
-      // the pill we just set. After the scroll completes, the
-      // spy takes over for user-initiated scrolls.
-      window._suppressSpyUntil = Date.now() + 1000;
+      window._suppressSpyUntil = Date.now() + 800;
     }
   });
 
@@ -1025,45 +1021,43 @@ function buildJumpnav(){
     // position change and re-evaluates which section is at
     // the controls bottom.
     const updateActive = ()=>{
-      // Suppress the spy for 1s after a click — the click
+      // Suppress the spy for ~800ms after a click — the click
       // handler already set the correct pill, and during the
-      // smooth scroll the grey line for the target section
-      // hasn't reached the controls bottom yet, so the spy
-      // would (correctly) pick section 0 instead.
+      // smooth scroll the target section's top hasn't crossed
+      // controlsBottom yet, so the spy would (correctly) pick
+      // the previous section. After the scroll completes, the
+      // spy takes over for user-initiated scrolls.
       if(Date.now() < (window._suppressSpyUntil || 0)) return;
       const controlsBottom = controls.getBoundingClientRect().bottom;
-      // The active section is the one whose DIVIDER GREY LINE
-      // (the 1px border-bottom of the PREVIOUS section, or
-      // the controls bottom border for the first section) is
-      // at the BOTTOM BORDER LINE of the pill navbar
-      // (controlsBottom = 182).
+      // The active section is the one the user is currently
+      // READING — its title has crossed the controls bottom
+      // (or is just below it). This is the "largest top ≤
+      // controls bottom" approach: the section whose <details>
+      // top is the largest value that is still ≤ controlsBottom.
       //
-      // The grey line is at `prevSectionBottom - 1`. For the
-      // first section there's no previous section, so the
-      // "grey line" is the controls bottom border itself
-      // (always at y=182).
-      let active = null, bestDist = Infinity;
-      for(let i = 0; i < _sectionEls.length; i++){
-        const sec = _sectionEls[i];
-        let greyLineY;
-        if(i === 0){
-          // First section: the "divider" is the controls bottom border
-          greyLineY = controlsBottom;
-        } else {
-          // Subsequent sections: the divider is the previous section's border-bottom
-          const prevRect = _sectionEls[i - 1].getBoundingClientRect();
-          greyLineY = prevRect.bottom - 1;
-        }
-        const dist = Math.abs(greyLineY - controlsBottom);
-        // Tie-breaker: if two sections are equidistant, pick
-        // the LATER one (larger index). Without this, the
-        // first section always wins the tie (it has greyLineY
-        // = controlsBottom = 182, same as any subsequent
-        // section whose grey line is also at 182). The later
-        // section is the one the user actually scrolled to.
-        if(dist < bestDist || (dist === bestDist && i > _sectionEls.indexOf(active))){
-          bestDist = dist;
+      // Fallback to the first section if no section qualifies
+      // (user is above the first section — shouldn't happen
+      // since the first section starts at the top of the menu,
+      // but kept as a safety net).
+      let active = null, bestTop = -Infinity;
+      for(const sec of _sectionEls){
+        const top = sec.getBoundingClientRect().top;
+        if(top <= controlsBottom && top > bestTop){
+          bestTop = top;
           active = sec;
+        }
+      }
+      if(!active){
+        // No section has crossed the controls yet — user is
+        // above the first section. Pick the first one whose
+        // top is closest to (but ≤) controlsBottom, i.e. the
+        // topmost section in the viewport.
+        for(const sec of _sectionEls){
+          const top = sec.getBoundingClientRect().top;
+          if(top > bestTop){
+            bestTop = top;
+            active = sec;
+          }
         }
       }
       if(!active) active = _sectionEls[0];
