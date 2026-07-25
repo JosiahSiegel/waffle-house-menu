@@ -174,10 +174,14 @@ test("Hashbrowns & Toppings + Soy: 0 visible (Regular Hashbrowns gates the whole
   );
 });
 
-test("Egg Breakfasts + Wheat: 31 visible (anchor 2 Eggs has no wheat)", () => {
+test("Egg Breakfasts + Wheat: 33 visible (anchor 2 Eggs has no wheat; +2 for Fiesta Protein Bowl choices)", () => {
+  // Originally 31 visible. After fixing the parser so
+  // "Fiesta Protein Bowl" is its own meal group (PR #40),
+  // its 2 "Plus your choice of:" groups add 1 Wheat Toast
+  // hit each, bringing the total to 33.
   assert.equal(
     countVisibleBySection(annotated, ["Wheat"], "")["Egg Breakfasts"],
-    31,
+    33,
   );
 });
 

@@ -3,7 +3,7 @@
   "source_updated": "05/05/26",
   "fetched_at": "2026-07-24T16:04:23+00:00",
   "sha256": "3b9f16921f1e5e562701cca15f857ac2d3f7591a6ee847f77722d24bf1a916f6",
-  "item_count": 381,
+  "item_count": 389,
   "sections": [
     {
       "title": "All-Star Special",
@@ -2610,7 +2610,12 @@
                 0
               ],
               "a": []
-            },
+            }
+          ]
+        },
+        {
+          "h": "Fiesta Protein Bowl",
+          "items": [
             {
               "n": "Fiesta Protein Bowl",
               "d": [
@@ -2630,6 +2635,172 @@
                 "Soy"
               ],
               "note": "Grilled Chicken, 3 Eggs - Scrambled, 2 Cheese, 1 OPT"
+            }
+          ]
+        },
+        {
+          "h": "Choices",
+          "items": [
+            {
+              "n": "White Toast - 2 Slices",
+              "d": [
+                130,
+                2,
+                0,
+                0,
+                0,
+                260,
+                25,
+                1,
+                3,
+                4
+              ],
+              "a": [
+                "Milk",
+                "Soy",
+                "Wheat"
+              ]
+            },
+            {
+              "n": "Wheat Toast - 2 Slices",
+              "d": [
+                120,
+                2,
+                0,
+                0,
+                0,
+                250,
+                26,
+                4,
+                2,
+                6
+              ],
+              "a": [
+                "Milk",
+                "Soy",
+                "Wheat"
+              ]
+            },
+            {
+              "n": "Raisin Toast - 2 Slices",
+              "d": [
+                220,
+                3,
+                0,
+                0,
+                0,
+                280,
+                42,
+                2,
+                16,
+                6
+              ],
+              "a": [
+                "Milk",
+                "Soy",
+                "Wheat"
+              ]
+            },
+            {
+              "n": "Grilled Biscuit",
+              "d": [
+                300,
+                15,
+                9,
+                0,
+                0,
+                800,
+                34,
+                1,
+                2,
+                5
+              ],
+              "a": [
+                "Egg",
+                "Milk",
+                "Soy",
+                "Wheat"
+              ]
+            },
+            {
+              "n": "Texas Toast - 1 Slice",
+              "d": [
+                100,
+                1,
+                0,
+                0,
+                0,
+                190,
+                19,
+                1,
+                2,
+                3
+              ],
+              "a": [
+                "Milk",
+                "Soy",
+                "Wheat"
+              ]
+            }
+          ]
+        },
+        {
+          "h": "Choices",
+          "items": [
+            {
+              "n": "Grits",
+              "d": [
+                90,
+                3,
+                1,
+                0,
+                0,
+                300,
+                16,
+                1,
+                0,
+                3
+              ],
+              "a": [
+                "Egg",
+                "Milk",
+                "Soy",
+                "Wheat"
+              ]
+            },
+            {
+              "n": "Hashbrowns",
+              "d": [
+                190,
+                7,
+                3,
+                0,
+                0,
+                240,
+                29,
+                3,
+                0,
+                3
+              ],
+              "a": [
+                "Soy"
+              ]
+            },
+            {
+              "n": "Sliced Tomatoes",
+              "d": [
+                10,
+                0,
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                2,
+                0
+              ],
+              "a": []
             }
           ]
         }
@@ -5075,26 +5246,6 @@
                 "Milk",
                 "Soy"
               ]
-            },
-            {
-              "n": "Raisin Toast - 2 Slices",
-              "d": [
-                220,
-                3,
-                0,
-                0,
-                0,
-                280,
-                42,
-                2,
-                16,
-                6
-              ],
-              "a": [
-                "Milk",
-                "Soy",
-                "Wheat"
-              ]
             }
           ]
         },
@@ -5133,6 +5284,26 @@
                 26,
                 4,
                 2,
+                6
+              ],
+              "a": [
+                "Milk",
+                "Soy",
+                "Wheat"
+              ]
+            },
+            {
+              "n": "Raisin Toast - 2 Slices",
+              "d": [
+                220,
+                3,
+                0,
+                0,
+                0,
+                280,
+                42,
+                2,
+                16,
                 6
               ],
               "a": [

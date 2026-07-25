@@ -800,3 +800,106 @@ test("menu: Pecans in Waffles section is a Topping, not a separate meal", () => 
   assert.equal(pecansOwnMeal, false,
     "Pecans must NOT be its own main item in Waffles");
 });
+
+test("menu: Egg Breakfasts has 'Fiesta Protein Bowl' as its own meal", () => {
+  // PDF page 3 lists 11 meals, the 11th being "Fiesta Protein
+  // Bowl". The parser used to drop it into the previous meal's
+  // (Cheesesteak & Eggs) side-choices group because of the
+  // interleaved "Plus your choice of:" sequence on page 3.
+  const menuJs = readFileSync("data/menu.js", "utf8");
+  const ctx = { window: {} };
+  vm.createContext(ctx);
+  vm.runInContext(menuJs, ctx);
+  const data = ctx.window.MENU_DATA;
+  const egg = data.sections.find(s => s.title === "Egg Breakfasts");
+  assert.ok(egg, "Egg Breakfasts must exist");
+  // Must have a meal group named exactly "Fiesta Protein Bowl"
+  const fiesta = egg.groups.find(g => g.h === "Fiesta Protein Bowl");
+  assert.ok(fiesta, "Egg Breakfasts must have a 'Fiesta Protein Bowl' meal group");
+  assert.equal(fiesta.items.length, 1, "Fiesta Protein Bowl group should have exactly 1 main item");
+  assert.equal(fiesta.items[0].n, "Fiesta Protein Bowl");
+  // And it must NOT appear in any other group's items
+  for (const g of egg.groups) {
+    if (g === fiesta) continue;
+    for (const it of g.items) {
+      assert.notEqual(it.n, "Fiesta Protein Bowl",
+        `Fiesta Protein Bowl must not be in group h=${JSON.stringify(g.h)}`);
+    }
+  }
+  // It must have its own bread + side Choices groups following it
+  const breadChoices = egg.groups[egg.groups.indexOf(fiesta) + 1];
+  const sideChoices = egg.groups[egg.groups.indexOf(fiesta) + 2];
+  assert.ok(breadChoices && breadChoices.h === "Choices",
+    "Fiesta Protein Bowl must be followed by a Choices group (bread)");
+  assert.ok(sideChoices && sideChoices.h === "Choices",
+    "Fiesta Protein Bowl must be followed by a Choices group (sides)");
+  // Bread choices should include Raisin Toast
+  assert.ok(breadChoices.items.some(i => i.n === "Raisin Toast - 2 Slices"),
+    "Bread choices for Fiesta Protein Bowl must include Raisin Toast");
+});
+
+test("menu: Omelet Breakfasts 'Fiesta Omelet Breakfast' has only 1 main item", () => {
+  // PDF page 6 has 4 main omelets. The parser used to put
+  // "Raisin Toast - 2 Slices" in the main group because the
+  // PDF layout has the nutrition row 380... at the top of the
+  // table and the choices below, but the row order is the
+  // same in the Name block (just printed once). The parser
+  // attached the first 10-number row after the Name to the
+  // meal, but Raisin Toast's row got misaligned.
+  const menuJs = readFileSync("data/menu.js", "utf8");
+  const ctx = { window: {} };
+  vm.createContext(ctx);
+  vm.runInContext(menuJs, ctx);
+  const data = ctx.window.MENU_DATA;
+  const om = data.sections.find(s => s.title === "Omelet Breakfasts");
+  assert.ok(om, "Omelet Breakfasts must exist");
+  const fiesta = om.groups.find(g => g.h === "Fiesta Omelet Breakfast");
+  assert.ok(fiesta, "Omelet Breakfasts must have a 'Fiesta Omelet Breakfast' meal group");
+  assert.equal(fiesta.items.length, 1,
+    `'Fiesta Omelet Breakfast' main group must have exactly 1 item, got: ${fiesta.items.map(i => i.n).join(", ")}`);
+  assert.equal(fiesta.items[0].n, "2 Egg Fiesta Omelet");
+  // The bread choices for Fiesta Omelet must include Raisin Toast
+  const idx = om.groups.indexOf(fiesta);
+  const breadChoices = om.groups[idx + 1];
+  assert.ok(breadChoices && breadChoices.h === "Choices",
+    "Fiesta Omelet Breakfast must be followed by a Choices group");
+  assert.ok(breadChoices.items.some(i => i.n === "Raisin Toast - 2 Slices"),
+    "Bread choices for Fiesta Omelet must include Raisin Toast");
+  assert.equal(breadChoices.items.length, 5,
+    `Bread choices for Fiesta Omelet must have 5 items, got ${breadChoices.items.length}: ${breadChoices.items.map(i => i.n).join(", ")}`);
+});
+
+test("menu: every Egg Breakfasts meal has exactly 2 'Choices' groups", () => {
+  // Each Egg Breakfasts meal in the PDF has 2 "Plus your
+  // choice of:" lines (bread + sides). The data must mirror
+  // that. This catches the parser bug where a meal's choices
+  // got attached to the wrong meal.
+  const menuJs = readFileSync("data/menu.js", "utf8");
+  const ctx = { window: {} };
+  vm.createContext(ctx);
+  vm.runInContext(menuJs, ctx);
+  const data = ctx.window.MENU_DATA;
+  const egg = data.sections.find(s => s.title === "Egg Breakfasts");
+  // Walk groups, counting Choices between meal-name groups
+  let pendingMeal = null;
+  let choicesAfterMeal = 0;
+  const badMeals = [];
+  for (const g of egg.groups) {
+    if (g.h === "Choices") {
+      if (pendingMeal) choicesAfterMeal++;
+    } else {
+      if (pendingMeal) {
+        if (choicesAfterMeal !== 2) {
+          badMeals.push({ meal: pendingMeal, choices: choicesAfterMeal });
+        }
+      }
+      pendingMeal = g.h;
+      choicesAfterMeal = 0;
+    }
+  }
+  if (pendingMeal && choicesAfterMeal !== 2) {
+    badMeals.push({ meal: pendingMeal, choices: choicesAfterMeal });
+  }
+  assert.equal(badMeals.length, 0,
+    `Meals with wrong number of Choices groups: ${JSON.stringify(badMeals)}`);
+});
