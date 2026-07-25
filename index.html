@@ -91,9 +91,9 @@ header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
    scroll-margin-top on the section targets is the modern
    way: the browser handles the offset for both jump-nav
    clicks AND direct hash navigation (#sec-xyz). */
-:root{--jump-offset:166px}
+:root{--jump-offset:183px}
 details.sec{scroll-margin-top:var(--jump-offset)}
-@media (max-width:600px){:root{--jump-offset:186px}}
+@media (max-width:600px){:root{--jump-offset:203px}}
 .controls input{
   width:100%;font:inherit;padding:9px 12px;
   border:2px solid var(--black);border-radius:8px;background:#fff;color:var(--ink);
@@ -1016,52 +1016,41 @@ function buildJumpnav(){
     const updateActive = ()=>{
       // Suppress the spy for ~800ms after a click — the click
       // handler already set the correct pill, and during the
-      // smooth scroll the target section's top hasn't crossed
-      // controlsBottom yet, so the spy would (correctly) pick
-      // the previous section. After the scroll completes, the
-      // spy takes over for user-initiated scrolls.
+      // smooth scroll the target section's divider hasn't
+      // reached the controls bottom yet, so the spy would
+      // (correctly) pick the previous section. After the scroll
+      // completes, the spy takes over for user-initiated scrolls.
       if(Date.now() < (window._suppressSpyUntil || 0)) return;
       const controlsBottom = controls.getBoundingClientRect().bottom;
-      // The active section is the one the user is currently
-      // READING — its title (summary padding-top:16px below
-      // the <details> top) is just below the controls bottom.
+      // The active section is the one whose DIVIDER GREY LINE
+      // (the 1px border-bottom of the PREVIOUS section) is at
+      // the BOTTOM BORDER LINE of the pill navbar (controls
+      // bottom, y=182).
       //
-      // Approach: the section whose <details> top is the
-      // SMALLEST value that is still > controlsBottom - 16.
-      // In other words: the first section whose title has
-      // NOT YET been scrolled past the controls. The user is
-      // reading the content below that title, so this section
-      // is "active".
+      // Geometry: sections are stacked. The 1px grey line at
+      // the top of section[i] is the bottom-1px of section[i-1].
+      // For section[i], dividerY = section[i].top - 1.
+      // For the first section, there's no previous section —
+      // the "divider" is the line just above its top, which
+      // is also section[0].top - 1 (this is negative or zero
+      // when the first section is at the top of the page, so
+      // the first section is naturally the active one at page
+      // load).
       //
-      // Example: if section[i].top = 166 (the threshold,
-      // title at y=182 = controls bottom), and section[i+1]
-      // .top = 400 (further down), then the user is reading
-      // section[i] — the title is at the controls bottom.
-      //
-      // We use `top > threshold - 1` (not `> threshold`) so
-      // a section whose top is exactly at the threshold (the
-      // click target) is included. Without the -1, a click
-      // would put the target at top=166 but the spy would
-      // skip it and pick the NEXT section.
-      //
-      // Fallback: if no section qualifies (user is above the
-      // first section), pick the first section. This handles
-      // page load — the first section should be active.
-      const TITLE_PAD = 16; // matches details.sec>summary padding-top
-      const threshold = controlsBottom - TITLE_PAD - 1; // 182 - 16 - 1 = 165
-      let active = null, bestTop = Infinity;
+      // Approach: the section whose dividerY (= top - 1) is
+      // the LARGEST value that is still ≤ controlsBottom (182).
+      // This is the section whose grey line has just reached
+      // (or is at) the controls bottom. Sections are visited
+      // in order, so the LAST one to qualify (largest dividerY)
+      // wins — this is the natural tie-breaker.
+      let active = null, bestDividerY = -Infinity;
       for(const sec of _sectionEls){
         const top = sec.getBoundingClientRect().top;
-        if(top > threshold && top < bestTop){
-          bestTop = top;
+        const dividerY = top - 1; // 1px grey line just above the section top
+        if(dividerY <= controlsBottom && dividerY > bestDividerY){
+          bestDividerY = dividerY;
           active = sec;
         }
-      }
-      if(!active){
-        // No section's top is below the threshold — the user
-        // has scrolled past ALL sections (shouldn't happen in
-        // normal use, but as a safety net pick the last one).
-        active = _sectionEls[_sectionEls.length - 1];
       }
       if(!active) active = _sectionEls[0];
       const idx = _sectionEls.indexOf(active);
