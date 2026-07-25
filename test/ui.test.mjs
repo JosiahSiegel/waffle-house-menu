@@ -709,3 +709,45 @@ test("menu: dark mode toggle exists with persistence and OS preference", () => {
     "Pressing 't' must toggle the theme"
   );
 });
+
+test("search: sub-items show meal context (which meal they belong to)", () => {
+  // User: "when I search 'biscuit' and I see numerous results
+  //        that appear to be duplicates... we need to improve
+  //        the search so that results retain the context of
+  //        what they are related to"
+  //
+  // Fix: sub-items (Choices/Includes/Add-ons/Meats/Toppings)
+  // get a small "from <meal name>" line under their name. The
+  // main item itself does NOT get the context line (it has no
+  // parent meal).
+  assert.match(
+    indexHtml,
+    /item-ctx/,
+    "index.html must define/use .item-ctx for meal context"
+  );
+  assert.match(
+    indexHtml,
+    /class="item-ctx">from \$\{esc\(currentMeal\.name\)\}/,
+    "Context line must read 'from <meal name>'"
+  );
+  // The context line must be suppressed on the main item
+  // (isMain items have no parent meal)
+  assert.match(
+    indexHtml,
+    /isMain \|\| !currentMeal\)/,
+    "Context line must be suppressed when isMain or no currentMeal"
+  );
+  // Each item must carry data-meal for any future JS that
+  // needs to know the parent meal without re-parsing
+  assert.match(
+    indexHtml,
+    /data-meal="\$\{currentMeal\?esc/,
+    "Each item must carry data-meal attribute for downstream consumers"
+  );
+  // CSS exists for the .item-ctx class
+  assert.match(
+    indexHtml,
+    /\.item-ctx\s*\{/,
+    "CSS must define .item-ctx"
+  );
+});

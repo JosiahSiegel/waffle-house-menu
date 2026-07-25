@@ -70,6 +70,7 @@
 [data-theme="dark"] .meal{border-left-color:var(--line)}
 [data-theme="dark"] .item.main-item{background:rgba(241,196,15,0.08)}
 [data-theme="dark"] .item.main-item .item-name{color:var(--yellow)}
+[data-theme="dark"] .item-ctx{color:var(--brown)}
 /* Main item cal-tile: keep --black as the text color
    (NOT --brown, which becomes a light tan in dark mode
    and is unreadable on yellow). The yellow background +
@@ -325,6 +326,19 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 }
 .item-row:focus-visible{outline:3px solid var(--yellow);outline-offset:-3px}
 .item-name{flex:1;min-width:0;font-weight:600;font-size:14.5px}
+/* Meal context line: small, italic, dim. Shown under sub-items
+   (Choices/Includes/Add-ons/Meats/Toppings) so search results
+   like "Grilled Biscuit" retain context of which meal they
+   belong to. Hidden on the main item itself (no parent). */
+.item-ctx{
+  display:block;
+  font-weight:400;
+  font-size:11.5px;
+  color:var(--brown);
+  font-style:italic;
+  margin-top:1px;
+  letter-spacing:.01em;
+}
 .item-note{display:block;font-weight:400;font-size:12px;color:var(--brown);font-style:italic;margin-top:1px}
 .al-tags{
   display:block;font-family:"IBM Plex Mono",monospace;font-weight:400;
@@ -713,6 +727,12 @@ function render(data){
     // border accent so the user can see where one meal ends
     // and the next begins.
     let itemsHTML="",count=0,mealOpen=false;
+    // Track the current meal name as we walk groups so sub-items
+    // (Choices/Includes/Add-ons/Meats/Toppings) can be tagged with
+    // which meal they belong to. This matters for search — when
+    // "Grilled Biscuit" matches 26 times across many meals, the
+    // user needs to know which meal each result belongs to.
+    let currentMeal=null; // { name: string, h: string|null }
     sec.groups.forEach(gr=>{
       const subcat = isSubcat(gr.h);
       const isMealStart = !subcat; // null h OR a meal-name h
@@ -726,6 +746,14 @@ function render(data){
         // meal-name h is ALSO the start of a meal.
         openMeal = `<div class="meal">`;
         mealOpen = true;
+        // Resolve the meal name. For a null-h group the meal
+        // name is the first item's name; for a meal-name h
+        // group, it's the header text.
+        if(gr.h){
+          currentMeal={name:gr.h,h:gr.h};
+        }else if(gr.items[0]){
+          currentMeal={name:gr.items[0].n,h:null};
+        }
       }
       // Mark items in non-subcat groups as "main" so they can
       // be styled to stand out as the parent of the meal.
@@ -735,9 +763,16 @@ function render(data){
         const a=it.a||[];
         const tags=a.length?`<span class="al-tags">${a.map(x=>ABBR[x]||x).join("·")}</span>`:"";
         const note=it.note?`<span class="item-note">${esc(it.note)}</span>`:'';
-        gItems+=`<div class="item${isMain?' main-item':''}" data-name="${esc(it.n.toLowerCase())}" data-a="${esc(a.join("|"))}">
+        // Show a small meal-context line under sub-items so the
+        // user knows which meal each choice/side/add-on belongs
+        // to. Suppress it on the main item itself and on
+        // standalone "Grilled Biscuits" sections (where the
+        // section already provides the context).
+        const ctx = (isMain || !currentMeal) ? '' :
+          `<span class="item-ctx">from ${esc(currentMeal.name)}</span>`;
+        gItems+=`<div class="item${isMain?' main-item':''}" data-name="${esc(it.n.toLowerCase())}" data-a="${esc(a.join("|"))}" data-meal="${currentMeal?esc(currentMeal.name):''}">
           <button class="item-row" aria-expanded="false">
-            <span class="item-name">${esc(it.n)}${note}${tags}</span>
+            <span class="item-name">${esc(it.n)}${note}${tags}${ctx}</span>
             <span class="cal-tile">${it.d[0]}<small>CAL</small></span>
           </button>${factsHTML(it)}</div>`;
       });
