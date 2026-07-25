@@ -233,27 +233,32 @@ test("jump-nav: setActiveJumpLink removes aria-current from all links first", ()
   );
 });
 
-test("jump-nav: scroll-spy aligns pill when LINE ABOVE category name hits controls bottom", () => {
+test("jump-nav: scroll-spy uses a scroll listener (not just IntersectionObserver)", () => {
   // The "line above the category name" is the top of the
   // <summary> (16px above the visible title text). The pill
   // becomes active when this line hits the bottom of the
   // controls (controlsBottom = ~182). The title text itself
   // sits 16px BELOW that line, so the title does NOT touch
   // the controls — only the line above it does.
+  //
+  // The scroll-spy must fire on EVERY scroll position change
+  // (not just when sections enter/leave the viewport), so a
+  // scroll listener (rAF-throttled) is required. IntersectionObserver
+  // alone misses the final position after smooth scrollIntoView.
   assert.match(
     indexHtml,
-    /IntersectionObserver/,
-    "scroll-spy must use IntersectionObserver (not a scroll listener)"
+    /window\.addEventListener\(\s*['"]scroll['"]/u,
+    "scroll-spy must listen to scroll events (so it fires after smooth scrollIntoView completes)"
   );
   assert.match(
     indexHtml,
-    /rootMargin\s*:\s*['"]0px\s+0px\s+0px\s+0px['"]/u,
-    "scroll-spy must observe the entire viewport (rootMargin 0) so it fires on any section entering/leaving"
+    /requestAnimationFrame/u,
+    "scroll-spy must throttle with rAF to avoid running on every pixel of a smooth scroll"
   );
   assert.match(
     indexHtml,
     /lineAboveTitle\s*=\s*top\b/u,
-    "scroll-spy must use lineAboveTitle = sectionTop (the line above the title, NOT titleTop = sectionTop + 16)"
+    "scroll-spy must use lineAboveTitle = sectionTop (the line above the title), NOT titleTop = sectionTop + 16"
   );
   assert.match(
     indexHtml,
@@ -263,36 +268,26 @@ test("jump-nav: scroll-spy aligns pill when LINE ABOVE category name hits contro
   assert.match(
     indexHtml,
     /if\s*\(\s*!active\s*\)\s*active\s*=\s*_sectionEls\[0\]/u,
-    "scroll-spy must fall back to the first section when none are visible (e.g. at the top of the page)"
-  );
-  assert.match(
-    indexHtml,
-    /for\s*\(\s*const\s+sec\s+of\s+_sectionEls\s*\)\s*spy\.observe/,
-    "scroll-spy must observe all cached _sectionEls"
+    "scroll-spy must fall back to the first section when none qualify"
   );
 });
 
-test("jump-nav: no legacy scroll-spy in onScroll that sets aria-current='false' on every link", () => {
-  // Bug found during validation: the OLD onScroll() function
-  // (before the IntersectionObserver scroll-spy) had a buggy
-  // scroll-spy that set aria-current to 'true' OR 'false' on
-  // EVERY jump-nav link — never removing the attribute. The
-  // string 'false' is truthy in JS, so the active-state filter
-  // thought all 19 links were active. This test catches a
-  // regression of that pattern.
-  const onScrollMatch = indexHtml.match(
-    /function\s+onScroll\s*\(\s*\)\s*\{[\s\S]*?\n\}/u
-  );
-  assert.ok(onScrollMatch, "onScroll function not found");
+test("jump-nav: no legacy buggy scroll-spy that sets aria-current='false' on every link", () => {
+  // Bug found during validation: an earlier buggy scroll-spy
+  // set aria-current to 'true' OR 'false' on EVERY jump-nav
+  // link — never removing the attribute. The string 'false'
+  // is truthy in JS, so the active-state filter thought all
+  // 19 links were active. This test catches a regression of
+  // that pattern.
   assert.doesNotMatch(
-    onScrollMatch[0],
-    /setAttribute\(\s*['"]aria-current['"]/u,
-    "onScroll must NOT set aria-current (scroll-spy is in IntersectionObserver now)"
+    indexHtml,
+    /setAttribute\(\s*['"]aria-current['"]\s*,\s*['"]false['"]/u,
+    "no code must set aria-current='false' (string 'false' is truthy and makes all links appear active)"
   );
   assert.doesNotMatch(
-    onScrollMatch[0],
-    /jumpnavEl\.querySelectorAll\(['"]a['"]\)/u,
-    "onScroll must NOT iterate over jumpnav links (scroll-spy moved out)"
+    indexHtml,
+    /jumpnavEl\.querySelectorAll\(['"]a['"]\)[\s\S]{0,200}setAttribute\(\s*['"]aria-current['"]/u,
+    "no code must iterate over all jumpnav links and set aria-current (the buggy pattern)"
   );
 });
 
