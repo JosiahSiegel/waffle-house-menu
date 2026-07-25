@@ -77,11 +77,13 @@
    cal-tile uses in both modes. */
 [data-theme="dark"] .item.main-item .cal-tile{color:var(--black)}
 /* Nutrition facts in dark mode: light text on dark card.
-   The dt uses var(--brown) which is too light on the
-   dark card background; switch to var(--ink) (off-white)
-   for proper contrast. The dots/values stay readable. */
+   Override the inner dl (which has a hardcoded white
+   background and dark border) and the dt (which uses
+   var(--brown) — too light on the dark card). */
 [data-theme="dark"] .facts{background:#26201A;border-color:var(--brown);color:var(--ink)}
+[data-theme="dark"] .facts dl{background:#26201A;border-color:var(--brown);color:var(--ink)}
 [data-theme="dark"] .facts dt{color:var(--ink)}
+[data-theme="dark"] .facts dd{color:var(--ink)}
 [data-theme="dark"] .facts .dots{border-bottom-color:var(--line)}
 [data-theme="dark"] .facts .allerg{border-top-color:var(--line);color:var(--ink)}
 [data-theme="dark"] .jumpnav a{background:transparent;color:var(--ink);border-color:var(--line)}
