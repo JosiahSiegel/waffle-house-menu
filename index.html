@@ -80,8 +80,6 @@
 [data-theme="dark"] .nav .brand{color:var(--yellow)}
 [data-theme="dark"] .nav .brand small{color:var(--brown)}
 [data-theme="dark"] .nav summary{color:var(--ink)}
-[data-theme="dark"] .theme-toggle{background:transparent;border-color:#3A3328;color:#B8A878}
-[data-theme="dark"] .theme-toggle[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:var(--black)}
 [data-theme="dark"] .invert-toggle{border-color:#3A3328;color:#B8A878}
 [data-theme="dark"] .invert-toggle[aria-pressed="true"]{background:var(--yellow);color:var(--black);border-color:var(--yellow)}
 [data-theme="dark"] .clear-all{background:var(--yellow);color:var(--black)}
@@ -98,7 +96,7 @@ body{
 }
 
 /* ---------- Sign header ---------- */
-header.sign{background:var(--black);padding:26px 16px 20px;text-align:center}
+header.sign{background:var(--black);padding:26px 16px 20px;text-align:center;position:relative}
 .tiles{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:6px}
 .tiles+.tiles{margin-bottom:12px}
 .tile{
@@ -184,20 +182,23 @@ details.sec{scroll-margin-top:var(--jump-offset)}
 .invert-toggle[aria-pressed="true"]:hover{filter:brightness(.95)}
 .invert-state{font-weight:400;opacity:.7}
 .invert-toggle[aria-pressed="true"] .invert-state{opacity:.9}
-/* Theme toggle (light/dark). Same shape as the invert-toggle
-   so the two sit nicely side by side in the controls bar. */
+/* Theme toggle (light/dark). Industry-standard minimal moon
+   icon in the top-right of the sign header. No text label —
+   just the moon glyph. The icon itself doesn't change
+   between light/dark (it stays a moon), the pressed state
+   reflects whether dark mode is active. */
 .theme-toggle{
-  background:transparent;border:1px solid #d4d4d4;border-radius:999px;
-  padding:4px 12px 4px 10px;font:inherit;font-size:.82em;color:#666;
-  cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  position:absolute;top:10px;right:12px;
+  background:transparent;border:0;padding:6px;border-radius:50%;
+  color:var(--yellow);font-size:22px;line-height:1;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
   -webkit-tap-highlight-color:transparent;
+  transition:opacity .15s,transform .15s;
 }
-.theme-toggle:hover{border-color:#999;color:#333}
+.theme-toggle:hover{opacity:.75;transform:scale(1.08)}
+.theme-toggle:active{transform:scale(.95)}
 .theme-toggle:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
-.theme-toggle .theme-icon{font-size:1.1em;line-height:1}
-.theme-toggle[aria-pressed="true"]{
-  background:#0F0C09;color:#FFD200;border-color:#0F0C09;
-}
+.theme-toggle .theme-icon{font-family:"Apple Color Emoji","Segoe UI Symbol",sans-serif}
 .mode-hint{
   font-size:.78em;color:#888;font-style:italic;flex:1 1 auto;
   min-width:0;
@@ -554,6 +555,9 @@ details#sec-kids-meals>summary::before{
 <a class="skip" href="#menu">Skip to menu</a>
 
 <header class="sign" role="banner">
+  <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode. Keyboard: t">
+    <span class="theme-icon" aria-hidden="true">☾</span>
+  </button>
   <h1 class="visually-hidden">Waffle Stats — Waffle House menu with calories and allergens</h1>
   <div class="tiles" aria-hidden="true">
     <span class="tile">W</span><span class="tile">A</span><span class="tile">F</span><span class="tile">F</span><span class="tile">L</span><span class="tile">E</span>
@@ -579,10 +583,6 @@ details#sec-kids-meals>summary::before{
     <button type="button" class="invert-toggle" id="invertToggle" aria-pressed="false" title="Show only items that list the selected allergens, instead of hiding them. Keyboard: i">
       <span class="invert-dot" aria-hidden="true"></span>
       Invert filter <span class="invert-state" id="invertState">(off)</span>
-    </button>
-    <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" title="Switch between light and dark mode. Keyboard: t">
-      <span class="theme-icon" aria-hidden="true">☀</span>
-      <span class="theme-label">Light</span>
     </button>
     <span class="mode-hint" id="modeHint">Hide items that list the selected allergens</span>
   </div>
@@ -943,14 +943,13 @@ function setInvert(on){
 }
 invertToggleEl.addEventListener('click',()=>setInvert(!invert));
 
-// Theme toggle (light/dark). Preference is persisted in
-// localStorage so it survives reloads. If no preference is
-// stored, we follow the OS-level prefers-color-scheme.
-// Applied via [data-theme="dark"] on <html> so all the
-// CSS variable overrides kick in instantly.
+// Theme toggle (light/dark). Industry-standard minimal moon
+// icon in the top-right of the sign header. Preference is
+// persisted in localStorage so it survives reloads. If no
+// preference is stored, we follow the OS-level
+// prefers-color-scheme. Applied via [data-theme="dark"] on
+// <html> so all the CSS variable overrides kick in instantly.
 const themeToggleEl=document.getElementById('themeToggle');
-const themeLabelEl=themeToggleEl.querySelector('.theme-label');
-const themeIconEl=themeToggleEl.querySelector('.theme-icon');
 const THEME_KEY='wh_menu_theme';
 function getStoredTheme(){
   try{return localStorage.getItem(THEME_KEY)}catch(e){return null}
@@ -962,9 +961,11 @@ function applyTheme(theme,persist){
   const root=document.documentElement;
   const isDark=theme==='dark';
   root.setAttribute('data-theme',isDark?'dark':'light');
+  // The icon stays a moon in both modes (industry standard).
+  // aria-label updates to describe the action it would perform.
   themeToggleEl.setAttribute('aria-pressed',isDark?'true':'false');
-  themeLabelEl.textContent=isDark?'Dark':'Light';
-  themeIconEl.textContent=isDark?'☾':'☀';
+  themeToggleEl.setAttribute('aria-label',isDark?'Switch to light mode':'Switch to dark mode');
+  themeToggleEl.setAttribute('title',isDark?'Switch to light mode. Keyboard: t':'Switch to dark mode. Keyboard: t');
   if(persist){
     try{localStorage.setItem(THEME_KEY,theme)}catch(e){}
   }
