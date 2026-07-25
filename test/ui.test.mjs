@@ -350,6 +350,32 @@ test("kids-meals: star marker (★) appears in both the jump link and the sectio
   );
 });
 
+test("menu: meals are visually grouped with a left-border accent", () => {
+  // User: "its not clear when the meal includes multiple sets of
+  // choices, like the kids 1 egg meal with 3 sets of choices"
+  //
+  // Each meal (main item + its subsequent choice/includes/add-on
+  // groups) is wrapped in a <div class="meal"> with a left-border
+  // accent. This makes it obvious which choices belong to which
+  // meal — critical for sections like Kids Meals where one meal
+  // has 3 "Choices" groups in a row.
+  assert.match(
+    indexHtml,
+    /<div\s+class="meal">/u,
+    "render() must wrap each meal in a <div class=\"meal\">"
+  );
+  assert.match(
+    indexHtml,
+    /\.meal\s*\{[^}]*border-left/u,
+    ".meal must have a left-border accent so users can see where one meal ends and the next begins"
+  );
+  assert.match(
+    indexHtml,
+    /isMealStart/,
+    "render() must compute isMealStart (a group starts a new meal when its h is not a subcategory)"
+  );
+});
+
 test("jumpnav-label: is styled as a prominent pill button, not plain text", () => {
   // The "Jump to" label was a small brown text — easy to miss.
   // It should look like a proper pill/button (black bg, white

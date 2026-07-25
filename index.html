@@ -193,6 +193,18 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 
 /* ---------- Items ---------- */
 .item{border-top:1px dashed var(--line)}
+/* Each meal (main item + its choices/includes) gets a subtle
+   left-border accent so the user can see where one meal ends
+   and the next begins. Critical for sections like Kids Meals
+   where one meal has multiple "Choices" groups in a row. */
+.meal{
+  border-left:3px solid var(--line);
+  padding:4px 0 4px 12px;
+  margin:6px 0 10px;
+  border-radius:0 4px 4px 0;
+}
+.meal:first-child{margin-top:0}
+.meal:last-child{margin-bottom:0}
 .item:first-of-type{border-top:0}
 /* `h` is our hot-path "hidden" class — toggled by applyFilters()
    on every keystroke. Toggling a class is faster than writing
@@ -574,10 +586,37 @@ function render(data){
     // the right place between items. annotateSections gave us
     // hasSubcat + anchorA on `sec`, which we tag the <details> with
     // for applyFilters() to read without re-parsing.
-    let itemsHTML="",count=0;
+    //
+    // MEAL GROUPING: a meal is "the main item + its subsequent
+    // choice/includes/add-on groups until the next meal starts".
+    // This matters for sections like Kids Meals where one meal
+    // ("Kid's 1 Egg Breakfast") has 3 "Choices" groups in a row —
+    // without meal grouping, all the "CHOICES" headers blend
+    // together and the user can't tell which choices go with
+    // which meal. A meal starts when:
+    //   - `h` is null (a null-h group is a single-item meal, or
+    //     the start of a multi-item meal like All-Star Special)
+    //   - `h` is NOT a subcategory (not "Choices"/"Includes"/
+    //     "Add-ons"/"Meats"/"Toppings") — this is a meal name
+    //     like "2 Egg Breakfast" or "T-Bone & Eggs"
+    // Each meal gets a <div class="meal"> wrapper with a left
+    // border accent so the user can see where one meal ends
+    // and the next begins.
+    let itemsHTML="",count=0,mealOpen=false;
     sec.groups.forEach(gr=>{
       const subcat = isSubcat(gr.h);
+      const isMealStart = !subcat; // null h OR a meal-name h
       let gItems="";
+      // Close previous meal before starting a new one
+      let closeMeal = "";
+      if(mealOpen && isMealStart) closeMeal = "</div>";
+      let openMeal = "";
+      if(isMealStart){
+        // A null-h group is the start of a meal. A non-null
+        // meal-name h is ALSO the start of a meal.
+        openMeal = `<div class="meal">`;
+        mealOpen = true;
+      }
       gr.items.forEach(it=>{
         count++;
         const a=it.a||[];
@@ -589,8 +628,10 @@ function render(data){
             <span class="cal-tile">${it.d[0]}<small>CAL</small></span>
           </button>${factsHTML(it)}</div>`;
       });
-      itemsHTML+=(gr.h?`<div class="grp-h${subcat?' subcat':''}">${esc(gr.h)}</div>`:'')+gItems;
+      itemsHTML+=closeMeal+openMeal+(gr.h?`<div class="grp-h${subcat?' subcat':''}">${esc(gr.h)}</div>`:'')+gItems;
     });
+    // Close the last meal if one is still open
+    if(mealOpen) itemsHTML += "</div>";
     const attrs=[
       `data-has-subcat="${sec.hasSubcat?'1':'0'}"`,
       (sec.hasSubcat && sec.anchorA.length) ? `data-anchor-a="${esc(sec.anchorA.join("|"))}"` : '',
