@@ -981,7 +981,15 @@ function buildJumpnav(){
     // bottom. Fallback to the first section if none qualify
     // (user is at the top of the page, hasn't scrolled).
     const controls = document.querySelector('.controls');
-    const spy = new IntersectionObserver(()=>{
+    // The scroll-spy needs to fire on EVERY scroll position
+    // change, not just when sections enter/leave the viewport.
+    // IntersectionObserver only fires on state changes, so
+    // after a smooth scrollIntoView completes, the observer
+    // stops firing even though the active section has changed.
+    // A scroll listener (throttled with rAF) fires on every
+    // position change and re-evaluates which section is at
+    // the controls bottom.
+    const updateActive = ()=>{
       const controlsBottom = controls.getBoundingClientRect().bottom;
       // The active section is the one whose VISIBLE TITLE
       // TEXT (the <summary> with padding-top:16px) is
@@ -1007,8 +1015,22 @@ function buildJumpnav(){
       const idx = _sectionEls.indexOf(active);
       const link = _jumpLinks[idx];
       if(link) setActiveJumpLink(link);
-    }, {rootMargin:'0px 0px 0px 0px',threshold:[0,1]});
-    for(const sec of _sectionEls) spy.observe(sec);
+    };
+    // rAF-throttled scroll listener: fires on every scroll
+    // position change (not just state changes like
+    // IntersectionObserver does), so the active pill updates
+    // after smooth scrollIntoView completes.
+    let rafId = 0;
+    const onScroll = ()=>{
+      if(rafId) return;
+      rafId = requestAnimationFrame(()=>{
+        rafId = 0;
+        updateActive();
+      });
+    };
+    window.addEventListener('scroll', onScroll, {passive:true});
+    // Run once on init so the first section is active at page load.
+    updateActive();
   }
 }
 
