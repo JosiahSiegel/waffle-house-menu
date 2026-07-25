@@ -19,6 +19,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import vm from "node:vm";
 import { choicesLabel } from "../filter.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -750,4 +751,52 @@ test("search: sub-items show meal context (which meal they belong to)", () => {
     /\.item-ctx\s*\{/,
     "CSS must define .item-ctx"
   );
+});
+
+test("menu: Pecans in Waffles section is a Topping, not a separate meal", () => {
+  // User: "under waffles, it has pecans as its own meal! that's
+  //        wrong as it's just a side for waffles. parser needs
+  //        fixing"
+  //
+  // The PDF lists Waffle toppings as:
+  //   Classic Waffle House Waffle
+  //   Toppings:
+  //     Pecans
+  //     Chocolate Chips
+  //     Blueberry Nougat
+  //     Peanut Butter Chips
+  //
+  // The parser put a ":" on its own line, which got set as
+  // cur_group, breaking the topping grouping. "Pecans" landed
+  // in its own null-h group. The fix in sync.py SKIP_RE now
+  // silently drops stand-alone ":" lines.
+  const menuJs = readFileSync("data/menu.js", "utf8");
+  const ctx = { window: {} };
+  // vm is imported at top of file
+  vm.createContext(ctx);
+  vm.runInContext(menuJs, ctx);
+  const data = ctx.window.MENU_DATA;
+  const waffles = data.sections.find(s => s.title === "Waffles");
+  assert.ok(waffles, "Waffles section must exist");
+  // The "Classic Waffle House Waffle" is the only main item
+  const mains = waffles.groups.filter(g => g.h === null);
+  assert.equal(mains.length, 1, "Waffles must have exactly 1 main item");
+  assert.equal(mains[0].items[0].n, "Classic Waffle House Waffle");
+  // All 4 toppings are in the Toppings group, no null-h
+  // group with "Pecans" as a separate meal
+  const toppings = waffles.groups.find(g => g.h === "Toppings");
+  assert.ok(toppings, "Waffles must have a Toppings group");
+  assert.equal(toppings.items.length, 4, "Waffles Toppings must have 4 items");
+  const toppingNames = toppings.items.map(i => i.n);
+  assert.ok(toppingNames.includes("Pecans"),
+    `Toppings must include Pecans, got: ${toppingNames.join(", ")}`);
+  assert.ok(toppingNames.includes("Chocolate Chips"));
+  assert.ok(toppingNames.includes("Blueberry Nougat"));
+  assert.ok(toppingNames.includes("Peanut Butter Chips"));
+  // No "Pecans" as its own main item
+  const pecansOwnMeal = waffles.groups.some(g =>
+    g.h === null && g.items.some(i => i.n === "Pecans")
+  );
+  assert.equal(pecansOwnMeal, false,
+    "Pecans must NOT be its own main item in Waffles");
 });
