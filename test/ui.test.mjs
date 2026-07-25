@@ -239,23 +239,23 @@ test("jump-nav: setActiveJumpLink removes aria-current from all links first", ()
   );
 });
 
-test("jump-nav: scroll-spy aligns pill when DIVIDER GREY LINE meets bottom border", () => {
-  // User: "the divider grey line at the top of a category
-  // needs to meet the bottom border line of the pill navbar"
+test("jump-nav: scroll-spy picks the section the user is 'in' (largest top ≤ controls bottom)", () => {
+  // User: scrolling should change the active pill to reflect
+  // which section the user is currently reading.
   //
-  // The "divider grey line" is the 1px border-bottom of the
-  // PREVIOUS section (`details.sec{border-bottom:1px solid var(--line)}`).
-  // The "bottom border line" is the 2px black border at the
-  // bottom of the controls (y=180-182).
+  // Approach: the active section is the one whose <details>
+  // top is the largest value that is still ≤ controlsBottom.
+  // This is the section whose title has crossed (or is at)
+  // the controls bottom — the one the user is "in".
   //
-  // The pill becomes active when the grey line meets the
-  // bottom of the black border (grey line at y=182).
-  // For the first section, the "divider" is the controls
-  // bottom border itself (always at y=182).
+  // This approach correctly handles all scroll positions,
+  // unlike the grey-line approach (which was always tied
+  // at distance=0 for the first section since its grey
+  // line is the controls bottom border itself).
   assert.match(
     indexHtml,
     /window\.addEventListener\(\s*['"]scroll['"]/u,
-    "scroll-spy must listen to scroll events (so it fires after smooth scroll completes)"
+    "scroll-spy must listen to scroll events"
   );
   assert.match(
     indexHtml,
@@ -264,18 +264,13 @@ test("jump-nav: scroll-spy aligns pill when DIVIDER GREY LINE meets bottom borde
   );
   assert.match(
     indexHtml,
+    /top\s*<=\s*controlsBottom\s*&&\s*top\s*>\s*bestTop/u,
+    "scroll-spy must use the 'largest top ≤ controls bottom' approach"
+  );
+  assert.doesNotMatch(
+    indexHtml,
     /greyLineY/u,
-    "scroll-spy must use greyLineY (previous section's border-bottom) as the reference point, NOT lineAboveTitle"
-  );
-  assert.match(
-    indexHtml,
-    /prevRect\.bottom\s*-\s*1/u,
-    "scroll-spy must compute greyLineY = prevSectionBottom - 1 (the 1px border-bottom of the previous section)"
-  );
-  assert.match(
-    indexHtml,
-    /Math\.abs\s*\(\s*greyLineY\s*-\s*controlsBottom\s*\)/u,
-    "scroll-spy must measure distance from greyLineY to controlsBottom"
+    "scroll-spy must NOT use greyLineY (that approach left the first section always-tied at dist=0)"
   );
   assert.match(
     indexHtml,
@@ -486,28 +481,25 @@ test("jumpnav: scroll-spy scrolls the active link into the visible center", () =
   );
 });
 
-test("jumpnav: scroll-spy uses greyLineY (previous section's border-bottom)", () => {
-  // User: "the divider grey line at the top of a category
-  // needs to meet the bottom border line of the pill navbar"
-  //
-  // The "divider grey line" is the 1px border-bottom of the
-  // PREVIOUS section, NOT the title text and NOT the line
-  // above the title. The pill should activate when this
-  // grey line hits the bottom of the black border.
+test("jumpnav: scroll-spy uses 'largest top ≤ controls bottom' (the one the user is in)", () => {
+  // The active section is the one whose <details> top is
+  // the largest value that is still ≤ controlsBottom. This
+  // is the section whose title has crossed (or is at) the
+  // controls bottom — the one the user is currently reading.
   assert.match(
+    indexHtml,
+    /top\s*<=\s*controlsBottom\s*&&\s*top\s*>\s*bestTop/u,
+    "scroll-spy must use the 'largest top ≤ controls bottom' approach"
+  );
+  assert.doesNotMatch(
     indexHtml,
     /greyLineY/u,
-    "scroll-spy must use greyLineY (previous section's border-bottom) as the reference"
-  );
-  assert.match(
-    indexHtml,
-    /prevRect\.bottom\s*-\s*1/u,
-    "scroll-spy must compute greyLineY = prevSectionBottom - 1 (the 1px border-bottom of the previous section)"
+    "scroll-spy must NOT use greyLineY (that approach left section 0 always-tied at dist=0)"
   );
   assert.doesNotMatch(
     indexHtml,
     /lineAboveTitle/u,
-    "scroll-spy must NOT use lineAboveTitle (that was the previous fix; now we use the grey divider line)"
+    "scroll-spy must NOT use lineAboveTitle (that was an intermediate fix)"
   );
 });
 
