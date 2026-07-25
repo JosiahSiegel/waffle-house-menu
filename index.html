@@ -70,9 +70,20 @@
 [data-theme="dark"] .meal{border-left-color:var(--line)}
 [data-theme="dark"] .item.main-item{background:rgba(241,196,15,0.08)}
 [data-theme="dark"] .item.main-item .item-name{color:var(--yellow)}
-[data-theme="dark"] .facts{background:#26201A;border-color:var(--brown)}
+/* Main item cal-tile: keep --black as the text color
+   (NOT --brown, which becomes a light tan in dark mode
+   and is unreadable on yellow). The yellow background +
+   dark text is the same high-contrast pattern the regular
+   cal-tile uses in both modes. */
+[data-theme="dark"] .item.main-item .cal-tile{color:var(--black)}
+/* Nutrition facts in dark mode: light text on dark card.
+   The dt uses var(--brown) which is too light on the
+   dark card background; switch to var(--ink) (off-white)
+   for proper contrast. The dots/values stay readable. */
+[data-theme="dark"] .facts{background:#26201A;border-color:var(--brown);color:var(--ink)}
+[data-theme="dark"] .facts dt{color:var(--ink)}
 [data-theme="dark"] .facts .dots{border-bottom-color:var(--line)}
-[data-theme="dark"] .facts .allerg{border-top-color:var(--line)}
+[data-theme="dark"] .facts .allerg{border-top-color:var(--line);color:var(--ink)}
 [data-theme="dark"] .jumpnav a{background:transparent;color:var(--ink);border-color:var(--line)}
 [data-theme="dark"] .jumpnav a:hover{background:#26201A;border-color:var(--brown)}
 [data-theme="dark"] .jumpnav a[aria-current="true"]{background:var(--yellow);color:var(--black);border-color:var(--yellow)}
