@@ -97,28 +97,23 @@ test("scroll-margin-top: details.sec uses scroll-margin-top with the var", () =>
   );
 });
 
-test("scroll-margin-top: jump handler uses window.scrollTo for grey-line alignment", () => {
-  // After PR #23, we replaced scrollIntoView with a manual
-  // window.scrollTo because we need precise positioning: the
-  // grey divider line at the top of the category must meet
-  // the bottom border line of the pill navbar. scrollIntoView
-  // can't do fractional positioning relative to a sibling
-  // element's border. The handler computes
-  //   scrollY = prevSectionBottomInDocument - 183
-  // so the 1px grey line at prevSectionBottom-1 lands at y=182.
+test("scroll-margin-top: jump handler uses scrollIntoView for title-alignment", () => {
+  // After PR #25, the click handler uses native scrollIntoView
+  // with scroll-margin-top: var(--jump-offset) (166px) on
+  // details.sec. This positions the section's <details> top
+  // at y=166 in the viewport, so the title (which is 16px
+  // below the top, due to summary padding-top) lands at
+  // y=182 — exactly at the controls bottom border. This is
+  // the SAME alignment the scroll-spy produces when the user
+  // scrolls manually.
   const handlerMatch = indexHtml.match(
     /jumpnavEl\.addEventListener\('click',[\s\S]*?\}\);/u
   );
   assert.ok(handlerMatch, "jumpnav click handler block not found");
   assert.match(
     handlerMatch[0],
-    /window\.scrollTo\(/,
-    "handler must use window.scrollTo (to precisely position the grey line at the bottom border)"
-  );
-  assert.match(
-    handlerMatch[0],
-    /prevBottomDoc\s*-\s*183/u,
-    "handler must compute scrollY = prevSectionBottomInDocument - 183 (grey line meets bottom border)"
+    /scrollIntoView\(/,
+    "handler must use target.scrollIntoView (with scroll-margin-top on details.sec)"
   );
 });
 
@@ -239,19 +234,24 @@ test("jump-nav: setActiveJumpLink removes aria-current from all links first", ()
   );
 });
 
-test("jump-nav: scroll-spy picks the section the user is 'in' (largest top ≤ controls bottom)", () => {
+test("jump-nav: scroll-spy picks the section the user is 'in' (title just below controls)", () => {
   // User: scrolling should change the active pill to reflect
-  // which section the user is currently reading.
+  // which section the user is currently reading. The click
+  // handler and the scroll-spy must produce the SAME active
+  // pill for the same scroll position.
   //
   // Approach: the active section is the one whose <details>
-  // top is the largest value that is still ≤ controlsBottom.
-  // This is the section whose title has crossed (or is at)
-  // the controls bottom — the one the user is "in".
+  // top is the SMALLEST value that is still > controlsBottom
+  // - TITLE_PAD (16). The title (summary padding-top:16) is
+  // just below the controls bottom — the user is reading the
+  // content below that title.
   //
-  // This approach correctly handles all scroll positions,
-  // unlike the grey-line approach (which was always tied
-  // at distance=0 for the first section since its grey
-  // line is the controls bottom border itself).
+  // This correctly handles:
+  // - At top of page: first section (no section's top is below
+  //   the threshold, so the init `updateActive()` runs and
+  //   sets the first section as active)
+  // - Mid-scroll: the section whose title is just below controls
+  // - At bottom: the last section
   assert.match(
     indexHtml,
     /window\.addEventListener\(\s*['"]scroll['"]/u,
@@ -264,18 +264,18 @@ test("jump-nav: scroll-spy picks the section the user is 'in' (largest top ≤ c
   );
   assert.match(
     indexHtml,
-    /top\s*<=\s*controlsBottom\s*&&\s*top\s*>\s*bestTop/u,
-    "scroll-spy must use the 'largest top ≤ controls bottom' approach"
+    /TITLE_PAD|threshold\s*=\s*controlsBottom\s*-\s*TITLE_PAD/u,
+    "scroll-spy must compute threshold = controlsBottom - TITLE_PAD (16)"
+  );
+  assert.match(
+    indexHtml,
+    /top\s*>\s*threshold\s*&&\s*top\s*<\s*bestTop/u,
+    "scroll-spy must pick the section with the smallest top that is still > threshold (title just below controls)"
   );
   assert.doesNotMatch(
     indexHtml,
     /greyLineY/u,
-    "scroll-spy must NOT use greyLineY (that approach left the first section always-tied at dist=0)"
-  );
-  assert.match(
-    indexHtml,
-    /if\s*\(\s*!active\s*\)\s*active\s*=\s*_sectionEls\[0\]/u,
-    "scroll-spy must fall back to the first section when none qualify"
+    "scroll-spy must NOT use greyLineY (that approach left section 0 always-tied at dist=0)"
   );
 });
 
@@ -481,42 +481,49 @@ test("jumpnav: scroll-spy scrolls the active link into the visible center", () =
   );
 });
 
-test("jumpnav: scroll-spy uses 'largest top ≤ controls bottom' (the one the user is in)", () => {
+test("jumpnav: scroll-spy picks section whose title is just below controls", () => {
   // The active section is the one whose <details> top is
-  // the largest value that is still ≤ controlsBottom. This
-  // is the section whose title has crossed (or is at) the
-  // controls bottom — the one the user is currently reading.
+  // the smallest value that is still > controlsBottom - 16.
+  // This is the section whose title is just below the
+  // controls — the one the user is currently reading.
+  // Click and scroll produce the SAME active pill.
   assert.match(
     indexHtml,
-    /top\s*<=\s*controlsBottom\s*&&\s*top\s*>\s*bestTop/u,
-    "scroll-spy must use the 'largest top ≤ controls bottom' approach"
+    /top\s*>\s*threshold\s*&&\s*top\s*<\s*bestTop/u,
+    "scroll-spy must pick the section with the smallest top that is still > threshold"
   );
   assert.doesNotMatch(
     indexHtml,
     /greyLineY/u,
-    "scroll-spy must NOT use greyLineY (that approach left section 0 always-tied at dist=0)"
+    "scroll-spy must NOT use greyLineY (left section 0 always-tied)"
   );
   assert.doesNotMatch(
     indexHtml,
     /lineAboveTitle/u,
-    "scroll-spy must NOT use lineAboveTitle (that was an intermediate fix)"
+    "scroll-spy must NOT use lineAboveTitle (intermediate fix)"
   );
 });
 
-test("jumpnav: click handler scrolls so grey line meets bottom border", () => {
-  // The click handler must compute the scroll position so
-  // that the previous section's border-bottom (the grey
-  // divider line) is at y=183 in the viewport (so the 1px
-  // grey line is at y=182, meeting the bottom of the black
-  // border at the controls bottom).
+test("jumpnav: click handler uses scrollIntoView so title lands at controls bottom", () => {
+  // The click handler must use scrollIntoView with
+  // scroll-margin-top: var(--jump-offset) on details.sec.
+  // This positions the section's <details> top at
+  // (controlsBottom - 16) = y=166, so the title (16px below
+  // the top) lands at y=182 — exactly at the controls
+  // bottom border. This is the SAME alignment the
+  // scroll-spy produces when the user scrolls manually.
+  const handlerMatch = indexHtml.match(
+    /jumpnavEl\.addEventListener\('click',[\s\S]*?\}\);/u
+  );
+  assert.ok(handlerMatch, "jumpnav click handler block not found");
   assert.match(
-    indexHtml,
-    /window\.scrollTo/u,
-    "click handler must use window.scrollTo (not scrollIntoView) to precisely position the grey line"
+    handlerMatch[0],
+    /scrollIntoView\(/,
+    "click handler must use scrollIntoView"
   );
   assert.match(
     indexHtml,
-    /prevBottomDoc\s*-\s*183/u,
-    "click handler must compute scrollY = prevSectionBottomInDocument - 183 (so grey line at prevBottom-1 = 182)"
+    /--jump-offset\s*:\s*166px/,
+    "--jump-offset must be 166px (controlsBottom 182 - 16 title padding)"
   );
 });
