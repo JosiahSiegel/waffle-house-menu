@@ -55,7 +55,7 @@ ITEM_RE = re.compile(
     rf"^(?P<name>.+?)\s+(?P<nums>{NUM}(?:\s+{NUM}){{9}})\s*(?P<all>[A-Za-z][A-Za-z ,.&-]*)?$"
 )
 CONT_RE = re.compile(rf"^(?P<nums>{NUM}(?:\s+{NUM}){{9}})\s*(?P<all>[A-Za-z][A-Za-z ,.&-]*)?$")
-SKIP_RE = re.compile(r"^(Name Cal\b|\(g\) \(mg\)|Updated \d{2}/\d{2}/\d{2}\b|#N/A|2,000 CALORIES)")
+SKIP_RE = re.compile(r"^(Name Cal\b|\(g\) \(mg\)|Updated \d{2}/\d{2}/\d{2}\b|#N/A|2,000 CALORIES|:\s*$)")
 UPDATED_RE = re.compile(r"Updated (\d{2}/\d{2}/\d{2})")
 GROUP_LABEL_RE = re.compile(
     r"^(Toppings|Add-?Ons?|Meats|Includes|Plus your choice of)\s*:?\s*", re.I

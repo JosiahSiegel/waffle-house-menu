@@ -2666,7 +2666,7 @@
           ]
         },
         {
-          "h": null,
+          "h": "Toppings",
           "items": [
             {
               "n": "Pecans",
@@ -2685,12 +2685,7 @@
               "a": [
                 "Tree Nuts"
               ]
-            }
-          ]
-        },
-        {
-          "h": "Toppings",
-          "items": [
+            },
             {
               "n": "Chocolate Chips",
               "d": [
@@ -2847,7 +2842,7 @@
           ]
         },
         {
-          "h": null,
+          "h": "Toppings",
           "items": [
             {
               "n": "Melted American Cheese",
@@ -2867,12 +2862,7 @@
                 "Milk",
                 "Soy"
               ]
-            }
-          ]
-        },
-        {
-          "h": "Toppings",
-          "items": [
+            },
             {
               "n": "Hickory Smoked Ham",
               "d": [
@@ -3539,7 +3529,7 @@
           ]
         },
         {
-          "h": null,
+          "h": "Add-ons",
           "items": [
             {
               "n": "City Ham Biscuit (1)",
@@ -3561,12 +3551,7 @@
                 "Soy",
                 "Wheat"
               ]
-            }
-          ]
-        },
-        {
-          "h": "Add-ons",
-          "items": [
+            },
             {
               "n": "American Cheese - 1 slice",
               "d": [
