@@ -553,3 +553,38 @@ test("jumpnav: click handler uses scrollIntoView so divider meets controls botto
     "--jump-offset must be 183px (so prevSection.bottom lands at 183, divider at 182 = controls bottom)"
   );
 });
+
+// User: 'white/wheat toast should be in the choices group, not above it'
+// For meals that have a 'Choices' group with Raisin Toast/Grilled
+// Biscuit/Texas Toast, the 'White Toast - 2 Slices' and
+// 'Wheat Toast - 2 Slices' items must be IN that Choices group,
+// not in the main-item group. This matches the PDF structure
+// where all 5 bread options are in one group.
+test('menu: white/wheat toast are in the Choices group, not the main item', () => {
+  const menuJs = readFileSync('data/menu.js', 'utf8');
+  // Find the Kids Meals section
+  const kidsMatch = menuJs.match(/"title"\s*:\s*"Kids Meals"[\s\S]*?"title"\s*:\s*"/);
+  assert.ok(kidsMatch, 'Kids Meals section not found in data/menu.js');
+  const kidsSection = kidsMatch[0];
+  // Find the 1 Egg Breakfast meal block: from its name up to the
+  // end of its groups (before the next "title" or end of section).
+  // The 1 Egg meal has 4 groups: main, Choices(toast), Choices(sides),
+  // Choices(meat). White/Wheat Toast must be in the FIRST Choices group.
+  const oneEggStart = kidsSection.indexOf("Kid's 1 Egg Breakfast with Bacon or Sausage");
+  assert.ok(oneEggStart >= 0, "Kid's 1 Egg Breakfast not found");
+  // Get the block from 1 Egg meal name to the next section title
+  // (or end of kids section). The Kids section ends at the next
+  // "title" or end of the matched kids block.
+  const oneEggBlock = kidsSection.substring(oneEggStart);
+  // The first "Choices" after the 1 Egg meal name is its toast
+  // choices group. White/Wheat Toast must appear AFTER that.
+  const choicesIdx = oneEggBlock.indexOf('"Choices"');
+  const whiteIdx = oneEggBlock.indexOf('White Toast');
+  const wheatIdx = oneEggBlock.indexOf('Wheat Toast');
+  const raisinIdx = oneEggBlock.indexOf('Raisin Toast');
+  assert.ok(choicesIdx >= 0, 'Choices header not found in 1 Egg meal block');
+  assert.ok(whiteIdx > choicesIdx, 'White Toast must be AFTER the Choices header in the 1 Egg meal');
+  assert.ok(wheatIdx > choicesIdx, 'Wheat Toast must be AFTER the Choices header in the 1 Egg meal');
+  assert.ok(raisinIdx > choicesIdx, 'Raisin Toast must be AFTER the Choices header in the 1 Egg meal');
+});
+
