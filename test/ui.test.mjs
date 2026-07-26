@@ -1067,3 +1067,25 @@ test("menu: flag items where the same name has different nutrition in different 
     assert.ok(refs.length >= 2, `${n} should appear in multiple sections`);
   }
 });
+
+test("filter: .h class actually hides meal-pill items (CSS specificity)", () => {
+  // Regression: line 351 of index.html had a CSS rule
+  // `.meal>.item:not(.meal-main):not(.open) { display: flex; ... }`
+  // with specificity (0,4,0) that won over `.item.h{display:none}`
+  // (specificity 0,2,0). The bug: filtering allergens added the
+  // `.h` class to subcat items, but they stayed visible because
+  // the more specific rule set display:flex. The screenshot the
+  // user took showed the Waffle meal's meat choices visible while
+  // the Waffle main was hidden.
+  //
+  // The fix added `:not(.h)` to the meal-pill rule, so when .h is
+  // present, the (0,2,0) .item.h rule wins and display:none applies.
+  //
+  // This test catches the bug by reading the live CSS from the
+  // page and checking that the .h class makes the item display:none.
+  assert.match(
+    indexHtml,
+    /\.meal>\.item:not\(.meal-main\):not\(.open\):not\(\.h\)/,
+    "meal-pill CSS must exclude .h class — otherwise filter class is overridden by specificity",
+  );
+});
