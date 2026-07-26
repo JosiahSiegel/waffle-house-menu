@@ -3,7 +3,7 @@
   "source_updated": "05/05/26",
   "fetched_at": "2026-07-24T16:04:23+00:00",
   "sha256": "3b9f16921f1e5e562701cca15f857ac2d3f7591a6ee847f77722d24bf1a916f6",
-  "item_count": 389,
+  "item_count": 388,
   "sections": [
     {
       "title": "All-Star Special",
@@ -5691,6 +5691,27 @@
               ]
             },
             {
+              "n": "Hickory Smoked Ham",
+              "d": [
+                70,
+                3,
+                1,
+                0,
+                25,
+                630,
+                2,
+                0,
+                1,
+                9
+              ],
+              "a": []
+            }
+          ]
+        },
+        {
+          "h": "Add-ons",
+          "items": [
+            {
               "n": "Sautéed Onions",
               "d": [
                 15,
@@ -5725,27 +5746,6 @@
                 "Soy"
               ]
             },
-            {
-              "n": "Hickory Smoked Ham",
-              "d": [
-                70,
-                3,
-                1,
-                0,
-                25,
-                630,
-                2,
-                0,
-                1,
-                9
-              ],
-              "a": []
-            }
-          ]
-        },
-        {
-          "h": "Add-ons",
-          "items": [
             {
               "n": "Grilled Tomatoes",
               "d": [
@@ -5791,22 +5791,6 @@
                 1,
                 1,
                 1
-              ],
-              "a": []
-            },
-            {
-              "n": "Grilled Chicken",
-              "d": [
-                130,
-                1,
-                0,
-                0,
-                80,
-                930,
-                2,
-                0,
-                0,
-                29
               ],
               "a": []
             }
