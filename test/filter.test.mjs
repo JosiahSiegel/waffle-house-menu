@@ -66,13 +66,12 @@ test("isSubcat handles trim + nullish + case (case-sensitive)", () => {
 // 2) annotateSections — the data shape the page relies on.
 // ---------------------------------------------------------------------------
 
-test("annotateSections: Waffles has subcat + correct anchor", () => {
+test("annotateSections: Waffles has subcat + correct mealA on the Waffle item", () => {
   const w = annotated.find((s) => s.title === "Waffles");
   assert.ok(w, "Waffles section must exist");
   assert.equal(w.hasSubcat, true);
-  // Anchor is the first item in the first non-subcat group: the Waffle
-  assert.deepEqual(w.anchorA, ["Egg", "Milk", "Soy", "Wheat", "Tree Nuts"]);
-  // 5 items total: Waffle + Pecans (primary) + 3 toppings (subcat)
+  const waffleItem = w.flatItems.find(it => it.name === "Classic Waffle House Waffle");
+  assert.deepEqual(waffleItem.mealA, ["Egg", "Milk", "Soy", "Wheat", "Tree Nuts"]);
   assert.equal(w.flatItems.length, 5);
 });
 
@@ -217,6 +216,28 @@ test("Beverages + non-Milk allergens: 21 visible (no item has these)", () => {
     countVisibleBySection(annotated, ["Milk"], "")["Beverages"],
     17,
     "Beverages + Milk: 4 milks filtered out (17 left)",
+  );
+});
+
+test("Eggs filter: Hashbrown Bowls hidden because Includes items contain Egg", () => {
+  // Regression: the meal anchor used to only check the main item's
+  // allergens. "Sausage Egg & Cheese Hashbrown Bowl" main has no
+  // allergens, so the meal wasn't gated. The new model uses the
+  // union of main + Includes, so filtering out Egg hides all 4
+  // Hashbrown Bowls.
+  const visible = countVisibleBySection(annotated, ["Egg"], "")["Breakfast Hashbrown Bowls"];
+  assert.equal(visible, 0, "all 4 Hashbrown Bowls should be hidden when filtering out Egg");
+});
+
+test("mealA: union of main + Includes items, not just main item", () => {
+  // The meal-head allergen pill should show ALL allergens in the
+  // meal (main + Includes), not just the main item's allergens.
+  const hb = annotated.find(s => s.title === "Breakfast Hashbrown Bowls");
+  const bowl = hb.flatItems.find(it => it.name === "Sausage Egg & Cheese Hashbrown Bowl");
+  assert.deepEqual(
+    [...bowl.mealA].sort(),
+    ["Egg", "Milk", "Soy"],
+    "bowl's mealA should be the union of main + Includes (Egg, Milk, Soy)",
   );
 });
 
