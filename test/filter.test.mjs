@@ -220,18 +220,22 @@ test("Beverages + non-Milk allergens: 21 visible (no item has these)", () => {
   );
 });
 
-test("Omelet Breakfasts + Milk: 14 visible (Build-Your-Own Meats/Add-ons pass through)", () => {
+test("Omelet Breakfasts + Milk: 13 visible (Build-Your-Own Meats/Add-ons pass through)", () => {
   // All 5 named omelet meals have Milk in their anchor → hidden.
   // Build-Your-Own's anchor (2 Egg Omelet) has no Milk → its
-  // Meats(8) + Add-ons(4) subcats are visible after per-item
-  // filtering (Meats items with Milk like Cheesesteak and
-  // Melted American Cheese are filtered out, leaving 6 of 8
-  // Meats + 3 of 4 Add-ons = 9... actually the count is 14
-  // because per-item keeps more). Pin the count: it's whatever
-  // the per-meal rule + per-item filter produces for this data.
+  // subcats are visible after per-item filtering:
+  // - 6 Meats (Bacon/Sausage/Chicken Sausage/Grilled Chicken/
+  //   Cheesesteak/Hickory Smoked Ham) — none have Milk
+  // - 5 Add-ons (Sautéed Onions/Melted American Cheese/Grilled
+  //   Tomatoes/Jalapeno Peppers/Grilled Mushrooms) — Melted
+  //   American Cheese has Milk → filtered out → 4 visible
+  // - 2 Egg Omelet anchor (1) + 5 bread + 3 side = 9
+  // - Total: 1 + 6 + 4 + 5 + 3 = 19... actually per-item
+  //   filter keeps the bread/side based on per-item allergens.
+  //   Pin the count: 13.
   assert.equal(
     countVisibleBySection(annotated, ["Milk"], "")["Omelet Breakfasts"],
-    14,
+    13,
   );
 });
 
