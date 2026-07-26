@@ -347,8 +347,12 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   border-top:0;
 }
 /* Pills (sub-items): 2-col on narrow screens,
-   3-col on wider. */
-.meal>.item:not(.meal-main):not(.open){
+   3-col on wider. The :not(.h) guard ensures the
+   .h (hidden) class still wins on filtered items —
+   otherwise this 0,4,0 rule beats the 0,2,0
+   .item.h{display:none} rule and meal-pills stay
+   visible after the user filters an allergen. */
+.meal>.item:not(.meal-main):not(.open):not(.h){
   flex:0 1 calc(50% - 4px);
   min-width:140px;
   max-width:calc(50% - 4px);
@@ -361,17 +365,17 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
    shrinks to its content size instead of stretching
    to fill 50%. This avoids the "lone pill in an empty
    column" look that wastes horizontal space. */
-.meal>.item:not(.meal-main):not(.open):last-child:nth-child(odd){
+.meal>.item:not(.meal-main):not(.open):not(.h):last-child:nth-child(odd){
   flex-grow:0;
   max-width:calc(50% - 4px);
 }
 @media (min-width:560px){
-  .meal>.item:not(.meal-main):not(.open){
+  .meal>.item:not(.meal-main):not(.open):not(.h){
     flex-basis:calc(33.333% - 6px);
     max-width:calc(33.333% - 6px)
   }
-  .meal>.item:not(.meal-main):not(.open):last-child:nth-child(odd),
-  .meal>.item:not(.meal-main):not(.open):nth-last-child(2):nth-child(odd){
+  .meal>.item:not(.meal-main):not(.open):not(.h):last-child:nth-child(odd),
+  .meal>.item:not(.meal-main):not(.open):not(.h):nth-last-child(2):nth-child(odd){
     flex-grow:0;
   }
 }
