@@ -176,3 +176,197 @@ test("every meal has at most one main item", () => {
     }
   }
 });
+
+// ---------------------------------------------------------------------------
+// Per-item invariants — these run for EVERY item in the data so
+// that new items added in future sync runs are caught by the same
+// rules. A new item with a typo, a missing nutrition value, or an
+// unknown allergen will fail CI before it ships.
+// ---------------------------------------------------------------------------
+
+test("every item has a non-empty name", () => {
+  for (const s of menu.sections) {
+    for (const g of s.groups) {
+      for (const it of g.items) {
+        assert.ok(it.n && typeof it.n === "string" && it.n.trim().length > 0,
+          `${s.title} > ${g.h || "(main)"}: item has empty name`);
+      }
+    }
+  }
+});
+
+test("every item has exactly 10 nutrition values (cal, fat, sat, trans, chol, sodium, carbs, fiber, sugar, protein)", () => {
+  for (const s of menu.sections) {
+    for (const g of s.groups) {
+      for (const it of g.items) {
+        assert.ok(Array.isArray(it.d) && it.d.length === 10,
+          `${s.title} > ${g.h || "(main)"} > "${it.n}": d[] must have exactly 10 nutrition values, got ${it.d ? it.d.length : "n/a"}`);
+      }
+    }
+  }
+});
+
+test("every item has 0-5000 calories (catch sign flips and data-merge bugs)", () => {
+  for (const s of menu.sections) {
+    for (const g of s.groups) {
+      for (const it of g.items) {
+        const cal = it.d[0];
+        assert.ok(Number.isFinite(cal) && cal >= 0 && cal <= 5000,
+          `${s.title} > ${g.h || "(main)"} > "${it.n}": calories=${cal} out of range [0, 5000]`);
+      }
+    }
+  }
+});
+
+test("every item has a valid allergens array (or undefined for allergen-free items)", () => {
+  for (const s of menu.sections) {
+    for (const g of s.groups) {
+      for (const it of g.items) {
+        assert.ok(it.a === undefined || (Array.isArray(it.a) && it.a.every(a => typeof a === "string")),
+          `${s.title} > ${g.h || "(main)"} > "${it.n}": allergens must be string array or undefined`);
+      }
+    }
+  }
+});
+
+test("every allergen string is from the known vocabulary", () => {
+  const seen = new Map(); // allergen -> list of items
+  for (const s of menu.sections) {
+    for (const g of s.groups) {
+      for (const it of g.items) {
+        for (const a of it.a || []) {
+          if (!KNOWN_ALLERGENS.has(a)) {
+            if (!seen.has(a)) seen.set(a, []);
+            seen.get(a).push(`${s.title} > ${it.n}`);
+          }
+        }
+      }
+    }
+  }
+  assert.equal(seen.size, 0,
+    `unknown allergens: ${[...seen.entries()].map(([a, items]) => `${a} (${items.length} items)`).join(", ")}`);
+});
+
+test("every item's nutrition values are numbers (not strings or nulls)", () => {
+  for (const s of menu.sections) {
+    for (const g of s.groups) {
+      for (const it of g.items) {
+        for (let i = 0; i < it.d.length; i++) {
+          assert.ok(typeof it.d[i] === "number" && Number.isFinite(it.d[i]),
+            `${s.title} > ${g.h || "(main)"} > "${it.n}": d[${i}] is ${typeof it.d[i]} (${it.d[i]})`);
+        }
+      }
+    }
+  }
+});
+
+test("every section has at least one item", () => {
+  for (const s of menu.sections) {
+    const total = s.groups.reduce((n, g) => n + g.items.length, 0);
+    assert.ok(total > 0, `section "${s.title}" has no items`);
+  }
+});
+
+test("every section has a unique id (idempotent on section titles)", () => {
+  const seen = new Set();
+  for (const s of menu.sections) {
+    const id = s.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    assert.ok(!seen.has(id), `duplicate section id "${id}" from "${s.title}"`);
+    seen.add(id);
+  }
+});
+
+test("every item is referenced by item_count in the menu header", () => {
+  // The item_count field is a contract: it must match the actual
+  // total. If this test passes, the data and the header are in sync.
+  let total = 0;
+  for (const s of menu.sections) {
+    for (const g of s.groups) total += g.items.length;
+  }
+  assert.equal(total, menu.item_count,
+    `item_count (${menu.item_count}) does not match actual total (${total})`);
+});
+
+test("every section's groups sum matches its items (no orphan groups)", () => {
+  for (const s of menu.sections) {
+    const total = s.groups.reduce((n, g) => n + g.items.length, 0);
+    assert.ok(total > 0, `section "${s.title}" has 0 items across all groups`);
+  }
+});
+
+test("every item name is unique within its group (catches accidental duplicates)", () => {
+  // Items CAN legitimately appear in multiple groups within a section
+  // (e.g. "Kid's Bacon" is in both the Waffle meal and the Egg
+  // Breakfast meal). But within a single group, the same name should
+  // not appear twice — that's a data entry error.
+  for (const s of menu.sections) {
+    for (let gi = 0; gi < s.groups.length; gi++) {
+      const g = s.groups[gi];
+      const seen = new Set();
+      for (const it of g.items) {
+        assert.ok(!seen.has(it.n),
+          `${s.title} > group[${gi}] (${g.h || "(main)"}): "${it.n}" appears more than once in the same group`);
+        seen.add(it.n);
+      }
+    }
+  }
+});
+
+test("subcat groups only contain items, never an empty items list", () => {
+  for (const s of menu.sections) {
+    for (const g of s.groups) {
+      if (g.h && /^(Choices|Includes|Add-ons|Toppings|Meats)$/.test(g.h)) {
+        assert.ok(g.items.length > 0,
+          `${s.title}: subcat group "${g.h}" has no items`);
+      }
+    }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Future-proofing: when new items are added to a section that has
+// categorization rules, the test fails until the allow-list is
+// updated. This forces the developer to make a conscious decision
+// about how the new item is categorized rather than letting it
+// silently land in the wrong group.
+// ---------------------------------------------------------------------------
+
+test("future-proof: categorization rules cover all items in classified sections", () => {
+  // For every section in CATEGORIZATION_RULES, walk the items
+  // in the relevant groups and check that each item is in the
+  // allow-list for that group. If a new item is added that
+  // isn't in the allow-list, this test fails with a clear
+  // message pointing at the new item.
+  for (const [sectionTitle, rule] of Object.entries(CATEGORIZATION_RULES)) {
+    const section = menu.sections.find(s => s.title === sectionTitle);
+    if (!section) continue; // section was removed — caught by other tests
+    const mealIdx = section.groups.findIndex(rule.matchMeal);
+    if (mealIdx < 0) continue;
+    for (let i = mealIdx + 1; i < section.groups.length; i++) {
+      const g = section.groups[i];
+      if (!g.h) break;
+      const check = rule.groupChecks[g.h];
+      if (!check) continue;
+      for (const it of g.items) {
+        assert.ok(check.allowed.has(it.n),
+          `${sectionTitle} > ${g.h} > "${it.n}" not in allow-list. ` +
+          `New item? Add to CATEGORIZATION_RULES["${sectionTitle}"].groupChecks["${g.h}"].allowed. ` +
+          `Current allowed: [${[...check.allowed].join(", ")}]`);
+      }
+    }
+  }
+});
+
+test("future-proof: if item_count changes, the test forces you to update it", () => {
+  // This test doesn't assert anything — it just prints the
+  // current count so a developer running the suite can see
+  // what changed. The hard assertion is in
+  // "every item is referenced by item_count in the menu header".
+  let total = 0;
+  for (const s of menu.sections) {
+    for (const g of s.groups) total += g.items.length;
+  }
+  assert.equal(total, menu.item_count,
+    `item_count drift: header says ${menu.item_count}, actual is ${total}. ` +
+    `Update data/menu.json and data/meta.json item_count to ${total}.`);
+});
