@@ -1106,3 +1106,22 @@ test("filter: empty meal wrapper is hidden (no orphan cards when all items are f
   // And the applyFilters function should iterate over sec._mealEls.
   assert.match(indexHtml, /sec\._mealEls/, "applyFilters should cache and iterate over .meal wrappers");
 });
+
+// ---------------------------------------------------------------------------
+// Allergen chip wrap: on narrow viewports, chips must wrap to a
+// second line instead of forcing horizontal scroll. (PR #56
+// polish: fix overflow trap that hid 3 of 9 allergens on 420px.)
+// ---------------------------------------------------------------------------
+
+test("ui: allergen chips wrap (no horizontal-scroll overflow trap)", () => {
+  assert.match(
+    indexHtml,
+    /\.chips\{[^}]*flex-wrap:\s*wrap/u,
+    ".chips must use flex-wrap:wrap so all chips are reachable on narrow viewports",
+  );
+  assert.doesNotMatch(
+    indexHtml,
+    /\.chips\{[^}]*overflow-x:\s*auto/u,
+    ".chips must not force horizontal scroll for chip overflow",
+  );
+});

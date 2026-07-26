@@ -188,11 +188,9 @@ details.sec{scroll-margin-top:var(--jump-offset)}
 }
 .controls input:focus-visible{outline:3px solid var(--yellow);outline-offset:1px}
 .chips{
-  display:flex;gap:6px;align-items:center;
-  margin-top:8px;overflow-x:auto;padding-bottom:2px;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+  margin-top:8px;padding-bottom:2px;
 }
-.chips::-webkit-scrollbar{display:none}
 .chips-label{
   font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:700;
   letter-spacing:.12em;text-transform:uppercase;color:var(--brown);
@@ -287,7 +285,7 @@ details.sec>summary:focus-visible{outline:3px solid var(--yellow);outline-offset
   font-family:Anton,sans-serif;font-size:19px;letter-spacing:.03em;
   text-transform:uppercase;border-bottom:4px solid var(--yellow);padding-bottom:2px;
 }
-.sec-count{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--brown);margin-left:auto}
+.sec-count{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink);opacity:.55;margin-left:auto;font-weight:600}
 .sec-caret{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--brown);transition:transform .15s}
 details.sec[open] .sec-caret{transform:rotate(90deg)}
 .grp-h{
