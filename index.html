@@ -670,7 +670,7 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
    on every keystroke. Toggling a class is faster than writing
    style.display, and using a single 1-char class keeps the
    matched-ruleset count at 0 in DevTools. */
-.item.h,.grp-h.h,details.sec.h,.jumpnav a.h{display:none}
+.item.h,.grp-h.h,details.sec.h,.jumpnav a.h,.meal.h{display:none}
 .item-row{
   width:100%;text-align:left;background:none;border:0;cursor:pointer;
   display:flex;align-items:center;gap:10px;padding:11px 2px;
@@ -1242,6 +1242,24 @@ function render(data){
   for (const sec of _sectionEls) {
     sec._itemEls = Array.from(sec.querySelectorAll('.item'));
     sec._grpHs = Array.from(sec.querySelectorAll('.grp-h'));
+    sec._mealEls = Array.from(sec.querySelectorAll('.meal'));
+    // Pre-compute the [first, last] item-index range each .meal
+    // wrapper "owns" (the .item divs inside that .meal). applyFilters
+    // uses these to decide whether a meal wrapper has any visible
+    // items — if not, the wrapper itself is hidden so we don't
+    // render an empty card.
+    for (let m = 0; m < sec._mealEls.length; m++) {
+      const me = sec._mealEls[m];
+      let first = -1, last = -1;
+      const items = me.querySelectorAll(':scope > .item');
+      for (let i = 0; i < items.length; i++) {
+        const idx = sec._itemEls.indexOf(items[i]);
+        if (first === -1) first = idx;
+        last = idx;
+      }
+      me._first = first;
+      me._last = last;
+    }
     sec._countEl = sec.querySelector('.sec-count');
     // Pre-compute the [first, last] item-index range each grp-h
     // "owns" (the items between this grp-h and the next grp-h or
@@ -1353,6 +1371,28 @@ function applyFilters(){
         if (gh.classList.contains('h')) gh.classList.remove('h');
       } else {
         if (!gh.classList.contains('h')) gh.classList.add('h');
+      }
+    }
+
+    // Meal wrapper visibility: visible iff at least one of its
+    // .item children is visible. Without this, when a filter
+    // hides every item in a meal (e.g. Milk in named omelets —
+    // the main has no Milk but the bread choices all do, so the
+    // meal gate hides everything), the .meal wrapper stays on
+    // screen as an empty card. Hide the whole wrapper instead.
+    const mealEls = sec._mealEls;
+    for (let m = 0; m < mealEls.length; m++) {
+      const me = mealEls[m];
+      let vis = false;
+      if (me._first !== -1) {
+        for (let k = me._first; k <= me._last; k++) {
+          if (!itemEls[k].classList.contains('h')) { vis = true; break; }
+        }
+      }
+      if (vis) {
+        if (me.classList.contains('h')) me.classList.remove('h');
+      } else {
+        if (!me.classList.contains('h')) me.classList.add('h');
       }
     }
     if (visCount) {
