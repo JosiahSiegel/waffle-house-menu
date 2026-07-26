@@ -5,227 +5,135 @@
 // regression test suite that runs in PR CI. No DOM access —
 // the same module runs in the browser and under node --test.
 
-// Headers that mark a subcategory group. These are the groups
-// in the parsed PDF that are *conditional add-ons* to a main
-// item in the same section (e.g. "Toppings", "Add-ons"). They
-// make no sense without the main item the customer is actually
-// ordering — you can't order waffle toppings without ordering
-// a waffle. If anyone adds a new subcategory keyword (e.g.
-// "Sauces", "Sides"), they MUST update this regex in lockstep
-// with the test in test/filter.test.mjs, otherwise the anchor
-// filter won't fire and the original Waffles bug returns.
+// Headers that mark a subcategory group.
 export const SUBCAT_RE = /^(Choices|Includes|Add-ons|Toppings|Meats)$/u;
+
+// "Required" subcat: items are part of the meal total.
+export const REQUIRED_SUBCAT = "Includes";
+
+// "Optional" subcats: items are alternatives the customer picks.
+const OPTIONAL_SUBCATS = new Set(["Choices", "Add-ons", "Toppings", "Meats"]);
 
 export function isSubcat(h) {
   return typeof h === "string" && SUBCAT_RE.test(h.trim());
 }
 
-// Category-specific labels for "Choices" groups. The generic
-// "CHOICES" label is confusing when a meal has multiple choices
-// groups (e.g. Kids 1 Egg Breakfast has 3: bread, side, meat).
-// By detecting what the items are, we can show a self-describing
-// label like "Choose Your Bread" or "Choose Your Side".
+export function isRequiredSubcat(h) {
+  return h === REQUIRED_SUBCAT;
+}
+
+// Category-specific labels for "Choices" groups.
 const TOAST_NAMES = new Set([
-  "White Toast - 2 Slices",
-  "Wheat Toast - 2 Slices",
-  "Raisin Toast - 2 Slices",
-  "Grilled Biscuit",
-  "Texas Toast - 1 Slice"
+  "White Toast - 2 Slices", "Wheat Toast - 2 Slices",
+  "Raisin Toast - 2 Slices", "Grilled Biscuit", "Texas Toast - 1 Slice"
 ]);
 const SIDE_NAMES = new Set([
-  "Grits",
-  "Cheese Grits",
-  "Hashbrowns",
-  "Regular Hashbrowns",
-  "Sliced Tomatoes",
-  "Tomatoes"
+  "Grits", "Cheese Grits", "Hashbrowns", "Regular Hashbrowns",
+  "Sliced Tomatoes", "Tomatoes"
 ]);
 const MEAT_NAMES = new Set([
-  "Bacon",
-  "Bacon - 3 Slices",
-  "Sausage",
-  "Sausage - 2 patties",
-  "Chicken Sausage",
-  "Chicken Sausage - 2 patties",
-  "Kid's Bacon",
-  "Kid's Sausage",
-  "Kid's Chicken Sausage",
-  "City Ham",
-  "City Ham - 1 Slice",
-  "Country Ham",
-  "Country Ham - 1 Slice"
-]);
-const CHEESESTEAK_NAMES = new Set([
-  "Cheesesteak",
-  "Grilled Chicken",
-  "Hickory Smoked Ham",
-  "Diced Ham",
-  "Sautéed Onions",
-  "Grilled Onions",
-  "Melted American Cheese",
-  "American Cheese (2 Slices)",
-  "Jalapeno Peppers",
-  "Grilled Tomatoes",
-  "Grilled Mushrooms",
-  "Bert's Chili™"
+  "Bacon", "Bacon - 3 Slices", "Sausage", "Sausage - 2 patties",
+  "Chicken Sausage", "Chicken Sausage - 2 patties",
+  "Kid's Bacon", "Kid's Sausage", "Kid's Chicken Sausage",
+  "City Ham", "City Ham - 1 Slice", "Country Ham", "Country Ham - 1 Slice"
 ]);
 
-/**
- * Given a "Choices" group's items, return a specific label
- * that describes what the user is choosing. Falls back to
- * "Choices" if the items don't match a known category.
- *
- * Examples:
- *   [White Toast, Wheat Toast, Raisin Toast, Grilled Biscuit, Texas Toast]
- *     → "Choose Your Bread"
- *   [Grits, Hashbrowns, Sliced Tomatoes]
- *     → "Choose Your Side"
- *   [Kid's Bacon, Kid's Sausage, Kid's Chicken Sausage]
- *     → "Choose Your Meat"
- */
 export function choicesLabel(items) {
   if (!items || items.length === 0) return "Choices";
   const names = items.map(it => it.n);
-  // If ALL items are toast → "Choose Your Bread"
   if (names.every(n => TOAST_NAMES.has(n))) return "Choose Your Bread";
-  // If ALL items are sides → "Choose Your Side"
   if (names.every(n => SIDE_NAMES.has(n))) return "Choose Your Side";
-  // If ALL items are meats → "Choose Your Meat"
   if (names.every(n => MEAT_NAMES.has(n))) return "Choose Your Meat";
-  // Mixed/other (e.g. omelet meats/add-ons) → "Choices"
   return "Choices";
 }
 
-/**
- * Attach hasSubcat + anchorA + flatItems to each section.
- *   - hasSubcat: section has at least one subcategory group
- *   - anchorA:   allergens of the first item in the first
- *                non-subcategory group. The "anchor" for the
- *                section. If an allergen filter hides the
- *                anchor, the whole section is hidden.
- *   - flatItems: a flat list of all items in display order,
- *                tagged with whether they live in a subcat
- *                group. Used by computeVisibility.
- *
- * Returns a new structure; the caller's input is not mutated.
- */
-export function annotateSections(sections) {
-  return sections.map((sec) => {
-    let hasSubcat = false;
-    let anchorA = null;
-    const flatItems = [];
-    // Per-meal state. A "meal" is one or more consecutive
-    // non-subcat groups plus the subcat groups that immediately
-    // follow them. The PDF lists toppings (e.g. "Pecans" under
-    // Waffles) as their own non-subcat lines, not under the
-    // "Toppings:" subcat — we still want them gated by the
-    // Waffle's anchor, not their own. So consecutive non-subcat
-    // groups share one meal; a new meal starts when a non-subcat
-    // group follows a subcat group (or is the first group).
-    let prevWasSubcat = true; // so the first non-subcat opens a meal
-    let mealAnchor = [];
-    let mealHasSubcat = false;
-    let mealItemStart = 0; // flatItems index where current meal's items begin
-    for (const gr of sec.groups) {
-      const subcat = isSubcat(gr.h);
-      if (subcat) {
-        hasSubcat = true;
-        if (!mealHasSubcat) {
-          mealHasSubcat = true;
-          // Backfill: the items in the meal group (pushed before
-          // this subcat) also need mealHasSubcat=true, so the
-          // anchor rule fires for them too. Without this, a
-          // meal with [main, side, side, subcat, subcat] would
-          // only gate the subcat items.
-          for (let i = mealItemStart; i < flatItems.length; i++) {
-            flatItems[i].mealHasSubcat = true;
-          }
-        }
-        prevWasSubcat = true;
-      } else {
-        if (prevWasSubcat) {
-          // New meal starts. Its anchor is the first item in the
-          // group; mealHasSubcat resets until a subcat group shows up.
-          mealAnchor = gr.items[0] ? (gr.items[0].a || []) : [];
-          mealItemStart = flatItems.length;
-          mealHasSubcat = false;
-          if (anchorA === null) anchorA = mealAnchor;
-        }
-        // If prevWasSubcat is false, this non-subcat group is a
-        // continuation of the current meal (e.g. Pecans after
-        // Waffle). Don't reset the anchor — it stays the first
-        // item of the first non-subcat group in the meal.
-        prevWasSubcat = false;
-      }
-      for (const it of gr.items) {
-        const a = it.a || [];
-        flatItems.push({
-          name: it.n,
-          a,
-          subcat,
-          mealAnchor,
-          mealHasSubcat,
-        });
-      }
-    }
-    return {
-      ...sec,
-      hasSubcat,
-      anchorA: anchorA || [],
-      flatItems,
-    };
-  });
+function unionAllergens(items) {
+  const out = new Set();
+  for (const it of items || []) for (const a of it.a || []) out.add(a);
+  return out;
 }
 
 /**
- * Decide which items are visible after applying the avoid set
- * and the search query. Pure: same input, same output. The
- * result mirrors the annotated input, with each flatItem
- * gaining a `visible` boolean.
+ * Walk a section's groups and produce a flat list of items
+ * with per-item metadata. A "meal" is one non-subcat group
+ * plus any subcat groups that follow it.
  *
- * The "anchor rule" fires only when an allergen filter is
- * active and the section has subcategory groups: if the
- * anchor's allergens overlap the avoid set, every item in
- * the section is hidden. The search query is not part of the
- * anchor rule — you can still search for "pecan" inside a
- * section that an allergen filter has not gated.
+ * mealA = union of (main item allergens) + (all "Includes"
+ * items' allergens). Used by the filter to gate the whole
+ * meal if any of these are filtered.
  */
+function flattenSection(sec) {
+  const flatItems = [];
+  let hasSubcat = false;
+  let mealStart = 0;
+  let mealA = [];
+  let inMeal = false;
+
+  function closeMeal(endIdx) {
+    if (!inMeal) return;
+    for (let i = mealStart; i < endIdx; i++) {
+      flatItems[i].mealA = mealA;
+      flatItems[i].inMeal = true;
+    }
+  }
+
+  for (const gr of sec.groups) {
+    const subcat = isSubcat(gr.h);
+    if (subcat) {
+      hasSubcat = true;
+      if (!inMeal) continue;
+      if (isRequiredSubcat(gr.h)) {
+        for (const a of unionAllergens(gr.items)) {
+          if (!mealA.includes(a)) mealA.push(a);
+        }
+      }
+      for (const it of gr.items) {
+        flatItems.push({ name: it.n, a: it.a || [], mealA, inMeal: true, subcat: gr.h });
+      }
+    } else {
+      closeMeal(flatItems.length);
+      mealStart = flatItems.length;
+      const mainItem = gr.items[0];
+      mealA = mainItem ? [...(mainItem.a || [])] : [];
+      inMeal = true;
+      for (const it of gr.items) {
+        flatItems.push({ name: it.n, a: it.a || [], mealA, inMeal: true, subcat: null });
+      }
+    }
+  }
+  closeMeal(flatItems.length);
+  return { flatItems, hasSubcat };
+}
+
+export function annotateSections(sections) {
+  return sections.map((sec) => {
+    const { flatItems, hasSubcat } = flattenSection(sec);
+    return { ...sec, hasSubcat, flatItems };
+  });
+}
+
 export function computeVisibility(annotatedSections, avoid, q, opts) {
   const avoidSet = new Set(avoid || []);
   const qLower = (q || "").toLowerCase();
-  // Invert mode flips the per-item allergen check from "hide
-  // matches" to "show only matches". The anchor rule does NOT
-  // fire in invert mode — the user is explicitly looking for
-  // items with the allergen, so hiding the whole meal just
-  // because the anchor has it would defeat the purpose. Search
-  // is still applied as an AND.
   const invert = !!(opts && opts.invert);
   return annotatedSections.map((sec) => {
     const flatItems = sec.flatItems.map((it) => {
-      if (!invert) {
-        if (
-          avoidSet.size > 0 &&
-          it.mealHasSubcat &&
-          it.mealAnchor.some((a) => avoidSet.has(a))
-        ) {
-          return { ...it, visible: false };
-        }
+      // Meal-level gate: if the item is in a meal whose mealA
+      // overlaps the avoid set, hide the item. Applies to main
+      // and ALL subcat items in the meal.
+      if (!invert && avoidSet.size > 0 && it.inMeal && it.mealA.some(a => avoidSet.has(a))) {
+        return { ...it, visible: false };
       }
-      const okQ = !qLower || it.name.toLowerCase().includes(qLower);
       const okA = invert
-        ? it.a.some((a) => avoidSet.has(a))
-        : !it.a.some((a) => avoidSet.has(a));
-      return { ...it, visible: okQ && okA };
+        ? it.a.some(a => avoidSet.has(a))
+        : !it.a.some(a => avoidSet.has(a));
+      const okQ = !qLower || it.name.toLowerCase().includes(qLower);
+      return { ...it, visible: okA && okQ };
     });
     return { ...sec, flatItems };
   });
 }
 
-/**
- * Convenience: map of section title -> number of visible items
- * after filtering. Used by tests and by the section count
- * chip in the header.
- */
 export function countVisibleBySection(annotatedSections, avoid, q, opts) {
   const out = {};
   for (const sec of computeVisibility(annotatedSections, avoid, q, opts)) {
@@ -234,10 +142,6 @@ export function countVisibleBySection(annotatedSections, avoid, q, opts) {
   return out;
 }
 
-/**
- * List of visible item names per section. Used by tests for
- * more specific assertions than a count alone.
- */
 export function visibleBySection(annotatedSections, avoid, q, opts) {
   const out = {};
   for (const sec of computeVisibility(annotatedSections, avoid, q, opts)) {
@@ -246,57 +150,36 @@ export function visibleBySection(annotatedSections, avoid, q, opts) {
   return out;
 }
 
-/**
- * Build the JSON-LD structured-data blocks for SEO. Returns an
- * array of `{ type, payload }` objects; the page appends them as
- * <script type="application/ld+json"> tags. We return a 2-tuple
- * — WebSite + Menu — so a future addition (e.g. Organization)
- * drops in without breaking the contract.
- *
- * The Menu schema mirrors the data the page renders, so the
- * rich-results data never drifts from the on-page menu.
- */
 export function buildStructuredData(data) {
   const website = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "Waffle Stats",
-    "url": "https://wafflestats.com/",
-    "description":
-      "Full Waffle House menu with per-item calories and the chain's own allergen column.",
+    "@context": "https://schema.org", "@type": "WebSite",
+    "name": "Waffle Stats", "url": "https://wafflestats.com/",
+    "description": "Full Waffle House menu with per-item calories and the chain's own allergen column.",
   };
   const menu = {
-    "@context": "https://schema.org",
-    "@type": "Menu",
-    "name": "Waffle House Menu",
-    "inLanguage": "en",
+    "@context": "https://schema.org", "@type": "Menu",
+    "name": "Waffle House Menu", "inLanguage": "en",
     "hasMenuSection": (data.sections || []).map((sec) => ({
-      "@type": "MenuSection",
-      "name": sec.title,
-      "hasMenuItem": sec.groups
-        .flatMap((g) => g.items)
-        .map((it) => {
-          const n = {
-            "@type": "MenuItem",
-            "name": it.n,
-            "nutrition": {
-              "@type": "NutritionInformation",
-              "calories": String(it.d[0] || 0),
-              "fatContent": (it.d[1] || 0) + " g",
-              "saturatedFatContent": (it.d[2] || 0) + " g",
-              "transFatContent": (it.d[3] || 0) + " g",
-              "cholesterolContent": (it.d[4] || 0) + " mg",
-              "sodiumContent": (it.d[5] || 0) + " mg",
-              "carbohydrateContent": (it.d[6] || 0) + " g",
-              "fiberContent": (it.d[7] || 0) + " g",
-              "sugarContent": (it.d[8] || 0) + " g",
-              "proteinContent": (it.d[9] || 0) + " g",
-            },
-          };
-          if (it.note) n.description = it.note;
-          if (it.a && it.a.length) n.suitableForDiet = `Avoid: ${it.a.join(", ")}`;
-          return n;
-        }),
+      "@type": "MenuSection", "name": sec.title,
+      "hasMenuItem": sec.groups.flatMap((g) => g.items).map((it) => {
+        const n = {
+          "@type": "MenuItem", "name": it.n,
+          "nutrition": { "@type": "NutritionInformation",
+            "calories": String(it.d[0] || 0),
+            "fatContent": (it.d[1] || 0) + " g",
+            "saturatedFatContent": (it.d[2] || 0) + " g",
+            "transFatContent": (it.d[3] || 0) + " g",
+            "cholesterolContent": (it.d[4] || 0) + " mg",
+            "sodiumContent": (it.d[5] || 0) + " mg",
+            "carbohydrateContent": (it.d[6] || 0) + " g",
+            "fiberContent": (it.d[7] || 0) + " g",
+            "sugarContent": (it.d[8] || 0) + " g",
+            "proteinContent": (it.d[9] || 0) + " g" },
+        };
+        if (it.note) n.description = it.note;
+        if (it.a && it.a.length) n.suitableForDiet = `Avoid: ${it.a.join(", ")}`;
+        return n;
+      }),
     })),
   };
   return [website, menu];

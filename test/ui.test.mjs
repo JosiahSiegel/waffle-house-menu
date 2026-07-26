@@ -144,7 +144,7 @@ test("loading: tiny inline bootstrap script adds .show to loading div", () => {
   // to the loading div only if JavaScript actually runs.
   assert.match(
     indexHtml,
-    /<script>\s*document\.getElementById\(['"]loading['"]\)\.classList\.add\(['"]show['"]\)\s*;?\s*<\/script>/u,
+    /<script>\s*\{?\s*const\s+l\s*=\s*document\.getElementById\(['"]loading['"]\)\s*;?\s*if\s*\(\s*l\s*\)\s*l\.classList\.add\(['"]show['"]\)\s*;?\s*\}?\s*<\/script>/u,
     "missing inline bootstrap script that adds .show to loading div"
   );
 });

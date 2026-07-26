@@ -937,7 +937,7 @@ details#sec-kids-meals>summary::before{
      (parse error, CSP block, etc.), the loading text stays
      hidden so the user sees the sign + a blank menu area
      instead of a stuck "Loading..." message. -->
-<script>document.getElementById('loading').classList.add('show');</script>
+<script>{const l=document.getElementById('loading');if(l)l.classList.add('show');}</script>
 
 <a class="skip" href="#menu">Skip to menu</a>
 
@@ -1052,6 +1052,20 @@ function render(data){
   // and "what is the anchor for this section".
   annotatedSections = annotateSections(data.sections);
 
+  // Build a quick lookup: sectionTitle + mainItemName → mealA
+  // (the union of main + all "Includes" items' allergens). The
+  // render function uses this to show the honest allergen pill
+  // on the meal header.
+  const mealAByMain = {};
+  for (const sec of annotatedSections) {
+    for (const it of sec.flatItems) {
+      if (it.subcat === null && it.inMeal) {
+        const key = sec.title + "\0" + it.name;
+        if (!mealAByMain[key]) mealAByMain[key] = it.mealA;
+      }
+    }
+  }
+
   let html="";
   annotatedSections.forEach(sec=>{
     // Walk the original groups so we can keep the grp-h dividers in
@@ -1111,8 +1125,18 @@ function render(data){
         }else if(mainItem){
           currentMeal={name:mainItem.n,h:null,mainItem};
         }
+        // Attach mealA (from annotated data) so the meal header
+        // shows the honest allergen pill (union of main + Includes).
+        if(currentMeal && sec.title && currentMeal.mainItem){
+          const key = sec.title + "\0" + currentMeal.mainItem.n;
+          if(mealAByMain[key]) currentMeal.mealA = mealAByMain[key];
+        }
         if(currentMeal){
-          const a = currentMeal.mainItem ? (currentMeal.mainItem.a || []) : [];
+          // Use the annotated mealA (union of main + all "Includes"
+          // items) for the allergen pill, not just the main item's
+          // allergens. This way the pill honestly shows what the
+          // meal contains.
+          const a = currentMeal.mealA || (currentMeal.mainItem ? (currentMeal.mainItem.a || []) : []);
           const note = currentMeal.mainItem && currentMeal.mainItem.note
             ? `<span class="meal-head-meta">${esc(currentMeal.mainItem.note)}</span>` : '';
           const tags = a.length
@@ -1199,7 +1223,6 @@ function render(data){
     if(mealOpen) itemsHTML += "</div>";
     const attrs=[
       `data-has-subcat="${sec.hasSubcat?'1':'0'}"`,
-      (sec.hasSubcat && sec.anchorA.length) ? `data-anchor-a="${esc(sec.anchorA.join("|"))}"` : '',
     ].filter(Boolean).join(" ");
     html+=`<details class="sec" id="sec-${esc(sec.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))}" ${attrs}>
       <summary><span class="sec-caret">▸</span><span class="sec-title">${esc(sec.title)}</span><span class="sec-count">${count}</span></summary>
