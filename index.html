@@ -76,7 +76,11 @@
 [data-theme="dark"] .meal-head::after{color:#B8A878}
 [data-theme="dark"] .meal-head-meta{color:#B8A878}
 [data-theme="dark"] .meal-head-meta .al-tags{background:rgba(241,196,15,0.12);border-color:rgba(241,196,15,0.3);color:var(--yellow)}
-[data-theme="dark"] .meal-head-cal{box-shadow:inset 0 -3px 0 rgba(0,0,0,0.35),0 1px 0 rgba(0,0,0,0.2)}
+/* .meal-head-cal uses --black (always dark) so no
+   color override needed in dark mode. Just deepen the
+   inset shadow slightly for better contrast on the
+   yellow tile. */
+[data-theme="dark"] .meal-head-cal{box-shadow:inset 0 3px 0 rgba(0,0,0,0.12),0 1px 0 rgba(0,0,0,0.15)}
 [data-theme="dark"] .meal>.grp-h{color:var(--ink);border-bottom-color:#3A3328}
 [data-theme="dark"] .meal>.grp-h::before{background:var(--yellow);box-shadow:0 0 0 1.5px var(--brown)}
 [data-theme="dark"] .meal>.grp-h.includes::before{background:var(--yellow)}
@@ -471,7 +475,13 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   font-weight:700;
   font-size:22px;
   background:var(--yellow);
-  color:var(--brown);
+  /* Use --black (always dark) not --brown (which is a
+     light tan in dark mode and unreadable on yellow).
+     This is the same trick the sign header and the
+     regular .cal-tile use to stay readable in both
+     themes — the yellow brand tile always pairs with
+     a dark foreground. */
+  color:var(--black);
   border-radius:8px;
   min-width:64px;
   text-align:center;
@@ -496,8 +506,10 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   font-weight:700;
   letter-spacing:.14em;
   margin-top:2px;
-  color:var(--brown);
-  opacity:.85;
+  /* Same --black rule — the "CAL" label sits on yellow
+     so it must stay dark in both themes. */
+  color:var(--black);
+  opacity:.7;
   line-height:1;
 }
 /* When the meal-main item is open, show its facts
