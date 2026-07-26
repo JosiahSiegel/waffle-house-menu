@@ -126,6 +126,61 @@ export function computeVisibility(annotatedSections, avoid, q, opts) {
     // be treated as one meal).
     const useMealGate = sec.hasSubcat && avoidSet.size > 0;
 
+    // Section-level add-on rule (applies to sections WITHOUT
+    // subcats that follow the "mains + add-ons" PDF pattern).
+    // A "section-level add-on" is an item in a null-h group with
+    // empty allergens positioned AFTER the section's main items —
+    // e.g. "Add Bacon" in Texas Melts or "Angus Patty" in Angus
+    // Burgers. The PDF positions these as general add-ons that
+    // apply to ANY of the section's main items, not to a specific
+    // one. So when the user filters an allergen that hides every
+    // main item in the section, the add-ons must also hide —
+    // "Add Bacon" without a melt to add to is meaningless UX.
+    //
+    // The "mains + add-ons" pattern in the data:
+    //   - Section has null-h groups with allergens at the start
+    //     (a contiguous block)
+    //   - Then null-h groups with no allergens at the end
+    //   - NO allergen-free groups BEFORE the first allergen group
+    //     (this distinguishes Texas Melts/Angus Burgers from
+    //     Beverages, where allergen-free items are interleaved)
+    //
+    // In normal mode, an add-on is hidden iff NO main item in the
+    // section is visible after per-item + meal-gate checks.
+    // In invert mode, this rule doesn't apply — the per-item
+    // check is the authority (add-ons without the allergen would
+    // already be hidden by per-item).
+    const addOnIdx = new Set();
+    if (!sec.hasSubcat && avoidSet.size > 0 && !invert) {
+      // Walk flatItems, classify each as 'all' (has allergens),
+      // 'free' (no allergens), or 'subcat' (subcat != null). The
+      // section matches the add-on pattern iff:
+      //   - there's at least one 'all' item
+      //   - all 'all' items come before all 'free' items
+      //   - there are no 'subcat' items
+      let firstAllIdx = -1, lastAllIdx = -1, firstFreeIdx = -1;
+      for (let i = 0; i < sec.flatItems.length; i++) {
+        const it = sec.flatItems[i];
+        if (it.subcat !== null) { firstAllIdx = -2; break; } // not applicable
+        if (it.a && it.a.length > 0) {
+          if (firstAllIdx === -1) firstAllIdx = i;
+          lastAllIdx = i;
+        } else {
+          if (firstFreeIdx === -1) firstFreeIdx = i;
+        }
+      }
+      // Pattern matches: at least one allergen item, allergen
+      // items come before any allergen-free item, no subcats.
+      if (firstAllIdx >= 0 && (firstFreeIdx === -1 || firstAllIdx < firstFreeIdx)) {
+        for (let i = lastAllIdx + 1; i < sec.flatItems.length; i++) {
+          const it = sec.flatItems[i];
+          if (it.subcat === null && (!it.a || it.a.length === 0)) {
+            addOnIdx.add(i);
+          }
+        }
+      }
+    }
+
     // Pre-compute which meals are "active" (should be shown as a
     // unit). A meal is active when:
     //   - Normal mode: no avoided allergen is in the meal's required
@@ -187,8 +242,34 @@ export function computeVisibility(annotatedSections, avoid, q, opts) {
       // Normal mode: apply per-item allergen check + search query.
       const okA = !it.a.some(a => avoidSet.has(a));
       const okQ = !qLower || it.name.toLowerCase().includes(qLower);
-      return { ...it, visible: okA && okQ };
+      const baseVisible = okA && okQ;
+      // Section-level add-on rule: if this is a section-level
+      // add-on (null-h, empty allergens) and the rule is active,
+      // also require at least one main item in the section to be
+      // visible. The check is done in a second pass below so the
+      // visibility of other items is known first.
+      if (addOnIdx.has(idx)) {
+        return { ...it, _isAddOn: true, visible: baseVisible };
+      }
+      return { ...it, visible: baseVisible };
     });
+
+    // Section-level add-on second pass: if any add-on is in the
+    // list, decide whether to hide all add-ons by checking if any
+    // main item in the section is visible.
+    if (addOnIdx.size > 0) {
+      const anyMainVisible = flatItems.some((it, idx) => !addOnIdx.has(idx) && it.visible);
+      if (!anyMainVisible) {
+        for (let i = 0; i < flatItems.length; i++) {
+          if (addOnIdx.has(i)) flatItems[i] = { ...flatItems[i], visible: false };
+        }
+      }
+      // Strip the temporary _isAddOn marker.
+      for (let i = 0; i < flatItems.length; i++) {
+        if (flatItems[i]._isAddOn) delete flatItems[i]._isAddOn;
+      }
+    }
+
     return { ...sec, flatItems };
   });
 }
