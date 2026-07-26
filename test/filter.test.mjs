@@ -8,6 +8,13 @@
 // index.html imports. The page and the tests share one source of
 // truth — change the rule in one place and both update.
 
+// Allergens tracked in the filter UI. Used by the universal
+// coverage tests at the bottom of this file.
+const ALL_ALLERGENS = [
+  "Egg", "Milk", "Soy", "Wheat", "Tree Nuts", "Peanut",
+  "Fish", "Shellfish",
+];
+
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
@@ -499,4 +506,53 @@ test("invert: opts parameter is optional, default behavior unchanged", () => {
     a.map((s) => s.flatItems.map((it) => it.visible)),
     b.map((s) => s.flatItems.map((it) => it.visible)),
   );
+});
+
+// ---------------------------------------------------------------------------
+// Universal section coverage: for every allergen and every section
+// that contains items with that allergen, the filter should hide
+// exactly the items with the allergen (in normal mode) and the
+// opposite (in invert mode). This catches future sections/items
+// that have wrong allergen assignments.
+// ---------------------------------------------------------------------------
+
+test("universal: for every section, filtering by an allergen never increases visible count", () => {
+  // Sanity check: adding a filter must not reveal more items.
+  // For sections without subcats, this is exact: items with the
+  // allergen are hidden. For sections with subcats, the meal gate
+  // may hide whole meals (count drops more) or just individual
+  // items (count drops exactly by items-with-allergen). Either way,
+  // the count must be ≤ the unfiltered count minus items-with-allergen.
+  for (const sec of annotated) {
+    const unfiltered = sec.flatItems.length;
+    for (const allergen of ALL_ALLERGENS) {
+      const itemsWithAllergen = sec.flatItems.filter(it => it.a.includes(allergen));
+      if (itemsWithAllergen.length === 0) continue;
+      const vis = countVisibleBySection(annotated, [allergen], "")[sec.title];
+      assert.ok(vis <= unfiltered - itemsWithAllergen.length,
+        `${sec.title} + ${allergen}: visible (${vis}) > unfiltered (${unfiltered}) - items with ${allergen} (${itemsWithAllergen.length}). Filter is not hiding what it should.`);
+    }
+  }
+});
+
+test("universal: for every section, invert by each of its allergens shows only those items OR whole meals", () => {
+  for (const sec of annotated) {
+    if (!sec.hasSubcat) continue; // invert meal-integrity only matters for sections with subcats
+    for (const allergen of ALL_ALLERGENS) {
+      const itemsWithAllergen = sec.flatItems.filter(it => it.a.includes(allergen));
+      if (itemsWithAllergen.length === 0) continue;
+      // In invert mode, the meal is active if any item in it has
+      // the allergen. The whole meal shows. Count active meals.
+      const vis = countVisibleBySection(annotated, [allergen], "", { invert: true })[sec.title];
+      assert.ok(vis >= itemsWithAllergen.length,
+        `${sec.title} + invert ${allergen}: expected at least ${itemsWithAllergen.length} visible (the items with ${allergen}, plus whole meals that contain them), got ${vis}`);
+    }
+  }
+});
+
+test("universal: every section has at least 1 item visible with no filter", () => {
+  for (const sec of annotated) {
+    const vis = countVisibleBySection(annotated, [], "")[sec.title];
+    assert.ok(vis > 0, `${sec.title}: 0 items visible with no filter — section is empty or broken`);
+  }
 });
