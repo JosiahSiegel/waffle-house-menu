@@ -86,7 +86,10 @@ test("annotateSections: sections without subcats are flagged false (anchorA is i
   // hasSubcat is the load-bearing signal — when false, the page
   // never reads anchorA, so it can be anything. Pin that the flag
   // is set correctly; don't pin anchorA for these sections.
-  for (const title of ["Sandwiches", "Pies", "Beverages", "Texas Melts", "Bert's Chili"]) {
+  // NOTE: Texas Melts and Angus Burgers now have hasSubcat=true
+  // because the "Add Bacon" / patty / bun add-ons are subcats.
+  // The meal gate then hides them when their main item is filtered.
+  for (const title of ["Sandwiches", "Pies", "Beverages", "Bert's Chili"]) {
     const s = annotated.find((x) => x.title === title);
     assert.ok(s, `${title} must exist`);
     assert.equal(s.hasSubcat, false, `${title} should not have subcats`);
@@ -555,4 +558,44 @@ test("universal: every section has at least 1 item visible with no filter", () =
     const vis = countVisibleBySection(annotated, [], "")[sec.title];
     assert.ok(vis > 0, `${sec.title}: 0 items visible with no filter — section is empty or broken`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// Section-level add-on behavior: when a section's add-ons (e.g. "Add Bacon"
+// in Texas Melts, "Angus Patty" in Angus Burgers) are conceptually
+// attached to the section's main items, filtering an allergen that hides
+// all main items must also hide the add-ons. The data fix moves the
+// add-ons under a subcat label so the meal gate applies.
+// ---------------------------------------------------------------------------
+
+test("Texas Melts + Milk: Add Bacon is hidden when all melts are filtered", () => {
+  // Regression: 'Add Bacon' was a separate null-h group with
+  // empty allergens. When the user filtered Milk, all 3 melts
+  // (each has Milk) were hidden by per-item check, but Add Bacon
+  // (no Milk) stayed visible — meaningless without a melt to add
+  // to. The fix: move Add Bacon under an 'Add-ons' subcat so the
+  // meal gate hides the whole meal.
+  const vis = visibleBySection(annotated, ["Milk"], "")["Texas Melts"];
+  assert.equal(vis.length, 0,
+    "Texas Melts + Milk: Add Bacon should also be hidden, got " + vis.length);
+  assert.ok(!vis.includes("Add Bacon (2 slices)"),
+    "Add Bacon should be hidden when melts are filtered");
+});
+
+test("Angus Burgers + Milk: patty, bun, and bacon are hidden when burgers are filtered", () => {
+  // Same pattern as Texas Melts: 3 burgers share allergens, then
+  // 3 add-ons (Angus Patty, Bun, Add Bacon) with empty allergens.
+  // The add-ons are now subcats so the meal gate hides everything.
+  const vis = visibleBySection(annotated, ["Milk"], "")["Angus Beef Hamburgers"];
+  assert.equal(vis.length, 0,
+    "Angus Burgers + Milk: all 6 items should be hidden, got " + vis.length);
+  assert.ok(!vis.includes("Angus Patty"));
+  assert.ok(!vis.includes("Bun"));
+  assert.ok(!vis.includes("Add Bacon (2 slices)"));
+});
+
+test("Texas Melts: no filter shows all 4 items (Add Bacon visible)", () => {
+  const vis = visibleBySection(annotated, [], "")["Texas Melts"];
+  assert.equal(vis.length, 4, "all 4 items visible with no filter");
+  assert.ok(vis.includes("Add Bacon (2 slices)"));
 });
