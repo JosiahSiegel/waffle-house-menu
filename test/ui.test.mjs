@@ -659,15 +659,36 @@ test("menu: choices groups show specific labels (Choose Your Bread/Side/Meat)", 
   );
 });
 
-test("menu: main items stand out visually (main-item class + styling)", () => {
-  // Template literal in source: `class="item${isMain?' main-item':''}"`
+test("menu: main items stand out as the meal card header (meal-head)", () => {
+  // User: "create a PR that updates the items UNDER/related to
+  //        each meal to be more compact and more clearly
+  //        indicated as part of any particular meal"
+  //
+  // The main item of each meal is now the meal card header
+  // (.meal-head) at the top of each card. It shows the meal
+  // name in large display font + a yellow cal tile. This is
+  // much clearer than the previous "tinted row + tiny 'from
+  // {meal}' label" approach.
   assert.match(
     indexHtml,
-    /class="item\$\{isMain\?/,
-    "index.html must add .main-item class via the isMain template tag"
+    /class="item-row meal-head"/,
+    "render() must wrap the meal name + cal in a .meal-head button (with item-row for click handler delegation)"
   );
-  assert.match(indexHtml, /\.item\.main-item/, "CSS must style .item.main-item distinctly");
-  assert.match(indexHtml, /isMain\s*=\s*!subcat/, "isMain must be !subcat");
+  assert.match(
+    indexHtml,
+    /\.meal-head\s*\{[^}]*display\s*:\s*flex/u,
+    ".meal-head must be a flex row (name on left, cal on right)"
+  );
+  assert.match(
+    indexHtml,
+    /\.meal-head-name\s*\{[^}]*font-family\s*:\s*Anton/u,
+    ".meal-head-name must use the display font so the meal name stands out"
+  );
+  assert.match(
+    indexHtml,
+    /\.meal-head-cal\s*\{[^}]*background\s*:\s*var\(--yellow\)/u,
+    ".meal-head-cal must have the yellow background so the meal's calorie pops"
+  );
 });
 
 test("menu: dark mode toggle exists with persistence and OS preference", () => {
@@ -711,45 +732,40 @@ test("menu: dark mode toggle exists with persistence and OS preference", () => {
   );
 });
 
-test("search: sub-items show meal context (which meal they belong to)", () => {
+test("search: sub-items belong to a meal card whose header shows the meal name", () => {
   // User: "when I search 'biscuit' and I see numerous results
   //        that appear to be duplicates... we need to improve
   //        the search so that results retain the context of
   //        what they are related to"
   //
-  // Fix: sub-items (Choices/Includes/Add-ons/Meats/Toppings)
-  // get a small "from <meal name>" line under their name. The
-  // main item itself does NOT get the context line (it has no
-  // parent meal).
+  // Old fix: tiny "from {meal}" label under each sub-item.
+  // New fix: each sub-item lives inside a <div class="meal">
+  // card whose .meal-head shows the meal name in large font.
+  // The user sees the meal name once at the top of the card
+  // (not repeated under every sub-item) and the association
+  // is unmistakable. Each item still carries data-meal for
+  // any downstream consumer that needs the parent meal name.
   assert.match(
     indexHtml,
-    /item-ctx/,
-    "index.html must define/use .item-ctx for meal context"
+    /<div\s+class="meal">/u,
+    "render() must wrap each meal in a <div class=\"meal\"> card"
   );
   assert.match(
     indexHtml,
-    /class="item-ctx">from \$\{esc\(currentMeal\.name\)\}/,
-    "Context line must read 'from <meal name>'"
+    /\.meal-head-name/,
+    ".meal-head-name must be defined so the meal name is prominent"
   );
-  // The context line must be suppressed on the main item
-  // (isMain items have no parent meal)
-  assert.match(
-    indexHtml,
-    /isMain \|\| !currentMeal\)/,
-    "Context line must be suppressed when isMain or no currentMeal"
-  );
-  // Each item must carry data-meal for any future JS that
-  // needs to know the parent meal without re-parsing
   assert.match(
     indexHtml,
     /data-meal="\$\{currentMeal\?esc/,
-    "Each item must carry data-meal attribute for downstream consumers"
+    "Each sub-item must carry data-meal for downstream consumers"
   );
-  // CSS exists for the .item-ctx class
+  // The compact card design relies on flex-wrap to put 2-3
+  // pills per row instead of one per row.
   assert.match(
     indexHtml,
-    /\.item-ctx\s*\{/,
-    "CSS must define .item-ctx"
+    /\.meal\s*\{[^}]*flex-wrap\s*:\s*wrap/u,
+    ".meal must use flex-wrap so pills wrap to 2-3 columns"
   );
 });
 

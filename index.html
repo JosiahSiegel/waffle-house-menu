@@ -67,7 +67,18 @@
 [data-theme="dark"] .chip{background:transparent;border-color:#3A3328;color:#B8A878}
 [data-theme="dark"] .chip[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:var(--black)}
 [data-theme="dark"] details.sec{background:#26201A;color:var(--ink)}
-[data-theme="dark"] .meal{border-left-color:var(--line)}
+[data-theme="dark"] .meal{background:#2D2620;border-color:#3A3328;border-left-color:var(--yellow)}
+[data-theme="dark"] .meal-head-name{color:var(--ink)}
+[data-theme="dark"] .meal-head:hover .meal-head-name{color:var(--yellow)}
+[data-theme="dark"] .meal>.item.meal-main.open .meal-head-name{color:var(--yellow)}
+[data-theme="dark"] .meal-head{border-bottom-color:#3A3328}
+[data-theme="dark"] .meal-head-meta{color:#B8A878}
+[data-theme="dark"] .meal>.grp-h{color:#B8A878}
+[data-theme="dark"] .meal-pill{background:#26201A;border-color:#3A3328;color:var(--ink)}
+[data-theme="dark"] .meal-pill:hover{background:#3A3328;border-color:var(--yellow)}
+[data-theme="dark"] .meal-pill-cal{background:rgba(241,196,15,0.15);color:var(--yellow)}
+[data-theme="dark"] .meal>.item.open:not(.meal-main) .meal-pill{background:#2D2620;border-color:var(--yellow);box-shadow:inset 0 0 0 1.5px var(--yellow)}
+[data-theme="dark"] .meal>.item.open:not(.meal-main) .meal-pill-cal{background:var(--yellow);color:var(--black)}
 [data-theme="dark"] .item.main-item{background:rgba(241,196,15,0.08)}
 [data-theme="dark"] .item.main-item .item-name{color:var(--yellow)}
 [data-theme="dark"] .item-ctx{color:var(--brown)}
@@ -277,43 +288,212 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 
 /* ---------- Items ---------- */
 .item{border-top:1px dashed var(--line)}
-/* Each meal (main item + its choices/includes) gets a subtle
-   left-border accent so the user can see where one meal ends
-   and the next begins. Critical for sections like Kids Meals
-   where one meal has multiple "Choices" groups in a row. */
+/* ---------- Meal cards ---------- */
+/* Each meal is wrapped in a card with a clear header
+   (meal name + main calorie). Sub-items render as compact
+   pills via flex-wrap (2-col on narrow screens) instead
+   of full-width rows. The result is ~3x more vertical
+   density than the old "every item is a full row"
+   layout, and the meal name at the top of every card
+   makes it obvious which choices belong to which meal —
+   no more scanning "from {meal}" labels under every
+   item. The yellow accent stripe on the left ties the
+   card back to the Waffle House brand and to the
+   section's color story. */
 .meal{
-  border-left:3px solid var(--line);
-  padding:4px 0 4px 12px;
-  margin:6px 0 10px;
-  border-radius:0 4px 4px 0;
+  position:relative;
+  background:linear-gradient(180deg,#FFFCF1 0%,#FFFAE6 100%);
+  border:1.5px solid var(--line);
+  border-left:4px solid var(--yellow);
+  border-radius:8px;
+  padding:10px 12px 12px;
+  margin:8px 0 12px;
+  box-shadow:0 1px 0 rgba(0,0,0,0.02);
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-start;
+  gap:6px 8px;
 }
-/* The main item of each meal stands out as the "parent" of
-   the choices below it. Larger name, bolder weight, a soft
-   background tint, and a slightly larger calorie tile so
-   the user immediately sees which item is THE meal and
-   which items are alternatives. */
-.item.main-item{
-  background:rgba(241,196,15,0.10);
-  border-radius:6px;
-  margin:2px -6px 6px;
-  padding:2px 6px;
+.meal:first-child{margin-top:4px}
+.meal:last-child{margin-bottom:4px}
+/* grp-h labels and any "open" facts panel span the
+   full width. Pills (.item) are sized to ~50% so 2
+   fit per row. */
+.meal>.grp-h,
+.meal>.item.open{
+  flex:0 0 100%;
+  margin-left:0;
+  margin-right:0;
+}
+/* The meal header (.item.meal-main) spans the full
+   width so the meal name + cal tile have room to
+   breathe. */
+.meal>.item.meal-main{
+  flex:0 0 100%;
   border-top:0;
 }
-.item.main-item .item-name{
-  font-size:16px;
-  font-weight:700;
-  color:var(--brown);
+/* Pills (sub-items): 2-col on narrow screens,
+   3-col on wider. */
+.meal>.item:not(.meal-main):not(.open){
+  flex:1 1 calc(50% - 4px);
+  min-width:140px;
+  max-width:calc(50% - 4px);
+  display:flex;
+  flex-direction:column;
+  border-top:0;
 }
-.item.main-item .cal-tile{
+@media (min-width:560px){
+  .meal>.item:not(.meal-main):not(.open){
+    flex-basis:calc(33.333% - 6px);
+    max-width:calc(33.333% - 6px)
+  }
+}
+/* Meal header: meal name on the left, big yellow cal
+   tile on the right. Clickable to expand the main
+   item's full nutrition. The allergen tags and note
+   appear in a small line under the name. */
+.meal-head{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:2px 0 8px;
+  border-bottom:1.5px dashed var(--line);
+  margin-bottom:4px;
+  background:none;
+  border-top:0;
+  border-left:0;
+  border-right:0;
+  text-align:left;
+  cursor:pointer;
+  font:inherit;
+  color:inherit;
+  width:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+.meal-head:hover .meal-head-name{color:var(--brown)}
+.meal-head:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+.meal-head-info{flex:1;min-width:0}
+.meal-head-name{
+  display:block;
+  font-family:Anton,sans-serif;
   font-size:18px;
-  padding:6px 10px;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  color:var(--black);
+  line-height:1.15;
+  word-break:break-word;
+}
+.meal-head-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:3px;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;
+  color:var(--brown);
+  letter-spacing:.04em;
+}
+.meal-head-meta .al-tags{margin-top:0;display:inline-block;margin-right:6px}
+.meal-head-cal{
+  font-family:"IBM Plex Mono",monospace;
+  font-weight:700;
+  font-size:18px;
   background:var(--yellow);
   color:var(--brown);
-  box-shadow:0 1px 3px rgba(0,0,0,0.12);
+  border-radius:6px;
+  min-width:58px;
+  text-align:center;
+  padding:5px 8px 3px;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,0.18);
+  align-self:flex-start;
+  flex-shrink:0;
 }
-.meal:first-child{margin-top:0}
-.meal:last-child{margin-bottom:0}
-.item:first-of-type{border-top:0}
+.meal-head-cal small{
+  display:block;
+  font-size:8px;
+  font-weight:400;
+  letter-spacing:.1em;
+  margin-top:1px;
+}
+/* When the meal-main item is open, show its facts
+   panel and tint the header to signal the open state. */
+.meal>.item.meal-main.open .meal-head{
+  border-bottom-color:var(--brown);
+}
+.meal>.item.meal-main.open .meal-head-name{
+  color:var(--brown);
+}
+/* grp-h inside a meal card: small uppercase label,
+   full-width row above its pills. */
+.meal>.grp-h{
+  padding:4px 0 2px;
+  font-size:10px;
+  letter-spacing:.12em;
+  border-bottom:0;
+}
+/* Single pill: compact card with item name on the left
+   and a small cal badge on the right. Touch-friendly
+   (40px+ tap target). Clickable to expand the full
+   nutrition facts. */
+.meal-pill{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:7px 9px;
+  font:inherit;
+  color:inherit;
+  cursor:pointer;
+  text-align:left;
+  min-width:0;
+  width:100%;
+  -webkit-tap-highlight-color:transparent;
+  transition:background .12s,border-color .12s;
+}
+.meal-pill:hover{
+  background:var(--yellow);
+  border-color:var(--brown);
+}
+.meal-pill:focus-visible{
+  outline:2px solid var(--brown);
+  outline-offset:1px;
+}
+.meal-pill-name{
+  flex:1;
+  min-width:0;
+  font-size:12.5px;
+  font-weight:600;
+  line-height:1.2;
+  word-break:break-word;
+}
+.meal-pill-cal{
+  font-family:"IBM Plex Mono",monospace;
+  font-weight:700;
+  font-size:11.5px;
+  color:var(--brown);
+  background:rgba(241,196,15,0.25);
+  padding:1px 5px;
+  border-radius:4px;
+  flex-shrink:0;
+}
+.meal>.item.open:not(.meal-main) .meal-pill{
+  background:#FFFCF1;
+  border-color:var(--brown);
+  box-shadow:inset 0 0 0 1.5px var(--brown);
+}
+.meal>.item.open:not(.meal-main) .meal-pill-cal{
+  background:var(--yellow);
+}
+/* Facts panel under a pill. Spans full width when its
+   .item is in the .open state. */
+.meal>.item>.facts{
+  flex:0 0 100%;
+  margin-top:6px;
+  padding:0 0 4px;
+}
 /* `h` is our hot-path "hidden" class — toggled by applyFilters()
    on every keystroke. Toggling a class is faster than writing
    style.display, and using a single 1-char class keeps the
@@ -711,28 +891,36 @@ function render(data){
     // hasSubcat + anchorA on `sec`, which we tag the <details> with
     // for applyFilters() to read without re-parsing.
     //
-    // MEAL GROUPING: a meal is "the main item + its subsequent
-    // choice/includes/add-on groups until the next meal starts".
-    // This matters for sections like Kids Meals where one meal
-    // ("Kid's 1 Egg Breakfast") has 3 "Choices" groups in a row —
-    // without meal grouping, all the "CHOICES" headers blend
-    // together and the user can't tell which choices go with
-    // which meal. A meal starts when:
+    // COMPACT MEAL CARD LAYOUT: a meal is "the main item + its
+    // subsequent choice/includes/add-on groups until the next
+    // meal starts". Each meal is wrapped in <div class="meal">:
+    //   - .meal-head (button) at the top: meal name + main cal
+    //   - .grp-h (label) before each subcat group
+    //   - .item as a compact .meal-pill (2-col flex grid)
+    //
+    // DOM ORDER: .meal-head, .grp-h, .item, .grp-h, .item, ...
+    // — direct siblings so the existing filter logic (which walks
+    // nextElementSibling between grp-h elements) works unchanged.
+    // The 2-column layout is pure CSS (flex-wrap on .meal) — no
+    // extra wrapper divs between grp-h and its items.
+    //
+    // A meal starts when:
     //   - `h` is null (a null-h group is a single-item meal, or
     //     the start of a multi-item meal like All-Star Special)
     //   - `h` is NOT a subcategory (not "Choices"/"Includes"/
     //     "Add-ons"/"Meats"/"Toppings") — this is a meal name
     //     like "2 Egg Breakfast" or "T-Bone & Eggs"
-    // Each meal gets a <div class="meal"> wrapper with a left
-    // border accent so the user can see where one meal ends
-    // and the next begins.
     let itemsHTML="",count=0,mealOpen=false;
-    // Track the current meal name as we walk groups so sub-items
-    // (Choices/Includes/Add-ons/Meats/Toppings) can be tagged with
-    // which meal they belong to. This matters for search — when
-    // "Grilled Biscuit" matches 26 times across many meals, the
-    // user needs to know which meal each result belongs to.
-    let currentMeal=null; // { name: string, h: string|null }
+    // Only use the meal card layout when the section has
+    // subcats. For standalone-only sections (Sandwiches,
+    // Pies, Beverages, etc.), each item is its own full-
+    // width row — the old behavior, unchanged.
+    const useMealCard = sec.hasSubcat;
+    // Track the current meal so sub-items can be tagged with
+    // which meal they belong to. The main item gets rendered
+    // as the card header (meal-head) instead of as a separate
+    // .item row.
+    let currentMeal=null; // { name, h, mainItem }
     sec.groups.forEach(gr=>{
       const subcat = isSubcat(gr.h);
       const isMealStart = !subcat; // null h OR a meal-name h
@@ -741,46 +929,96 @@ function render(data){
       let closeMeal = "";
       if(mealOpen && isMealStart) closeMeal = "</div>";
       let openMeal = "";
-      if(isMealStart){
-        // A null-h group is the start of a meal. A non-null
-        // meal-name h is ALSO the start of a meal.
-        openMeal = `<div class="meal">`;
-        mealOpen = true;
-        // Resolve the meal name. For a null-h group the meal
-        // name is the first item's name; for a meal-name h
-        // group, it's the header text.
+      if(isMealStart && useMealCard){
+        // Resolve meal name + main item. For a null-h group
+        // the meal name is the first item's name; for a meal-
+        // name h group, the name is the header text. The main
+        // item is rendered as the card header (meal-head) so
+        // the user immediately sees which item is THE meal
+        // and which items are sub-components.
+        const mainItem = gr.items[0] || null;
+        const name = gr.h || (mainItem ? mainItem.n : "Meal");
         if(gr.h){
-          currentMeal={name:gr.h,h:gr.h};
-        }else if(gr.items[0]){
-          currentMeal={name:gr.items[0].n,h:null};
+          currentMeal={name:gr.h,h:gr.h,mainItem};
+        }else if(mainItem){
+          currentMeal={name:mainItem.n,h:null,mainItem};
+        }
+        if(currentMeal){
+          const a = currentMeal.mainItem ? (currentMeal.mainItem.a || []) : [];
+          const note = currentMeal.mainItem && currentMeal.mainItem.note
+            ? `<span class="meal-head-meta">${esc(currentMeal.mainItem.note)}</span>` : '';
+          const tags = a.length
+            ? `<span class="al-tags">${a.map(x=>ABBR[x]||x).join("·")}</span>` : '';
+          const meta = (note || tags)
+            ? `<div class="meal-head-meta">${note}${tags}</div>` : '';
+          const headCal = currentMeal.mainItem ? currentMeal.mainItem.d[0] : '';
+          // Meal header is wrapped in a .item.meal-main so the
+          // existing click handler (.item-row → parent .item →
+          // toggle .open) works for expanding the main item's
+          // full nutrition facts. CSS makes .meal-main full-width
+          // so the header spans the whole card.
+          openMeal = `<div class="meal" data-name="${esc(name.toLowerCase())}" data-a="${esc(a.join("|"))}" data-meal="${esc(name)}">
+            <div class="item meal-main" data-name="${esc(name.toLowerCase())}" data-a="${esc(a.join("|"))}" data-meal="${esc(name)}">
+              <button class="item-row meal-head" aria-expanded="false" type="button">
+                <span class="meal-head-info">
+                  <span class="meal-head-name">${esc(name)}</span>
+                  ${meta}
+                </span>
+                <span class="meal-head-cal">${headCal}<small>CAL</small></span>
+              </button>${factsHTML(currentMeal.mainItem || {n:name,d:[headCal,0,0,0,0,0,0,0,0,0],a:[]})}
+            </div>`;
+          mealOpen = true;
+        }
+      } else if(isMealStart) {
+        // Standalone section: no meal card. Just track the
+        // main item for the data-meal attribute.
+        const mainItem = gr.items[0] || null;
+        if(mainItem){
+          currentMeal={name:mainItem.n,h:null,mainItem};
         }
       }
-      // Mark items in non-subcat groups as "main" so they can
-      // be styled to stand out as the parent of the meal.
-      const isMain = !subcat;
+      // Render the group label (e.g. "Choose Your Bread")
+      // before the items in this group. For a non-subcat group
+      // (i.e. a meal-start), the grp-h is the meal name and
+      // we skip it — the meal-head already shows the meal
+      // name prominently as the card header, and a duplicate
+      // label is just noise.
+      const groupLabel = gr.h === "Choices" ? choicesLabel(gr.items) : gr.h;
+      if(groupLabel && (subcat || !useMealCard)){
+        gItems += `<div class="grp-h${subcat?' subcat':''}">${esc(groupLabel)}</div>`;
+      }
       gr.items.forEach(it=>{
+        // The main item is already rendered as the meal-head
+        // above; skip it here so it doesn't appear twice.
+        // (Only skip when we're using the meal card layout.)
+        if(useMealCard && !subcat && currentMeal && currentMeal.mainItem === it) return;
         count++;
         const a=it.a||[];
-        const tags=a.length?`<span class="al-tags">${a.map(x=>ABBR[x]||x).join("·")}</span>`:"";
-        const note=it.note?`<span class="item-note">${esc(it.note)}</span>`:'';
-        // Show a small meal-context line under sub-items so the
-        // user knows which meal each choice/side/add-on belongs
-        // to. Suppress it on the main item itself and on
-        // standalone "Grilled Biscuits" sections (where the
-        // section already provides the context).
-        const ctx = (isMain || !currentMeal) ? '' :
-          `<span class="item-ctx">from ${esc(currentMeal.name)}</span>`;
-        gItems+=`<div class="item${isMain?' main-item':''}" data-name="${esc(it.n.toLowerCase())}" data-a="${esc(a.join("|"))}" data-meal="${currentMeal?esc(currentMeal.name):''}">
-          <button class="item-row" aria-expanded="false">
-            <span class="item-name">${esc(it.n)}${note}${tags}${ctx}</span>
-            <span class="cal-tile">${it.d[0]}<small>CAL</small></span>
-          </button>${factsHTML(it)}</div>`;
+        if(useMealCard && (subcat || gr !== sec.groups[0])){
+          // Sub-items (Choices/Includes/Add-ons/Meats/Toppings)
+          // AND additional main items in a multi-main meal
+          // (rare, e.g. All-Star Special) render as compact
+          // pills. The meal-head at the top of the card
+          // already tells the user which meal these belong to.
+          gItems+=`<div class="item" data-name="${esc(it.n.toLowerCase())}" data-a="${esc(a.join("|"))}" data-meal="${currentMeal?esc(currentMeal.name):''}">
+            <button class="item-row meal-pill" aria-expanded="false" type="button">
+              <span class="meal-pill-name">${esc(it.n)}</span>
+              <span class="meal-pill-cal">${it.d[0]}</span>
+            </button>${factsHTML(it)}</div>`;
+        } else {
+          // Standalone section OR the meal's main item itself
+          // (rare path — main items are usually rendered as
+          // meal-head). Full-width row with cal tile.
+          const tags=a.length?`<span class="al-tags">${a.map(x=>ABBR[x]||x).join("·")}</span>`:"";
+          const note=it.note?`<span class="item-note">${esc(it.note)}</span>`:'';
+          gItems+=`<div class="item" data-name="${esc(it.n.toLowerCase())}" data-a="${esc(a.join("|"))}" data-meal="${currentMeal?esc(currentMeal.name):''}">
+            <button class="item-row" aria-expanded="false">
+              <span class="item-name">${esc(it.n)}${note}${tags}</span>
+              <span class="cal-tile">${it.d[0]}<small>CAL</small></span>
+            </button>${factsHTML(it)}</div>`;
+        }
       });
-      // For "Choices" groups with multiple instances in one meal,
-      // show a specific label (e.g. "Choose Your Bread") so the
-      // user knows what each set of choices is for.
-      const groupLabel = gr.h === "Choices" ? choicesLabel(gr.items) : gr.h;
-      itemsHTML+=closeMeal+openMeal+(groupLabel?`<div class="grp-h${subcat?' subcat':''}">${esc(groupLabel)}</div>`:'')+gItems;
+      itemsHTML += closeMeal + openMeal + gItems;
     });
     // Close the last meal if one is still open
     if(mealOpen) itemsHTML += "</div>";
