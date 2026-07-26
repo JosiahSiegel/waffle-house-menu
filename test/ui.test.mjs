@@ -903,3 +903,63 @@ test("menu: every Egg Breakfasts meal has exactly 2 'Choices' groups", () => {
   assert.equal(badMeals.length, 0,
     `Meals with wrong number of Choices groups: ${JSON.stringify(badMeals)}`);
 });
+
+test("menu: Hashbrowns & Toppings: Sautéed Onions is a Topping, not a main", () => {
+  // PDF page 4 has the Hashbrowns & Toppings nutrition table with
+  // 3 hashbrowns (Regular, Large, Triple) followed by 8 toppings
+  // (Sautéed Onions, Melted American Cheese, Hickory Smoked Ham,
+  // Grilled Tomatoes, Jalapeno Peppers, Grilled Mushrooms, Bert's
+  // Chili, Sausage Gravy). The Name block has the subcat labels
+  // "Hashbrowns:" then "Toppings" but they appear AFTER the
+  // nutrition data on the page, so the parser set cur_group to
+  // "Toppings" too late — Sautéed Onions ended up as a 4th
+  // standalone main. The data fix moves it to Toppings.
+  const menuJs = readFileSync("data/menu.js", "utf8");
+  const ctx = { window: {} };
+  vm.createContext(ctx);
+  vm.runInContext(menuJs, ctx);
+  const data = ctx.window.MENU_DATA;
+  const hash = data.sections.find(s => s.title === "Hashbrowns & Toppings");
+  const mains = hash.groups.filter(g => g.h === null).map(g => g.items[0].n);
+  assert.equal(mains.length, 3,
+    `Hashbrowns & Toppings must have exactly 3 mains, got ${mains.length}: ${mains.join(", ")}`);
+  assert.equal(mains[0], "Regular Hashbrowns");
+  assert.equal(mains[1], "Large Hashbrowns");
+  assert.equal(mains[2], "Triple Hashbrowns");
+  const toppings = hash.groups.find(g => g.h === "Toppings");
+  assert.ok(toppings, "Hashbrowns & Toppings must have a Toppings group");
+  assert.equal(toppings.items.length, 8, `Toppings must have 8 items, got ${toppings.items.length}`);
+  const names = toppings.items.map(i => i.n);
+  assert.ok(names.includes("Sautéed Onions"),
+    `Toppings must include Sautéed Onions, got: ${names.join(", ")}`);
+  const sautedMain = hash.groups.some(g => g.h === null && g.items.some(i => i.n === "Sautéed Onions"));
+  assert.equal(sautedMain, false, "Sautéed Onions must NOT be a standalone main");
+});
+
+test("menu: Grilled Biscuits: City Ham Biscuit (1) is a main, not an Add-on", () => {
+  // PDF page 4 has 9 biscuits in the nutrition table. The parser
+  // put "City Ham Biscuit (1)" in the first Add-ons group
+  // because the Name block has "Add-ons:" appearing after the
+  // 2nd main biscuit (Grilled Biscuit, Sausage Egg & Cheese
+  // Biscuit), so the parser set cur_group to "Add-ons" too
+  // early. The data fix moves City Ham Biscuit (1) to its own
+  // null-h main group.
+  const menuJs = readFileSync("data/menu.js", "utf8");
+  const ctx = { window: {} };
+  vm.createContext(ctx);
+  vm.runInContext(menuJs, ctx);
+  const data = ctx.window.MENU_DATA;
+  const biscuits = data.sections.find(s => s.title === "Grilled Biscuits");
+  const mains = biscuits.groups.filter(g => g.h === null).map(g => g.items[0].n);
+  assert.equal(mains.length, 9, `Grilled Biscuits must have 9 mains, got ${mains.length}`);
+  assert.ok(mains.includes("City Ham Biscuit (1)"),
+    `Grilled Biscuits must include 'City Ham Biscuit (1)' as a main, mains are: ${mains.join(", ")}`);
+  for (const g of biscuits.groups) {
+    if (g.h === "Add-ons") {
+      for (const it of g.items) {
+        assert.notEqual(it.n, "City Ham Biscuit (1)",
+          `'City Ham Biscuit (1)' must not be in Add-ons group`);
+      }
+    }
+  }
+});
