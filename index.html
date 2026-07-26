@@ -70,12 +70,17 @@
 [data-theme="dark"] .meal{background:#2D2620;border-color:#3A3328;border-left-color:var(--yellow)}
 [data-theme="dark"] .meal-head-name{color:var(--ink)}
 [data-theme="dark"] .meal-head:hover .meal-head-name{color:var(--yellow)}
+[data-theme="dark"] .meal-head-eyebrow{color:var(--black);background:var(--yellow)}
 [data-theme="dark"] .meal>.item.meal-main.open .meal-head-name{color:var(--yellow)}
 [data-theme="dark"] .meal-head{border-bottom-color:#3A3328}
+[data-theme="dark"] .meal-head::after{color:#B8A878}
 [data-theme="dark"] .meal-head-meta{color:#B8A878}
+[data-theme="dark"] .meal-head-meta .al-tags{background:rgba(241,196,15,0.12);border-color:rgba(241,196,15,0.3);color:var(--yellow)}
+[data-theme="dark"] .meal-head-cal{box-shadow:inset 0 -3px 0 rgba(0,0,0,0.35),0 1px 0 rgba(0,0,0,0.2)}
 [data-theme="dark"] .meal>.grp-h{color:#B8A878}
-[data-theme="dark"] .meal-pill{background:#26201A;border-color:#3A3328;color:var(--ink)}
-[data-theme="dark"] .meal-pill:hover{background:#3A3328;border-color:var(--yellow)}
+[data-theme="dark"] .meal>.grp-h.includes::before{background:var(--yellow)}
+[data-theme="dark"] .meal-pill{background:#26201A;border-color:#3A3328;color:var(--ink);box-shadow:0 1px 0 rgba(0,0,0,0.15)}
+[data-theme="dark"] .meal-pill:hover{background:#352D24;border-color:var(--yellow);box-shadow:0 1px 3px rgba(0,0,0,0.3)}
 [data-theme="dark"] .meal-pill-cal{background:rgba(241,196,15,0.15);color:var(--yellow)}
 [data-theme="dark"] .meal>.item.open:not(.meal-main) .meal-pill{background:#2D2620;border-color:var(--yellow);box-shadow:inset 0 0 0 1.5px var(--yellow)}
 [data-theme="dark"] .meal>.item.open:not(.meal-main) .meal-pill-cal{background:var(--yellow);color:var(--black)}
@@ -305,14 +310,18 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   background:linear-gradient(180deg,#FFFCF1 0%,#FFFAE6 100%);
   border:1.5px solid var(--line);
   border-left:4px solid var(--yellow);
-  border-radius:8px;
+  border-radius:10px;
   padding:10px 12px 12px;
-  margin:8px 0 12px;
-  box-shadow:0 1px 0 rgba(0,0,0,0.02);
+  margin:8px 0 14px;
+  box-shadow:0 1px 2px rgba(107,64,19,0.06);
   display:flex;
   flex-wrap:wrap;
   align-items:flex-start;
-  gap:6px 8px;
+  gap:5px 8px;
+  transition:box-shadow .15s,border-color .15s;
+}
+.meal:hover{
+  box-shadow:0 2px 6px rgba(107,64,19,0.10);
 }
 .meal:first-child{margin-top:4px}
 .meal:last-child{margin-bottom:4px}
@@ -335,17 +344,30 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 /* Pills (sub-items): 2-col on narrow screens,
    3-col on wider. */
 .meal>.item:not(.meal-main):not(.open){
-  flex:1 1 calc(50% - 4px);
+  flex:0 1 calc(50% - 4px);
   min-width:140px;
   max-width:calc(50% - 4px);
   display:flex;
   flex-direction:column;
   border-top:0;
 }
+/* The last pill in a row of 2 (i.e., when there's an
+   odd number of items and the 2nd column is empty)
+   shrinks to its content size instead of stretching
+   to fill 50%. This avoids the "lone pill in an empty
+   column" look that wastes horizontal space. */
+.meal>.item:not(.meal-main):not(.open):last-child:nth-child(odd){
+  flex-grow:0;
+  max-width:calc(50% - 4px);
+}
 @media (min-width:560px){
   .meal>.item:not(.meal-main):not(.open){
     flex-basis:calc(33.333% - 6px);
     max-width:calc(33.333% - 6px)
+  }
+  .meal>.item:not(.meal-main):not(.open):last-child:nth-child(odd),
+  .meal>.item:not(.meal-main):not(.open):nth-last-child(2):nth-child(odd){
+    flex-grow:0;
   }
 }
 /* Meal header: meal name on the left, big yellow cal
@@ -356,7 +378,7 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   display:flex;
   align-items:flex-start;
   gap:10px;
-  padding:2px 0 8px;
+  padding:4px 2px 8px;
   border-bottom:1.5px dashed var(--line);
   margin-bottom:4px;
   background:none;
@@ -369,51 +391,100 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   color:inherit;
   width:100%;
   -webkit-tap-highlight-color:transparent;
+  position:relative;
+  transition:background .12s;
+  border-radius:4px;
+}
+.meal-head::after{
+  /* Subtle "click for more" hint in the top-right of
+     the meal head. Only shows on hover/focus so it
+     doesn't compete with the meal name at rest. */
+  content:"▾";
+  position:absolute;
+  top:6px;
+  right:-2px;
+  font-size:10px;
+  color:var(--brown);
+  opacity:0;
+  transition:opacity .15s;
+}
+.meal-head:hover::after,
+.meal-head:focus-visible::after{
+  opacity:.6;
 }
 .meal-head:hover .meal-head-name{color:var(--brown)}
 .meal-head:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
 .meal-head-info{flex:1;min-width:0}
+.meal-head-eyebrow{
+  display:inline-block;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:8.5px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--brown);
+  background:var(--yellow);
+  padding:1.5px 6px 2px;
+  border-radius:3px;
+  margin-bottom:4px;
+  line-height:1.1;
+}
 .meal-head-name{
   display:block;
   font-family:Anton,sans-serif;
-  font-size:18px;
-  letter-spacing:.03em;
+  font-size:20px;
+  letter-spacing:.035em;
   text-transform:uppercase;
   color:var(--black);
-  line-height:1.15;
+  line-height:1.1;
   word-break:break-word;
 }
 .meal-head-meta{
   display:flex;
   flex-wrap:wrap;
-  gap:6px;
-  margin-top:3px;
+  gap:5px;
+  margin-top:5px;
   font-family:"IBM Plex Mono",monospace;
-  font-size:10.5px;
+  font-size:10px;
   color:var(--brown);
   letter-spacing:.04em;
 }
-.meal-head-meta .al-tags{margin-top:0;display:inline-block;margin-right:6px}
+.meal-head-meta .al-tags{
+  display:inline-block;
+  margin:0;
+  padding:2px 7px;
+  background:rgba(107,64,19,0.08);
+  border:1px solid rgba(107,64,19,0.15);
+  border-radius:99px;
+  font-size:9.5px;
+  letter-spacing:.08em;
+  color:var(--brown);
+  font-weight:700;
+}
 .meal-head-cal{
   font-family:"IBM Plex Mono",monospace;
   font-weight:700;
-  font-size:18px;
+  font-size:22px;
   background:var(--yellow);
   color:var(--brown);
-  border-radius:6px;
-  min-width:58px;
+  border-radius:8px;
+  min-width:64px;
   text-align:center;
-  padding:5px 8px 3px;
-  box-shadow:inset 0 -2px 0 rgba(0,0,0,0.18);
+  padding:3px 8px 2px;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.04);
   align-self:flex-start;
   flex-shrink:0;
+  position:relative;
+  line-height:1.05;
 }
 .meal-head-cal small{
   display:block;
   font-size:8px;
-  font-weight:400;
-  letter-spacing:.1em;
+  font-weight:600;
+  letter-spacing:.12em;
   margin-top:1px;
+  color:var(--brown);
+  opacity:.75;
 }
 /* When the meal-main item is open, show its facts
    panel and tint the header to signal the open state. */
@@ -426,10 +497,47 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 /* grp-h inside a meal card: small uppercase label,
    full-width row above its pills. */
 .meal>.grp-h{
-  padding:4px 0 2px;
-  font-size:10px;
-  letter-spacing:.12em;
+  padding:5px 0 3px;
+  font-size:9.5px;
+  letter-spacing:.14em;
   border-bottom:0;
+  color:var(--brown);
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.meal>.grp-h::before{
+  /* Small bullet/dot to the left of each grp-h label
+     for visual rhythm and to make the section divider
+     feel intentional rather than accidental. */
+  content:"";
+  display:inline-block;
+  width:4px;
+  height:4px;
+  background:var(--yellow);
+  border-radius:50%;
+  flex-shrink:0;
+}
+/* "Includes" subcat groups (Hashbrowns Bowls, All-Star
+   Special) have a different look than "Choices" groups:
+   the bullet is filled (signals "all required"), the
+   pills get a slight tint, and the label includes a
+   "+" prefix to reinforce the recipe/additive nature. */
+.meal>.grp-h.includes::before{
+  background:var(--brown);
+}
+.meal>.grp-h.includes::after{
+  /* "+" after the label signals "all items are added
+     to make this meal" vs "pick one from these" for
+     the yellow-bulleted "Choices" sections. */
+  content:"· all added";
+  font-size:8.5px;
+  letter-spacing:.08em;
+  color:var(--brown);
+  opacity:.55;
+  font-weight:500;
+  text-transform:none;
 }
 /* Single pill: compact card with item name on the left
    and a small cal badge on the right. Touch-friendly
@@ -442,8 +550,8 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   gap:6px;
   background:#fff;
   border:1px solid var(--line);
-  border-radius:6px;
-  padding:7px 9px;
+  border-radius:7px;
+  padding:8px 10px;
   font:inherit;
   color:inherit;
   cursor:pointer;
@@ -451,33 +559,59 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   min-width:0;
   width:100%;
   -webkit-tap-highlight-color:transparent;
-  transition:background .12s,border-color .12s;
+  transition:background .12s,border-color .12s,box-shadow .12s,transform .08s;
+  position:relative;
+  box-shadow:0 1px 0 rgba(0,0,0,0.02);
 }
 .meal-pill:hover{
-  background:var(--yellow);
+  background:#FFFCF1;
   border-color:var(--brown);
+  box-shadow:0 1px 3px rgba(107,64,19,0.12);
+}
+.meal-pill:active{
+  transform:translateY(0.5px);
 }
 .meal-pill:focus-visible{
   outline:2px solid var(--brown);
-  outline-offset:1px;
+  outline-offset:2px;
+}
+.meal-pill::after{
+  /* Tiny ▾ on the right of each pill, only visible on
+     hover/focus, signals the pill is clickable and will
+     expand to show full nutrition facts. */
+  content:"▾";
+  position:absolute;
+  right:6px;
+  bottom:2px;
+  font-size:8px;
+  color:var(--brown);
+  opacity:0;
+  transition:opacity .15s;
+  pointer-events:none;
+}
+.meal-pill:hover::after,
+.meal-pill:focus-visible::after{
+  opacity:.4;
 }
 .meal-pill-name{
   flex:1;
   min-width:0;
   font-size:12.5px;
   font-weight:600;
-  line-height:1.2;
+  line-height:1.25;
   word-break:break-word;
 }
 .meal-pill-cal{
   font-family:"IBM Plex Mono",monospace;
   font-weight:700;
-  font-size:11.5px;
+  font-size:11px;
   color:var(--brown);
-  background:rgba(241,196,15,0.25);
-  padding:1px 5px;
+  background:rgba(241,196,15,0.22);
+  padding:2px 6px;
   border-radius:4px;
   flex-shrink:0;
+  letter-spacing:.02em;
+  line-height:1.1;
 }
 .meal>.item.open:not(.meal-main) .meal-pill{
   background:#FFFCF1;
@@ -961,6 +1095,7 @@ function render(data){
             <div class="item meal-main" data-name="${esc(name.toLowerCase())}" data-a="${esc(a.join("|"))}" data-meal="${esc(name)}">
               <button class="item-row meal-head" aria-expanded="false" type="button">
                 <span class="meal-head-info">
+                  <span class="meal-head-eyebrow">meal</span>
                   <span class="meal-head-name">${esc(name)}</span>
                   ${meta}
                 </span>
@@ -985,7 +1120,13 @@ function render(data){
       // label is just noise.
       const groupLabel = gr.h === "Choices" ? choicesLabel(gr.items) : gr.h;
       if(groupLabel && (subcat || !useMealCard)){
-        gItems += `<div class="grp-h${subcat?' subcat':''}">${esc(groupLabel)}</div>`;
+        // "Includes" subcat groups get a distinct class so
+        // CSS can style them differently (filled bullet,
+        // "all added" suffix). These are the recipe-style
+        // groups where every item contributes to the meal
+        // total, not "pick one" choices.
+        const inclClass = gr.h === "Includes" ? " includes" : "";
+        gItems += `<div class="grp-h${subcat?' subcat':''}${inclClass}">${esc(groupLabel)}</div>`;
       }
       gr.items.forEach(it=>{
         // The main item is already rendered as the meal-head
