@@ -117,16 +117,75 @@ export function computeVisibility(annotatedSections, avoid, q, opts) {
   const qLower = (q || "").toLowerCase();
   const invert = !!(opts && opts.invert);
   return annotatedSections.map((sec) => {
-    const flatItems = sec.flatItems.map((it) => {
-      // Meal-level gate: if the item is in a meal whose mealA
-      // overlaps the avoid set, hide the item. Applies to main
-      // and ALL subcat items in the meal.
-      if (!invert && avoidSet.size > 0 && it.inMeal && it.mealA.some(a => avoidSet.has(a))) {
-        return { ...it, visible: false };
+    // Meal-level gate only applies to sections with subcats.
+    // For standalone sections (Sandwiches, Pies, Beverages, etc.)
+    // every item is its own "meal" and the per-item check is
+    // sufficient. Grouping by mealA would incorrectly merge
+    // unrelated items that happen to share allergens (e.g. all
+    // 17 allergen-free Beverages items have mealA=[] and would
+    // be treated as one meal).
+    const useMealGate = sec.hasSubcat && avoidSet.size > 0;
+
+    // Pre-compute which meals are "active" (should be shown as a
+    // unit). A meal is active when:
+    //   - Normal mode: no avoided allergen is in the meal's required
+    //     components (mealA). If the meal is safe, show it whole.
+    //   - Invert mode: at least one item in the meal has an avoided
+    //     allergen. The user is looking for items with the allergen,
+    //     so a meal that contains one is worth showing whole.
+    // Items in an inactive meal are hidden entirely; items in an
+    // active meal all show (the meal is a unit).
+    const inactiveMeals = new Set();
+    if (useMealGate) {
+      // Walk flatItems in order. A "meal" is a contiguous run of
+      // items that share the same mealA (the main item starts a
+      // new meal; subcat items belong to the current meal). This
+      // is more precise than grouping by mealA because two meals
+      // can share the same mealA (e.g. two allergen-free Kids
+      // Meals have the same mealA=[] but are separate meals).
+      let i = 0;
+      while (i < sec.flatItems.length) {
+        const start = i;
+        const mealA = sec.flatItems[i].mealA;
+        // Advance until we hit a different meal or end of section.
+        while (i < sec.flatItems.length && sec.flatItems[i].mealA === mealA) {
+          i++;
+        }
+        // The items [start, i) belong to one meal.
+        const mealItems = sec.flatItems.slice(start, i);
+        const mealHasAllergen = mealItems.some(it => it.a.some(a => avoidSet.has(a)));
+        if (invert) {
+          if (!mealHasAllergen) inactiveMeals.add(mealA.join("\0") + "@" + start);
+        } else {
+          if (mealA.some(a => avoidSet.has(a))) inactiveMeals.add(mealA.join("\0") + "@" + start);
+        }
       }
-      const okA = invert
-        ? it.a.some(a => avoidSet.has(a))
-        : !it.a.some(a => avoidSet.has(a));
+    }
+
+    const flatItems = sec.flatItems.map((it, idx) => {
+      if (useMealGate) {
+        // Find which meal this item belongs to. Walk backward
+        // while the current item is a subcat item (subcat !== null);
+        // stop when we reach the main item (subcat === null), which
+        // is the meal start.
+        let mealStart = idx;
+        while (mealStart > 0 && sec.flatItems[mealStart].subcat !== null) {
+          mealStart--;
+        }
+        const mealA = sec.flatItems[mealStart].mealA;
+        const mealKey = mealA.join("\0") + "@" + mealStart;
+        if (inactiveMeals.has(mealKey)) return { ...it, visible: false };
+        // In invert mode, when a meal is active (contains the
+        // allergen), show ALL items in the meal — the user is
+        // looking for the meal, not individual items. The per-item
+        // check is skipped.
+        if (invert) {
+          const okQ = !qLower || it.name.toLowerCase().includes(qLower);
+          return { ...it, visible: okQ };
+        }
+      }
+      // Normal mode: apply per-item allergen check + search query.
+      const okA = !it.a.some(a => avoidSet.has(a));
       const okQ = !qLower || it.name.toLowerCase().includes(qLower);
       return { ...it, visible: okA && okQ };
     });
