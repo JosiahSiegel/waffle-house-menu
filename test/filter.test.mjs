@@ -599,3 +599,61 @@ test("Texas Melts: no filter shows all 4 items (Add Bacon visible)", () => {
   assert.equal(vis.length, 4, "all 4 items visible with no filter");
   assert.ok(vis.includes("Add Bacon (2 slices)"));
 });
+
+// ---------------------------------------------------------------------------
+// Section-level add-on rule: in sections with the "mains + add-ons"
+// PDF pattern (allergen items in a contiguous block at the start,
+// allergen-free items at the end, no allergen-free items before
+// the allergens), allergen-free items at the end are treated as
+// section-level add-ons. They're hidden when all mains in the
+// section are hidden.
+//
+// This rule makes "Add Bacon" disappear in Texas Melts and
+// "Angus Patty" / "Bun" / "Add Bacon" disappear in Angus Burgers
+// when the user filters an allergen the mains contain. Beverages
+// is NOT affected because its allergen-free items are interleaved
+// (before AND after the milks), not just at the end.
+// ---------------------------------------------------------------------------
+
+test("Texas Melts + Milk: Add Bacon is hidden (section-level add-on rule)", () => {
+  const vis = visibleBySection(annotated, ["Milk"], "")["Texas Melts"];
+  assert.equal(vis.length, 0,
+    "Texas Melts + Milk: all 4 items hidden, got " + vis.length);
+  assert.ok(!vis.includes("Add Bacon (2 slices)"));
+});
+
+test("Angus Burgers + Milk: Angus Patty, Bun, Add Bacon all hidden", () => {
+  const vis = visibleBySection(annotated, ["Milk"], "")["Angus Beef Hamburgers"];
+  assert.equal(vis.length, 0,
+    "Angus Burgers + Milk: all 6 items hidden, got " + vis.length);
+  assert.ok(!vis.includes("Angus Patty"));
+  assert.ok(!vis.includes("Bun"));
+  assert.ok(!vis.includes("Add Bacon (2 slices)"));
+});
+
+test("Beverages + Milk: allergen-free items stay visible (NOT add-ons, they're interleaved)", () => {
+  // Beverages has 4 milks + 17 allergen-free items, but the
+  // allergen-free items are at the START (g0-g15) and END (g20),
+  // not just at the end. So the section-level add-on rule
+  // doesn't apply, and the allergen-free items stay visible.
+  const vis = visibleBySection(annotated, ["Milk"], "")["Beverages"];
+  assert.equal(vis.length, 17, "17 allergen-free Beverages items visible after filtering Milk");
+  assert.ok(vis.includes("Coffee"));
+  assert.ok(vis.includes("Hot Tea"));
+  assert.ok(!vis.includes("Regular Milk"));
+  assert.ok(!vis.includes("Large Milk"));
+});
+
+test("Texas Melts: no filter shows all 4 items", () => {
+  const vis = visibleBySection(annotated, [], "")["Texas Melts"];
+  assert.equal(vis.length, 4);
+  assert.ok(vis.includes("Add Bacon (2 slices)"));
+});
+
+test("Angus Burgers: no filter shows all 6 items", () => {
+  const vis = visibleBySection(annotated, [], "")["Angus Beef Hamburgers"];
+  assert.equal(vis.length, 6);
+  assert.ok(vis.includes("Angus Patty"));
+  assert.ok(vis.includes("Bun"));
+  assert.ok(vis.includes("Add Bacon (2 slices)"));
+});
