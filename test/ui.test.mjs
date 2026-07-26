@@ -1125,3 +1125,50 @@ test("ui: allergen chips wrap (no horizontal-scroll overflow trap)", () => {
     ".chips must not force horizontal scroll for chip overflow",
   );
 });
+
+// ---------------------------------------------------------------------------
+// Banner redesign: the cross-contamination notice used to be a
+// large yellow-cream pill that took ~25% of the viewport and
+// covered whatever section the user had scrolled to. Now it's a
+// single-line bar with an inline × dismiss button. (PR #57
+// polish pass.)
+// ---------------------------------------------------------------------------
+
+test("ui: banner is a flex row with a close button (compact, dismissible)", () => {
+  assert.match(
+    indexHtml,
+    /\.banner\{[^}]*display:flex[^}]*align-items:center/u,
+    ".banner must use display:flex with align-items:center (compact bar layout)",
+  );
+  assert.match(
+    indexHtml,
+    /\.banner-dismiss/,
+    ".banner must include a .banner-dismiss button (×)",
+  );
+  assert.match(
+    indexHtml,
+    /aria-label="Dismiss notice"/,
+    "dismiss button needs an accessible label for screen readers",
+  );
+});
+
+test("ui: banner dismissal uses sessionStorage (per-tab, re-arms on filter clear)", () => {
+  assert.match(
+    indexHtml,
+    /sessionStorage\.getItem\(['"]bannerDismissed['"]\)/,
+    "banner must check sessionStorage for prior dismiss",
+  );
+  assert.match(
+    indexHtml,
+    /sessionStorage\.removeItem\(['"]bannerDismissed['"]\)/,
+    "banner must re-arm (remove flag) when all filters are cleared",
+  );
+});
+
+test("ui: banner has dark-mode color override", () => {
+  assert.match(
+    indexHtml,
+    /\[data-theme="dark"\]\s+\.banner\s*\{[^}]*background:/u,
+    "banner must have a [data-theme=\"dark\"] background override (cream doesn't fit dark mode)",
+  );
+});

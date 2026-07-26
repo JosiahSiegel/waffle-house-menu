@@ -263,13 +263,24 @@ details.sec{scroll-margin-top:var(--jump-offset)}
 .banner{
   display:none;
   position:fixed;left:12px;right:12px;bottom:12px;z-index:50;
-  margin:0;padding:10px 14px;
-  background:#FDF0E4;border:1.5px solid var(--brown);border-radius:10px;
+  margin:0;padding:8px 12px;
+  background:#FDF0E4;border:1.5px solid var(--brown);border-radius:8px;
   box-shadow:0 6px 20px rgba(0,0,0,.18);
-  font-size:13px;color:#6B4013;
+  font-size:12px;color:#6B4013;
   text-align:center;
+  display:flex;align-items:center;gap:10px;
 }
-.banner.show{display:block}
+.banner.show{display:flex}
+.banner-main{flex:1;text-align:left;line-height:1.4}
+.banner-dismiss{
+  flex:0 0 auto;background:none;border:none;cursor:pointer;
+  font-size:16px;line-height:1;color:var(--brown);
+  padding:0 4px;border-radius:4px;
+}
+.banner-dismiss:hover{background:rgba(0,0,0,.06)}
+.banner-dismiss:focus-visible{outline:2px solid var(--yellow);outline-offset:1px}
+[data-theme="dark"] .banner{background:#2A2218;border-color:#5A3F22;color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.4)}
+[data-theme="dark"] .banner-dismiss{color:var(--ink)}
 
 /* ---------- Sections ---------- */
 main{max-width:640px;margin:0 auto;padding:8px 14px 40px}
@@ -1306,13 +1317,33 @@ function render(data){
 }
 
 function updateBanner(){
-  if(!avoid.size){bannerEl.classList.remove('show');return}
+  if(!avoid.size){
+    bannerEl.classList.remove('show');
+    bannerEl.innerHTML='';
+    // Re-arm the dismiss flag — next time filters are set the
+    // banner reappears so the user gets the disclaimer again.
+    sessionStorage.removeItem('bannerDismissed');
+    return;
+  }
+  // Honor a previous dismiss: the user has acknowledged the
+  // disclaimer for this session. Re-appears on a new session
+  // (sessionStorage is per-tab) or after a hard reload.
+  if(sessionStorage.getItem('bannerDismissed')==='1'){
+    bannerEl.classList.remove('show');return;
+  }
   const list=[...avoid].join(", ");
   const verb = invert ? "Showing only items that list" : "Hiding items that list";
   const note = invert ? ' <em>(invert on — showing only matches)</em>' : '';
-  bannerEl.innerHTML=`<strong>${verb}: ${esc(list)}.</strong>${note} Based on Waffle House's own allergen column — everything shares a grill, so cross-contact is likely. Fine for preference, not safe for severe allergies or celiac disease.`;
+  bannerEl.innerHTML=`<span class="banner-main"><strong>${verb}: ${esc(list)}.</strong>${note} Everything shares a grill — cross-contact is likely. Not safe for severe allergies or celiac disease.</span>`+
+    `<button type="button" class="banner-dismiss" aria-label="Dismiss notice" title="Dismiss">×</button>`;
   bannerEl.classList.add('show');
 }
+bannerEl.addEventListener('click',e=>{
+  if(e.target.classList.contains('banner-dismiss')){
+    sessionStorage.setItem('bannerDismissed','1');
+    bannerEl.classList.remove('show');
+  }
+});
 
 // Cached per-render DOM references. The page renders 19 sections
 // + 381 items, and applyFilters() runs on every keystroke + every
