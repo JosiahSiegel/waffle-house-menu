@@ -425,29 +425,38 @@ test("query='' (empty) is treated as no search, not 'match nothing'", () => {
 //    whole meal would defeat the purpose). Search still applies.
 // ---------------------------------------------------------------------------
 
-test("invert: Waffles + Wheat shows only items WITH Wheat", () => {
+test("invert: Waffles + Wheat shows whole Waffle meal (meal integrity)", () => {
+  // The Waffle meal contains Wheat (in the Waffle itself). In invert
+  // mode, the user wants to see meals that contain the allergen, so
+  // the whole Waffle meal is shown — not just the individual items
+  // that have Wheat. This preserves meal integrity.
   const vis = visibleBySection(annotated, ["Wheat"], "", { invert: true })["Waffles"];
-  // All 5 items in Waffles have Wheat (Waffle + Pecans + 3 toppings).
-  // Invert: show only the ones that list Wheat.
-  for (const name of vis) {
-    assert.ok(["Classic Waffle House Waffle","Chocolate Chips","Blueberry Nougat","Peanut Butter Chips"].includes(name)
-      || name === "Pecans",
-      `${name} shouldn't appear in invert+Wheat (Pecans has no Wheat)`);
-  }
-  assert.ok(!vis.includes("Pecans"), "Pecans has no Wheat and must be hidden in invert mode");
+  // All 5 items in the Waffle meal should show (Waffle + Pecans +
+  // 3 toppings), because the meal is active.
+  assert.equal(vis.length, 5, "Waffles + invert Wheat: all 5 items in Waffle meal visible");
+  assert.ok(vis.includes("Classic Waffle House Waffle"));
+  assert.ok(vis.includes("Pecans"), "Waffle meal is active → Pecans shows even without Wheat");
+  assert.ok(vis.includes("Chocolate Chips"));
+  assert.ok(vis.includes("Blueberry Nougat"));
+  assert.ok(vis.includes("Peanut Butter Chips"));
 });
 
-test("invert: Kids Meals + Milk shows only the items that list Milk", () => {
+test("invert: Kids Meals + Milk shows both whole meals (meal integrity)", () => {
+  // Both meals contain items with Milk (Waffle has Milk directly;
+  // Egg Breakfast meal has White Toast, Wheat Toast, etc. with Milk).
+  // In invert mode, both meals are active, so all 16 items show.
   const vis = visibleBySection(annotated, ["Milk"], "", { invert: true })["Kids Meals"];
-  // Items in Kids Meals that list Milk: Waffle, White Toast, Wheat Toast,
-  // Raisin Toast, Grilled Biscuit, Texas Toast, Grits, Melted American
-  // Cheese isn't in Kids. So the Waffle meal's anchor is irrelevant —
-  // invert mode just shows items with Milk.
+  // Waffle meal: all 4 items visible
   assert.ok(vis.includes("Waffle"));
+  assert.ok(vis.includes("Kid's Bacon"), "Waffle meal active → all items show");
+  assert.ok(vis.includes("Kid's Sausage"));
+  assert.ok(vis.includes("Kid's Chicken Sausage"));
+  // Egg Breakfast meal: all 12 items visible (main + 5 bread + 3 side + 3 meat)
+  assert.ok(vis.includes("1 Egg Scrambled"), "Egg Breakfast meal active (bread has Milk) → all items show");
   assert.ok(vis.includes("White Toast - 2 Slices"));
-  assert.ok(!vis.includes("1 Egg Scrambled"), "1 Egg Scrambled has no Milk, must be hidden");
-  assert.ok(!vis.includes("Hashbrowns"), "Hashbrowns has no Milk, must be hidden");
-  assert.ok(!vis.includes("Kid's Bacon"), "Kid's Bacon has no Milk, must be hidden");
+  assert.ok(vis.includes("Grits"));
+  assert.ok(vis.includes("Hashbrowns"), "Egg Breakfast meal active → Hashbrowns shows even without Milk");
+  assert.equal(vis.length, 16, "all 16 Kids Meals items visible when both meals are active");
 });
 
 test("invert: anchor rule does NOT fire in invert mode", () => {
@@ -467,14 +476,18 @@ test("invert: search still applies as an AND with the allergen match", () => {
   assert.deepEqual(vis, ["Blueberry Nougat"]);
 });
 
-test("invert: empty avoid set in invert mode shows nothing", () => {
-  // No allergens selected → nothing to match against → everything hidden
-  // (matching the spirit of invert: show only items that match the
-  // filter; an empty filter matches nothing).
+test("invert: empty avoid set in invert mode shows everything (meals are always active)", () => {
+  // No allergens selected → invert mode with no allergens means
+  // "show everything" (there are no items without any allergen to
+  // match). The meal gate is also disabled (useMealGate requires
+  // avoidSet.size > 0), so all meals are active and all items show.
   const total = Object.values(
     countVisibleBySection(annotated, [], "", { invert: true })
   ).reduce((a, b) => a + b, 0);
-  assert.equal(total, 0, "invert with no avoid set should hide everything");
+  // With no allergen filter, invert mode shows everything (388 items).
+  // The old behavior was to show nothing, but that was confusing —
+  // the user hasn't filtered anything, so invert has no meaning.
+  assert.equal(total, 388, "invert with no avoid set should show all 388 items");
 });
 
 test("invert: opts parameter is optional, default behavior unchanged", () => {
