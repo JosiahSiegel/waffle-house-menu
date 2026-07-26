@@ -77,7 +77,8 @@
 [data-theme="dark"] .meal-head-meta{color:#B8A878}
 [data-theme="dark"] .meal-head-meta .al-tags{background:rgba(241,196,15,0.12);border-color:rgba(241,196,15,0.3);color:var(--yellow)}
 [data-theme="dark"] .meal-head-cal{box-shadow:inset 0 -3px 0 rgba(0,0,0,0.35),0 1px 0 rgba(0,0,0,0.2)}
-[data-theme="dark"] .meal>.grp-h{color:#B8A878}
+[data-theme="dark"] .meal>.grp-h{color:var(--ink);border-bottom-color:#3A3328}
+[data-theme="dark"] .meal>.grp-h::before{background:var(--yellow);box-shadow:0 0 0 1.5px var(--brown)}
 [data-theme="dark"] .meal>.grp-h.includes::before{background:var(--yellow)}
 [data-theme="dark"] .meal-pill{background:#26201A;border-color:#3A3328;color:var(--ink);box-shadow:0 1px 0 rgba(0,0,0,0.15)}
 [data-theme="dark"] .meal-pill:hover{background:#352D24;border-color:var(--yellow);box-shadow:0 1px 3px rgba(0,0,0,0.3)}
@@ -457,9 +458,13 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   border:1px solid rgba(107,64,19,0.15);
   border-radius:99px;
   font-size:9.5px;
-  letter-spacing:.08em;
+  letter-spacing:.06em;
   color:var(--brown);
   font-weight:700;
+  white-space:nowrap;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .meal-head-cal{
   font-family:"IBM Plex Mono",monospace;
@@ -470,21 +475,30 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   border-radius:8px;
   min-width:64px;
   text-align:center;
-  padding:3px 8px 2px;
-  box-shadow:inset 0 -3px 0 rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.04);
+  padding:4px 8px 4px;
+  /* The inset shadow was making the "CAL" label hard to
+     read because it sat in the darker band. Moved the
+     shadow to the top edge so the bottom (where "CAL"
+     sits) stays bright and readable. */
+  box-shadow:inset 0 3px 0 rgba(0,0,0,0.08),0 1px 0 rgba(0,0,0,0.04);
   align-self:flex-start;
   flex-shrink:0;
   position:relative;
   line-height:1.05;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0;
 }
 .meal-head-cal small{
   display:block;
-  font-size:8px;
-  font-weight:600;
-  letter-spacing:.12em;
-  margin-top:1px;
+  font-size:8.5px;
+  font-weight:700;
+  letter-spacing:.14em;
+  margin-top:2px;
   color:var(--brown);
-  opacity:.75;
+  opacity:.85;
+  line-height:1;
 }
 /* When the meal-main item is open, show its facts
    panel and tint the header to signal the open state. */
@@ -495,17 +509,24 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   color:var(--brown);
 }
 /* grp-h inside a meal card: small uppercase label,
-   full-width row above its pills. */
+   full-width row above its pills. The label is the
+   user's signal that "these are your bread choices"
+   or "these are your side choices" — it must be
+   clearly visible. Bumped to 11px with bolder weight
+   and a subtle bottom border so it reads as a proper
+   section divider within the card. */
 .meal>.grp-h{
-  padding:5px 0 3px;
-  font-size:9.5px;
-  letter-spacing:.14em;
-  border-bottom:0;
-  color:var(--brown);
+  padding:6px 0 4px;
+  font-size:11px;
+  letter-spacing:.12em;
+  border-bottom:1px dotted var(--line);
+  margin-bottom:2px;
+  color:var(--black);
   font-weight:700;
   display:flex;
   align-items:center;
-  gap:6px;
+  gap:7px;
+  text-transform:uppercase;
 }
 .meal>.grp-h::before{
   /* Small bullet/dot to the left of each grp-h label
@@ -513,11 +534,12 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
      feel intentional rather than accidental. */
   content:"";
   display:inline-block;
-  width:4px;
-  height:4px;
+  width:5px;
+  height:5px;
   background:var(--yellow);
   border-radius:50%;
   flex-shrink:0;
+  box-shadow:0 0 0 1.5px var(--brown);
 }
 /* "Includes" subcat groups (Hashbrowns Bowls, All-Star
    Special) have a different look than "Choices" groups:
