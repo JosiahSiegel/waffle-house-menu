@@ -1089,3 +1089,20 @@ test("filter: .h class actually hides meal-pill items (CSS specificity)", () => 
     "meal-pill CSS must exclude .h class — otherwise filter class is overridden by specificity",
   );
 });
+
+test("filter: empty meal wrapper is hidden (no orphan cards when all items are filtered)", () => {
+  // Regression: when a filter hides every .item inside a .meal
+  // wrapper (e.g. Milk in named omelets — the main has no Milk
+  // but bread choices all do, so the meal gate hides everything),
+  // the .meal wrapper used to stay on screen as an empty card.
+  // User screenshot showed 4 empty cards above the Build Your Own
+  // omelet. The fix: applyFilters() now also checks each .meal
+  // wrapper and adds .h when no children are visible.
+  assert.match(
+    indexHtml,
+    /\.item\.h,\.grp-h\.h,details\.sec\.h,\.jumpnav\s+a\.h,\.meal\.h\{display:none\}/,
+    "CSS rule must include .meal.h{display:none} so empty meal wrappers actually hide",
+  );
+  // And the applyFilters function should iterate over sec._mealEls.
+  assert.match(indexHtml, /sec\._mealEls/, "applyFilters should cache and iterate over .meal wrappers");
+});
