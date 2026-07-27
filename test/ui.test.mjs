@@ -1172,3 +1172,39 @@ test("ui: banner has dark-mode color override", () => {
     "banner must have a [data-theme=\"dark\"] background override (cream doesn't fit dark mode)",
   );
 });
+
+// ---------------------------------------------------------------------------
+// Pin feature: each item gets a pin button. When clicked, the
+// item is added to a top-level "Pinned" section. Pins persist
+// via localStorage. The Pinned section respects active filters.
+// ---------------------------------------------------------------------------
+
+test("ui: pin button CSS class and data attribute exist", () => {
+  assert.match(indexHtml, /class="pin-btn"/, "CSS class .pin-btn must exist");
+  assert.match(indexHtml, /data-pin-name=/, "pin buttons must carry data-pin-name");
+});
+
+test("ui: Pinned section is hidden by default and shown when items are pinned", () => {
+  assert.match(indexHtml, /id="sec-pinned"/, "Pinned section must have id sec-pinned");
+  assert.match(
+    indexHtml,
+    /details#sec-pinned:not\(\.has-pinned\)\{display:none\}/,
+    "Pinned section must be display:none when .has-pinned is absent",
+  );
+});
+
+test("ui: pin state uses a versioned localStorage key", () => {
+  assert.match(indexHtml, /const PIN_KEY\s*=\s*['"]whm:pinned:v1['"]/);
+  assert.match(indexHtml, /localStorage\.getItem\(PIN_KEY\)/);
+  assert.match(indexHtml, /localStorage\.setItem\(PIN_KEY/);
+});
+
+test("ui: pin click handler stops propagation so .item-row doesn't also fire", () => {
+  assert.match(indexHtml, /e\.stopPropagation\(\)[\s\S]*?return;/);
+});
+
+test("ui: applyFilters handles #sec-pinned with a dedicated per-item branch", () => {
+  const afMatch = indexHtml.match(/function applyFilters\(\)\{[\s\S]*?\n\}/);
+  assert.ok(afMatch, "applyFilters function must exist");
+  assert.match(afMatch[0], /document\.getElementById\(['"]sec-pinned['"]\)/);
+});
