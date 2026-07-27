@@ -1397,6 +1397,62 @@ test("ui: buildPinnedSectionHTML finds meals (groups[].h), not just standalone i
   );
 });
 
+test("ui: renderPinnedSection preserves the section's open state across re-renders", () => {
+  // REGRESSION: When the user un-pinned an item, renderPinnedSection()
+  // did `existing.replaceWith(fresh)`, which dropped the `open`
+  // attribute from the <details> element. The section would collapse
+  // after every unpin — annoying when unpinning multiple items in a
+  // row because the user had to re-expand after every click. Fix:
+  // capture `existing.hasAttribute('open')` BEFORE replaceWith,
+  // then set it on the new element AFTER replaceWith. The captured
+  // state must be read from the old element, not the new one (the
+  // new one has no open attribute yet, so reading from it would
+  // always say "closed").
+  assert.match(
+    indexHtml,
+    /const\s+wasOpen\s*=\s*existing\s*\?\s*existing\.hasAttribute\(['"]open['"]\)\s*:\s*false/u,
+    "renderPinnedSection must capture wasOpen from the existing element",
+  );
+  assert.match(
+    indexHtml,
+    /if\s*\(\s*wasOpen\s*&&/u,
+    "renderPinnedSection must restore open state on the fresh element when wasOpen is true (the if-condition must reference wasOpen, not the old element directly)",
+  );
+  assert.match(
+    indexHtml,
+    /fresh\.setAttribute\(['"]open['"]/u,
+    "renderPinnedSection must setAttribute('open') on the fresh element",
+  );
+  // Critical: wasOpen must be read BEFORE replaceWith, not after.
+  // If the code reads from `fresh` (the new element) instead of
+  // `existing` (the old element), the captured value is always
+  // false (the new element has no open attribute yet), and the
+  // fix is silently broken.
+  // Critical: wasOpen must be read BEFORE replaceWith, not after.
+  // If the code reads from `fresh` (the new element) instead of
+  // `existing` (the old element), the captured value is always
+  // false (the new element has no open attribute yet), and the
+  // fix is silently broken. Use indexOf to assert the ORDER
+  // (wasOpen-before-replaceWith and replaceWith-before-setAttribute).
+  const fnMatch = indexHtml.match(/function\s+renderPinnedSection[\s\S]*?\n\}/u);
+  assert.ok(fnMatch, "renderPinnedSection function must be present");
+  const fnBody = fnMatch[0];
+  const idxWasOpen = fnBody.indexOf("wasOpen = existing ?");
+  const idxReplaceWith = fnBody.indexOf("replaceWith(fresh)");
+  const idxSetOpen = fnBody.indexOf("fresh.setAttribute('open'");
+  assert.ok(idxWasOpen !== -1, "renderPinnedSection: wasOpen must be captured from existing");
+  assert.ok(idxReplaceWith !== -1, "renderPinnedSection: replaceWith must be called");
+  assert.ok(idxSetOpen !== -1, "renderPinnedSection: fresh.setAttribute('open') must be called");
+  assert.ok(
+    idxWasOpen < idxReplaceWith,
+    `renderPinnedSection: wasOpen (idx ${idxWasOpen}) must be captured BEFORE replaceWith (idx ${idxReplaceWith}) — otherwise the captured value would be from the new element (no open attr) and the fix is silently broken`,
+  );
+  assert.ok(
+    idxReplaceWith < idxSetOpen,
+    `renderPinnedSection: replaceWith (idx ${idxReplaceWith}) must come BEFORE fresh.setAttribute('open') (idx ${idxSetOpen}) — restoring open on the new element is what actually keeps the section open after re-render`,
+  );
+});
+
 test("ui: pinned items show the section title as context (item-context element)", () => {
   // REGRESSION: Pinned items like \"2 Eggs - Scrambled\" had
   // no way to know which section they came from. The user
