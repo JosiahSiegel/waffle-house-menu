@@ -1241,14 +1241,12 @@ test("ui: pin button is absolutely positioned (doesn't push content)", () => {
   );
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*opacity:\s*\.7/u,
-    ".pin-btn default opacity must be .7 so it's clearly visible",
+    /\.pin-btn\{[^}]*opacity:\s*1/u,
+    ".pin-btn must be fully opaque (opacity:1) so it's clearly visible",
   );
 });
 
 test("ui: pin button is positioned at the RIGHT edge of the item (vertically centered)", () => {
-  // Rev 4: pin button is at the right edge of the item, vertically
-  // centered. The item-row gets right padding to make room.
   assert.match(
     indexHtml,
     /\.pin-btn\{[^}]*right:\s*6px/u,
@@ -1256,8 +1254,8 @@ test("ui: pin button is positioned at the RIGHT edge of the item (vertically cen
   );
   assert.match(
     indexHtml,
-    /\.item-row\{[^}]*padding:[^;]*36px/u,
-    ".item-row must have right padding (~36px) to make room for the pin button",
+    /\.item-row\{[^}]*padding:[^;]*52px/u,
+    ".item-row must have right padding (~52px) to make room for the 40px pin button",
   );
 });
 
@@ -1273,8 +1271,8 @@ test("ui: pin button uses an SVG pin icon (not text or emoji)", () => {
 });
 
 test("ui: pin button has a visible background for clickable affordance", () => {
-  // Rev 5: pin button has a white background with border so it
-  // looks like a proper button, not a decorative element.
+  // Pin button is 40x40 with white background and 2px brown border —
+  // it matches the visual weight of the cal tile next to it.
   assert.match(
     indexHtml,
     /\.pin-btn\{[^}]*background:\s*#fff/u,
@@ -1282,8 +1280,13 @@ test("ui: pin button has a visible background for clickable affordance", () => {
   );
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*border:\s*1\.5px solid var\(--line\)/u,
-    ".pin-btn must have a border so it looks clickable",
+    /\.pin-btn\{[^}]*border:\s*2px solid var\(--brown\)/u,
+    ".pin-btn must have a 2px brown border so it looks clickable",
+  );
+  assert.match(
+    indexHtml,
+    /\.pin-btn\{[^}]*width:\s*40px/u,
+    ".pin-btn must be 40px wide to match the cal tile visual weight",
   );
 });
 
@@ -1295,7 +1298,7 @@ test("ui: pin button pinned state is clearly visible (yellow fill, dark icon)", 
   );
   assert.match(
     indexHtml,
-    /\.pin-btn\[aria-pressed="true"\][^}]*color:\s*#000/u,
+    /\.pin-btn\[aria-pressed="true"\][^}]*color:\s*var\(--black\)/u,
     "pinned pin button must have a dark icon (black on yellow)",
   );
 });
