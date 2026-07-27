@@ -1137,11 +1137,29 @@ test("ui: allergen chips wrap (no horizontal-scroll overflow trap)", () => {
 // polish pass.)
 // ---------------------------------------------------------------------------
 
-test("ui: banner is a flex row with a close button (compact, dismissible)", () => {
+test("ui: banner is hidden by default and shown via .show (compact, dismissible)", () => {
+  // The .banner element must be display:none by default — otherwise
+  // the fixed-positioned flex container renders an empty strip at
+  // the bottom of the screen when no allergen is selected (the
+  // element exists in the DOM with no content, but is still
+  // visible because display:flex is the default). The previous
+  // version of this test asserted display:flex in the .banner
+  // block, which was the BUG. The .show class is what toggles
+  // visibility, so the default must be display:none.
   assert.match(
     indexHtml,
-    /\.banner\{[^}]*display:flex[^}]*align-items:center/u,
-    ".banner must use display:flex with align-items:center (compact bar layout)",
+    /\.banner\{[\s\S]*?display:none[\s\S]*?\}/u,
+    ".banner must default to display:none (hidden when no allergen selected)",
+  );
+  assert.match(
+    indexHtml,
+    /\.banner\.show\{display:flex/u,
+    ".banner.show must toggle display:flex (visible when allergen selected)",
+  );
+  assert.match(
+    indexHtml,
+    /align-items:center/,
+    ".banner must keep align-items:center for the compact bar layout when shown",
   );
   assert.match(
     indexHtml,
