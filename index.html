@@ -701,6 +701,72 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   letter-spacing:.01em;
 }
 .item-note{display:block;font-weight:400;font-size:12px;color:var(--brown);font-style:italic;margin-top:1px}
+
+/* ---------- Pin button (per item) + Pinned section ---------- */
+.pin-btn{
+  flex:0 0 auto;
+  background:none;border:none;cursor:pointer;
+  width:28px;height:28px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  font-size:14px;line-height:1;
+  color:var(--brown);
+  transition:background .15s,transform .1s,color .15s;
+  margin-left:6px;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;z-index:2;
+}
+.pin-btn:hover{background:rgba(0,0,0,.06);color:var(--ink)}
+.pin-btn:active{transform:scale(.92)}
+.pin-btn:focus-visible{outline:2px solid var(--yellow);outline-offset:1px}
+.pin-btn[aria-pressed="true"]{color:var(--yellow);background:rgba(241,196,15,.15)}
+.pin-btn[aria-pressed="true"]:hover{background:rgba(241,196,15,.28)}
+[data-theme="dark"] .pin-btn{color:var(--brown)}
+[data-theme="dark"] .pin-btn:hover{background:rgba(255,255,255,.06);color:var(--ink)}
+[data-theme="dark"] .pin-btn[aria-pressed="true"]{color:var(--yellow);background:rgba(241,196,15,.18)}
+/* Pin button lives next to the cal-tile on standalone items; the
+   existing flex layout puts it on the right edge with a small gap. */
+.item-row .pin-btn{margin-left:4px}
+.meal-pill .pin-btn{width:22px;height:22px;font-size:11px;margin-left:0}
+.meal-head .pin-btn{width:32px;height:32px;font-size:15px;margin-left:8px}
+
+/* Pinned section header — same shape as a regular section, but
+   with a left-edge yellow pin to signal "user-curated" content. */
+details#sec-pinned{border:0;background:transparent;padding:0;margin:0 0 12px}
+details#sec-pinned:not(.has-pinned){display:none}
+details#sec-pinned>summary{
+  list-style:none;cursor:default;
+  background:linear-gradient(180deg,#FFFCF1 0%,#FFF6D9 100%);
+  border:1.5px solid var(--yellow);border-radius:10px;
+  padding:10px 14px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+details#sec-pinned>summary::-webkit-details-marker{display:none}
+details#sec-pinned .sec-title{
+  font-family:Anton,sans-serif;font-size:16px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink);
+  border-bottom:0;padding:0;
+}
+details#sec-pinned .sec-title::before{content:"\1F4CC\20";font-size:14px}
+details#sec-pinned .sec-count{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;
+  color:var(--brown);opacity:.85;margin-left:auto;
+}
+details#sec-pinned .sec-hint{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;
+  color:var(--brown);opacity:.7;font-weight:400;
+  letter-spacing:.04em;text-transform:uppercase;margin-left:4px;
+}
+[data-theme="dark"] details#sec-pinned>summary{
+  background:linear-gradient(180deg,#2A2218 0%,#1F1812 100%);
+  border-color:#5A4920;
+}
+[data-theme="dark"] details#sec-pinned .sec-title{color:var(--yellow)}
+details#sec-pinned .pin-items{
+  display:flex;flex-direction:column;gap:6px;
+  padding:8px 0 0;
+}
 .al-tags{
   display:block;font-family:"IBM Plex Mono",monospace;font-weight:400;
   font-size:9.5px;letter-spacing:.08em;color:#A98F5E;margin-top:2px;
@@ -1041,12 +1107,113 @@ const modeHintEl=document.getElementById('modeHint');
 const avoid=new Set();
 let invert=false;
 
+// Pinned items: a Set of item names (case-preserved) the user
+// wants to keep handy. Persists across reloads via localStorage.
+// On any pin/unpin, the Pinned section is rebuilt and the
+// pin buttons re-render to reflect the new state.
+const PIN_KEY = 'whm:pinned:v1';
+let pinned = new Set();
+try {
+  const raw = localStorage.getItem(PIN_KEY);
+  if (raw) {
+    const arr = JSON.parse(raw);
+    if (Array.isArray(arr)) pinned = new Set(arr.filter(x => typeof x === 'string'));
+  }
+} catch (_) { /* corrupt JSON or storage blocked — start empty */ }
+function savePinned() {
+  try { localStorage.setItem(PIN_KEY, JSON.stringify([...pinned])); } catch (_) {}
+}
+function togglePin(name) {
+  if (pinned.has(name)) pinned.delete(name);
+  else pinned.add(name);
+  savePinned();
+  renderPinnedSection();
+  // Update the button state in the original location
+  for (const btn of menuEl.querySelectorAll(`.pin-btn[data-pin-name="${cssEsc(name)}"]`)) {
+    btn.setAttribute('aria-pressed', pinned.has(name) ? 'true' : 'false');
+  }
+}
+function cssEsc(s) {
+  return String(s).replace(/(["'\\\[\]\(\)\.\#\:\>\+\~\*\^\$\|\=\@])/g, '\\$1');
+}
+
 // Cached per-render annotation so applyFilters() doesn't have to
 // re-walk the data on every keystroke. The cache is invalidated
 // whenever render() runs (the data could have changed).
 let annotatedSections = [];
 
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
+
+// Build the HTML for the Pinned section. The section is always
+// emitted (so #sec-pinned is queryable) but gets display:none via
+// CSS when the .has-pinned class is absent. Items are looked up
+// from `data` by name; the first matching item's data is used.
+// Pinned items still respect filters: applyFilters() iterates
+// each .pin-item and toggles .h on it the same way it does for
+// regular .item elements.
+function buildPinnedSectionHTML(data) {
+  const items = [];
+  const seen = new Set();
+  if (pinned.size === 0) {
+    return `<details class="sec" id="sec-pinned" aria-label="Pinned items"></details>`;
+  }
+  for (const name of pinned) {
+    if (seen.has(name)) continue;
+    let found = null, foundSection = null;
+    for (const sec of data.sections) {
+      for (const g of sec.groups) {
+        for (const it of g.items) {
+          if (it.n === name) { found = it; foundSection = sec; break; }
+        }
+        if (found) break;
+      }
+      if (found) break;
+    }
+    if (!found) continue; // pinned item no longer in data — skip silently
+    seen.add(name);
+    const a = found.a || [];
+    const tags = a.length ? `<span class="al-tags">${a.map(x => ABBR[x] || x).join("·")}</span>` : "";
+    items.push(
+      `<div class="item pin-item" data-name="${esc(name.toLowerCase())}" data-a="${esc(a.join("|"))}" data-section="${esc(foundSection.title)}">
+        <button class="item-row" aria-expanded="false" type="button">
+          <span class="item-name">${esc(name)}${tags}</span>
+          <span class="cal-tile">${found.d[0]}<small>CAL</small></span>
+        </button>${factsHTML(found)}
+        <button type="button" class="pin-btn" data-pin-name="${esc(name)}" aria-pressed="true" aria-label="Unpin ${esc(name)}" title="Unpin">📌</button>
+      </div>`
+    );
+  }
+  return `<details class="sec has-pinned" id="sec-pinned" open aria-label="Pinned items">
+    <summary>
+      <span class="sec-title">Pinned</span>
+      <span class="sec-count">${items.length}</span>
+      <span class="sec-hint">tap 📌 to remove</span>
+    </summary>
+    <div class="pin-items">${items.join("")}</div>
+  </details>`;
+}
+
+// Re-render the Pinned section in place. Called on every
+// pin/unpin. Does NOT touch the regular sections. Updates
+// the .has-pinned class so the empty state hides, and
+// updates each pin-item's data so applyFilters can find them.
+function renderPinnedSection() {
+  const data = window.MENU_DATA;
+  if (!data) return;
+  const existing = document.getElementById('sec-pinned');
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = buildPinnedSectionHTML(data);
+  const fresh = wrapper.firstElementChild;
+  if (existing) {
+    existing.replaceWith(fresh);
+  } else {
+    menuEl.prepend(fresh);
+  }
+  // After re-render, re-apply filters so the new pin-items
+  // get the right visible/hidden state immediately.
+  applyFilters();
+  // Update the corresponding pin-btn in the original location too.
+}
 
 function factsHTML(it){
   let rows="";
@@ -1172,6 +1339,7 @@ function render(data){
                 </span>
                 <span class="meal-head-cal">${headCal}<small>CAL</small></span>
               </button>${factsHTML(currentMeal.mainItem || {n:name,d:[headCal,0,0,0,0,0,0,0,0,0],a:[]})}
+              <button type="button" class="pin-btn" data-pin-name="${esc(name)}" aria-pressed="${pinned.has(name)?'true':'false'}" aria-label="${pinned.has(name)?'Unpin':'Pin'} ${esc(name)}" title="${pinned.has(name)?'Unpin':'Pin'}">${pinned.has(name)?'📌':'📍'}</button>
             </div>`;
           mealOpen = true;
         }
@@ -1216,7 +1384,9 @@ function render(data){
             <button class="item-row meal-pill" aria-expanded="false" type="button">
               <span class="meal-pill-name">${esc(it.n)}</span>
               <span class="meal-pill-cal">${it.d[0]}</span>
-            </button>${factsHTML(it)}</div>`;
+            </button>${factsHTML(it)}
+            <button type="button" class="pin-btn" data-pin-name="${esc(it.n)}" aria-pressed="${pinned.has(it.n)?'true':'false'}" aria-label="${pinned.has(it.n)?'Unpin':'Pin'} ${esc(it.n)}" title="${pinned.has(it.n)?'Unpin':'Pin'}">${pinned.has(it.n)?'📌':'📍'}</button>
+          </div>`;
         } else {
           // Standalone section OR the meal's main item itself
           // (rare path — main items are usually rendered as
@@ -1227,7 +1397,9 @@ function render(data){
             <button class="item-row" aria-expanded="false">
               <span class="item-name">${esc(it.n)}${note}${tags}</span>
               <span class="cal-tile">${it.d[0]}<small>CAL</small></span>
-            </button>${factsHTML(it)}</div>`;
+            </button>${factsHTML(it)}
+            <button type="button" class="pin-btn" data-pin-name="${esc(it.n)}" aria-pressed="${pinned.has(it.n)?'true':'false'}" aria-label="${pinned.has(it.n)?'Unpin':'Pin'} ${esc(it.n)}" title="${pinned.has(it.n)?'Unpin':'Pin'}">${pinned.has(it.n)?'📌':'📍'}</button>
+          </div>`;
         }
       });
       itemsHTML += closeMeal + openMeal + gItems;
@@ -1241,7 +1413,11 @@ function render(data){
       <summary><span class="sec-caret">▸</span><span class="sec-title">${esc(sec.title)}</span><span class="sec-count">${count}</span></summary>
       ${itemsHTML}</details>`;
   });
-  menuEl.innerHTML=html;
+  // Prepend the Pinned section. It's a separate <details> with
+  // its own styling; the .has-pinned class controls whether it
+  // shows at all (no items pinned → display:none).
+  const pinnedHTML = buildPinnedSectionHTML(data);
+  menuEl.innerHTML = pinnedHTML + html;
 
   // Build the per-section DOM caches that applyFilters() uses on
   // every keystroke. Doing this once here turns applyFilters into
@@ -1366,8 +1542,47 @@ function applyFilters(){
   const visible = computeVisibility(annotatedSections, [...avoid], q, { invert });
   let anyVisible=false;
 
+  // Handle the Pinned section FIRST. It lives outside
+  // annotatedSections (which is built from data.sections only),
+  // so it needs its own per-item visibility pass. Same rules as
+  // a standalone section: hide iff the item has any allergen
+  // in `avoid` (or, in invert mode, the item has none of them),
+  // and the search query doesn't match.
+  const pinnedSec = document.getElementById('sec-pinned');
+  if (pinnedSec && pinnedSec.classList.contains('has-pinned')) {
+    const pinItems = pinnedSec.querySelectorAll('.pin-item');
+    let pinnedVisCount = 0;
+    for (const pi of pinItems) {
+      const aStr = pi.dataset.a || '';
+      const itemAllergens = aStr ? aStr.split('|') : [];
+      const name = pi.dataset.name || '';
+      const matchesQuery = !q || name.includes(q) || (pi.querySelector('.item-name')?.textContent || '').toLowerCase().includes(q);
+      let keep;
+      if (invert) {
+        keep = itemAllergens.some(a => avoid.has(a)) && matchesQuery;
+      } else {
+        keep = !itemAllergens.some(a => avoid.has(a)) && matchesQuery;
+      }
+      if (keep) {
+        if (pi.classList.contains('h')) pi.classList.remove('h');
+        pinnedVisCount++;
+      } else {
+        if (!pi.classList.contains('h')) pi.classList.add('h');
+      }
+    }
+    if (pinnedVisCount) {
+      if (pinnedSec.classList.contains('h')) pinnedSec.classList.remove('h');
+      anyVisible = true;
+    } else {
+      if (!pinnedSec.classList.contains('h')) pinnedSec.classList.add('h');
+    }
+    const pinnedCountEl = pinnedSec.querySelector('.sec-count');
+    if (pinnedCountEl) pinnedCountEl.textContent = pinnedVisCount;
+  }
+
   for (let idx = 0; idx < _sectionEls.length; idx++) {
     const sec = _sectionEls[idx];
+    if (sec.id === 'sec-pinned') continue; // handled above
     const secVisible = visible[idx];
     const itemEls = sec._itemEls;
     const flatItems = secVisible.flatItems;
@@ -1461,6 +1676,16 @@ function applyFilters(){
 }
 
 menuEl.addEventListener('click',e=>{
+  // Pin button: handled before .item-row so clicking the pin
+  // doesn't also expand the item's nutrition facts.
+  const pinBtn = e.target.closest('.pin-btn');
+  if (pinBtn) {
+    e.stopPropagation();
+    e.preventDefault();
+    const name = pinBtn.dataset.pinName;
+    if (name) togglePin(name);
+    return;
+  }
   const btn=e.target.closest('.item-row');
   if(!btn)return;
   const item=btn.closest('.item');
