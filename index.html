@@ -1278,6 +1278,13 @@ function renderPinnedSection() {
   const data = window.MENU_DATA;
   if (!data) return;
   const existing = document.getElementById('sec-pinned');
+  // Preserve the section's open/closed state across the re-render.
+  // Without this, every unpin would close the <details>, which is
+  // annoying when unpinning multiple items in a row — the user has
+  // to re-expand the section after every click. Capture the state
+  // BEFORE replaceWith (the old element's state is what matters),
+  // then restore on the new element AFTER replaceWith.
+  const wasOpen = existing ? existing.hasAttribute('open') : false;
   const wrapper = document.createElement('div');
   wrapper.innerHTML = buildPinnedSectionHTML(data);
   const fresh = wrapper.firstElementChild;
@@ -1285,6 +1292,9 @@ function renderPinnedSection() {
     existing.replaceWith(fresh);
   } else {
     menuEl.prepend(fresh);
+  }
+  if (wasOpen && fresh) {
+    fresh.setAttribute('open', '');
   }
   // After re-render, re-apply filters so the new pin-items
   // get the right visible/hidden state immediately.
