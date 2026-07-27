@@ -1611,21 +1611,19 @@ test("ui: perf — menu.js is NOT double-fetched (preload removed)", () => {
   );
 });
 
-test("ui: perf — .meal uses content-visibility:auto to skip off-screen paint", () => {
-  // REGRESSION: Lighthouse flagged 18,076 DOM elements with max
-  // depth 9 — the page renders every meal expanded at once. The
-  // .meal block now uses content-visibility:auto so the browser
-  // skips layout/paint for off-screen meals. contain-intrinsic-size
-  // reserves an estimated height so the scrollbar doesn't jump
-  // when scrolling into an unrendered region.
-  assert.match(
+test("ui: perf — .meal does NOT use content-visibility:auto (regression guard)", () => {
+  // REGRESSION: an earlier PR added `content-visibility: auto`
+  // to every .meal block to skip off-screen paint. With ~1,200
+  // .meal elements × 18,076 total DOM nodes, the bookkeeping
+  // cost of tracking 1,200 skipped subtrees was FAR higher than
+  // the paint cost it saved — Lighthouse TBT went from 0ms to
+  // 27,140ms after the change. The DOM-size problem needs a
+  // different fix (probably lazy-render sections on expand, or
+  // virtualization). Assert doesNotMatch to lock out the
+  // tempting-but-wrong .meal-level optimization.
+  assert.doesNotMatch(
     indexHtml,
     /\.meal\{[\s\S]*?content-visibility\s*:\s*auto/u,
-    ".meal must use content-visibility:auto to skip off-screen paint work",
-  );
-  assert.match(
-    indexHtml,
-    /\.meal\{[\s\S]*?contain-intrinsic-size\s*:\s*auto\s+600px/u,
-    ".meal must have contain-intrinsic-size to reserve layout space for unrendered meals",
+    ".meal must NOT use content-visibility:auto — see commit message for the TBT regression it caused",
   );
 });
