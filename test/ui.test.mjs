@@ -1224,8 +1224,8 @@ test("ui: pin button is absolutely positioned (doesn't push content)", () => {
   );
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*opacity:\s*\.55/u,
-    ".pin-btn default opacity must be .55 so it's discoverable but not loud",
+    /\.pin-btn\{[^}]*opacity:\s*\.7/u,
+    ".pin-btn default opacity must be .7 so it's clearly visible",
   );
 });
 
@@ -1255,25 +1255,31 @@ test("ui: pin button uses an SVG pin icon (not text or emoji)", () => {
   assert.ok(!hasTextIcon, "pin button must NOT use text/emoji icons");
 });
 
-test("ui: pin button has a subtle background for clickable affordance", () => {
-  // Rev 4: pin button has a background color so it looks clickable
+test("ui: pin button has a visible background for clickable affordance", () => {
+  // Rev 5: pin button has a white background with border so it
+  // looks like a proper button, not a decorative element.
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*background:\s*rgba\(0,0,0/u,
-    ".pin-btn must have a subtle background so it looks clickable",
+    /\.pin-btn\{[^}]*background:\s*#fff/u,
+    ".pin-btn must have a white background so it looks like a button",
+  );
+  assert.match(
+    indexHtml,
+    /\.pin-btn\{[^}]*border:\s*1\.5px solid var\(--line\)/u,
+    ".pin-btn must have a border so it looks clickable",
   );
 });
 
-test("ui: pin button pinned state is clearly visible (yellow, filled)", () => {
+test("ui: pin button pinned state is clearly visible (yellow fill, dark icon)", () => {
   assert.match(
     indexHtml,
-    /\.pin-btn\[aria-pressed="true"\][^}]*color:\s*var\(--yellow\)/u,
-    "pinned pin button must be yellow",
+    /\.pin-btn\[aria-pressed="true"\][^}]*background:\s*var\(--yellow\)/u,
+    "pinned pin button must have a solid yellow background",
   );
   assert.match(
     indexHtml,
-    /\.pin-btn\[aria-pressed="true"\][^}]*background:\s*rgba\(241,196,15/u,
-    "pinned pin button must have a yellow-tinted background",
+    /\.pin-btn\[aria-pressed="true"\][^}]*color:\s*#000/u,
+    "pinned pin button must have a dark icon (black on yellow)",
   );
 });
 
