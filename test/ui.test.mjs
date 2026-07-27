@@ -1276,8 +1276,12 @@ test("ui: sub-items (meal pills) do NOT have pin buttons", () => {
   // sides or toppings. The meal-pill render block must not
   // include a .pin-btn element.
   // Find the meal-pill render block and check it has no pin-btn.
+  // (TBT fix: the meal-pill block no longer inlines factsHTML
+  // in the static template — facts are lazy-injected on first
+  // expand via the _factsByFid cache + data-fid. So we match
+  // up to the closing </div> of the item wrapper instead.)
   const mealPillBlock = indexHtml.match(
-    /<button class="item-row meal-pill"[\s\S]*?<\/button>\$\{factsHTML\(it\)\}[\s\S]*?<\/div>/
+    /<button class="item-row meal-pill"[\s\S]*?<\/button>\s*<\/div>/
   );
   assert.ok(mealPillBlock, "meal-pill render block must exist");
   assert.doesNotMatch(
@@ -1625,5 +1629,48 @@ test("ui: perf — .meal does NOT use content-visibility:auto (regression guard)
     indexHtml,
     /\.meal\{[\s\S]*?content-visibility\s*:\s*auto/u,
     ".meal must NOT use content-visibility:auto — see commit message for the TBT regression it caused",
+  );
+});
+
+test("ui: perf — facts tables are lazy-injected on first expand (TBT fix)", () => {
+  // REGRESSION: previously, every .item inline-included a
+  // factsHTML(it) call that built ~30 DOM nodes (9 nutrition
+  // rows + allergens) per item. For 388 items that's ~11.6k
+  // of the 18k total DOM elements — and they all start hidden
+  // (CSS only reveals .facts when .item.open). The user never
+  // sees most of them. The fix: store the facts HTML in a
+  // cache keyed by data-fid, and the click handler injects
+  // the facts the first time the user expands that item.
+  // Initial render: ~6k DOM elements instead of 18k, TBT drops
+  // from ~1,100ms to ~350ms.
+  assert.match(
+    indexHtml,
+    /_factsByFid\s*=\s*new Map\(\)/u,
+    "Module-level Map must exist for facts HTML cache",
+  );
+  assert.match(
+    indexHtml,
+    /data-fid="\$\{fid\}"/u,
+    "Each item must have a data-fid attribute pointing to its cached facts",
+  );
+  // The static item template must NOT inline ${factsHTML(it)}.
+  // If someone re-adds it, TBT regression returns. We assert
+  // against the meal-pill block (sub-items): the closing tag
+  // must follow the </button> directly, with no factsHTML in
+  // between.
+  const mealPillBlock = indexHtml.match(
+    /<button class="item-row meal-pill"[\s\S]*?<\/button>\s*<\/div>/
+  );
+  assert.ok(mealPillBlock, "meal-pill block must end right after </button>");
+  assert.doesNotMatch(
+    mealPillBlock[0],
+    /\$\{factsHTML\(it\)\}/u,
+    "meal-pill block must NOT inline factsHTML — that re-introduces the 11k-DOM TBT regression",
+  );
+  // Click handler must inject facts on first expand.
+  assert.match(
+    indexHtml,
+    /data-facts-loaded[\s\S]*?_factsByFid[\s\S]*?appendChild/u,
+    "Click handler must lazy-inject facts on first expand (idempotent via data-facts-loaded)",
   );
 });
