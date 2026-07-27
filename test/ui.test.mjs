@@ -1184,6 +1184,23 @@ test("ui: pin button CSS class and data attribute exist", () => {
   assert.match(indexHtml, /data-pin-name=/, "pin buttons must carry data-pin-name");
 });
 
+test("ui: sub-items (meal pills) do NOT have pin buttons", () => {
+  // Sub-items in a meal (Choices/Includes/Add-ons/Meats/Toppings)
+  // should NOT be pinnable. You pin the meal, not individual
+  // sides or toppings. The meal-pill render block must not
+  // include a .pin-btn element.
+  // Find the meal-pill render block and check it has no pin-btn.
+  const mealPillBlock = indexHtml.match(
+    /<button class="item-row meal-pill"[\s\S]*?<\/button>\$\{factsHTML\(it\)\}[\s\S]*?<\/div>/
+  );
+  assert.ok(mealPillBlock, "meal-pill render block must exist");
+  assert.doesNotMatch(
+    mealPillBlock[0],
+    /class="pin-btn"/,
+    "meal-pill (sub-item) must NOT have a pin button — you pin the meal, not the sides"
+  );
+});
+
 test("ui: Pinned section is hidden by default and shown when items are pinned", () => {
   assert.match(indexHtml, /id="sec-pinned"/, "Pinned section must have id sec-pinned");
   assert.match(
