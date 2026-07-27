@@ -1626,10 +1626,17 @@ function applyFilters(){
     if (pinnedCountEl) pinnedCountEl.textContent = pinnedVisCount;
   }
 
-  for (let idx = 0; idx < _sectionEls.length; idx++) {
+  for (let idx = 0, dataIdx = 0; idx < _sectionEls.length; idx++) {
     const sec = _sectionEls[idx];
     if (sec.id === 'sec-pinned') continue; // handled above
-    const secVisible = visible[idx];
+    // dataIdx tracks the position in the `visible` array, which
+    // only contains data sections (not the pinned section, which
+    // is handled at the top of applyFilters). Without this
+    // separate counter, the array access would be off by one
+    // because _sectionEls includes the pinned section at idx=0.
+    // REGRESSION: this was the bug fixed in the off-by-one fix —
+    // the last section's array access was undefined.
+    const secVisible = visible[dataIdx++];
     const itemEls = sec._itemEls;
     const flatItems = secVisible.flatItems;
     let visCount=0;

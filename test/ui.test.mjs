@@ -1209,6 +1209,46 @@ test("ui: pin button does NOT overlap with item name on standalone/pinned items"
   );
 });
 
+test("ui: applyFilters loop uses a separate counter for the visible array (no off-by-one)", () => {
+  // REGRESSION: pinning an item crashed with
+  //   "Cannot read properties of undefined (reading 'flatItems')"
+  // because the applyFilters loop used `visible[idx]` where `idx`
+  // is the index in `_sectionEls` (which includes the pinned
+  // section at index 0). `visible` only has entries for data
+  // sections, so `visible[idx]` was off by one for all data
+  // sections and `undefined` for the last one.
+  // The fix: use a separate counter (e.g. `dataIdx`) that only
+  // advances when the loop processes a data section (i.e. not
+  // when it skips the pinned section).
+  // This test guards against re-introducing the off-by-one.
+  // Find the applyFilters function and extract just the main
+  // loop body (not the test code below).
+  const afMatch = indexHtml.match(
+    /function applyFilters\(\)\{[\s\S]*?\n\}/u
+  );
+  assert.ok(afMatch, "applyFilters function must exist");
+  const af = afMatch[0];
+  // Find the main loop: for (let idx = 0 ... _sectionEls.length)
+  // (not the for-of loops elsewhere)
+  const loopMatch = af.match(
+    /for\s*\(\s*let\s+idx\s*=\s*0[^)]*_sectionEls\.length[^)]*\)\s*\{[\s\S]*?let\s+visCount\s*=\s*0/u
+  );
+  assert.ok(loopMatch, "applyFilters main loop must exist and reach `let visCount = 0`");
+  const loop = loopMatch[0];
+  // The loop must NOT directly use `visible[idx]` (the bug).
+  assert.doesNotMatch(
+    loop,
+    /visible\[idx/u,
+    "applyFilters loop must not use visible[idx] directly — _sectionEls includes the pinned section, so idx is off by one. Use a separate counter (e.g. visible[dataIdx++]) that only advances for data sections.",
+  );
+  // The loop must use a separate counter (dataIdx or similar).
+  assert.match(
+    loop,
+    /visible\[dataIdx/u,
+    "applyFilters loop must use a separate counter (visible[dataIdx]) for the visible array",
+  );
+});
+
 test("ui: sub-items (meal pills) do NOT have pin buttons", () => {
   // Sub-items in a meal (Choices/Includes/Add-ons/Meats/Toppings)
   // should NOT be pinnable. You pin the meal, not individual
