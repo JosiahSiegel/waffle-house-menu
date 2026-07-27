@@ -1208,3 +1208,55 @@ test("ui: applyFilters handles #sec-pinned with a dedicated per-item branch", ()
   assert.ok(afMatch, "applyFilters function must exist");
   assert.match(afMatch[0], /document\.getElementById\(['"]sec-pinned['"]\)/);
 });
+
+// ---------------------------------------------------------------------------
+// Pin polish (rev 2): pin button is subtle (small, low opacity,
+// top-left corner, absolute positioning). Pinned section is
+// collapsed by default and minimal (no gradient, no emoji, no
+// hint text). The pin button doesn't overlap the cal tile.
+// ---------------------------------------------------------------------------
+
+test("ui: pin button is absolutely positioned (doesn't push content)", () => {
+  assert.match(
+    indexHtml,
+    /\.pin-btn\{[^}]*position:\s*absolute/u,
+    ".pin-btn must be position:absolute so it doesn't take layout space",
+  );
+  assert.match(
+    indexHtml,
+    /\.pin-btn\{[^}]*opacity:\s*\.3/u,
+    ".pin-btn default opacity must be low (0.3-0.4) so it's not obtrusive",
+  );
+});
+
+test("ui: meal-head gets padding-left to make room for the pin button", () => {
+  assert.match(
+    indexHtml,
+    /\.meal>\.item\.meal-main \.meal-head\{[^}]*padding-left:\s*30px/u,
+    "meal-head must have padding-left:30px to clear the pin button",
+  );
+});
+
+test("ui: Pinned section is collapsed by default (not open)", () => {
+  // The buildPinnedSectionHTML function must NOT include `open`
+  // on the <details> element. Pinned section starts collapsed.
+  const buildFn = indexHtml.match(/function buildPinnedSectionHTML[\s\S]*?return\s+`[\s\S]*?`;/);
+  assert.ok(buildFn, "buildPinnedSectionHTML function must exist");
+  assert.doesNotMatch(
+    buildFn[0],
+    /<details[^>]*\bopen\b/,
+    "Pinned section <details> must not have the `open` attribute (collapsed by default)",
+  );
+});
+
+test("ui: Pinned section is minimal (no gradient, no emoji prefix, no hint)", () => {
+  // The buildPinnedSectionHTML function must not include:
+  // - linear-gradient backgrounds
+  // - 📌 emoji prefix in the title
+  // - "tap to remove" hint text
+  const buildFn = indexHtml.match(/function buildPinnedSectionHTML[\s\S]*?return\s+`[\s\S]*?`;/);
+  assert.ok(buildFn, "buildPinnedSectionHTML function must exist");
+  assert.doesNotMatch(buildFn[0], /linear-gradient/, "Pinned section must not have gradient");
+  assert.doesNotMatch(buildFn[0], /sec-hint/, "Pinned section must not have hint text");
+  assert.doesNotMatch(buildFn[0], /\u{1F4CC}/u, "Pinned section must not have 📌 emoji in title");
+});

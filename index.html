@@ -702,71 +702,94 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 }
 .item-note{display:block;font-weight:400;font-size:12px;color:var(--brown);font-style:italic;margin-top:1px}
 
-/* ---------- Pin button (per item) + Pinned section ---------- */
+/* ---------- Pin button (per item) + Pinned section ----------
+   Pin design goals (rev 2):
+   - Discoverable but not obtrusive
+   - Subtle when unpinned (low opacity, small icon)
+   - Clear when pinned (yellow accent, always visible)
+   - Doesn't push content around (absolute positioning)
+   - Doesn't interfere with the cal tile (placed in the
+     top-left corner of the item, away from the right edge) */
+.item{position:relative}
 .pin-btn{
-  flex:0 0 auto;
-  background:none;border:none;cursor:pointer;
-  width:28px;height:28px;
+  position:absolute;top:6px;left:6px;z-index:3;
+  width:22px;height:22px;
+  background:none;border:0;cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;
-  border-radius:50%;
-  font-size:14px;line-height:1;
+  font-size:12px;line-height:1;
   color:var(--brown);
-  transition:background .15s,transform .1s,color .15s;
-  margin-left:6px;
+  opacity:.35;
+  border-radius:4px;
+  padding:0;
   -webkit-tap-highlight-color:transparent;
-  position:relative;z-index:2;
+  transition:opacity .15s,background .15s,color .15s,transform .1s;
 }
-.pin-btn:hover{background:rgba(0,0,0,.06);color:var(--ink)}
-.pin-btn:active{transform:scale(.92)}
-.pin-btn:focus-visible{outline:2px solid var(--yellow);outline-offset:1px}
-.pin-btn[aria-pressed="true"]{color:var(--yellow);background:rgba(241,196,15,.15)}
-.pin-btn[aria-pressed="true"]:hover{background:rgba(241,196,15,.28)}
-[data-theme="dark"] .pin-btn{color:var(--brown)}
-[data-theme="dark"] .pin-btn:hover{background:rgba(255,255,255,.06);color:var(--ink)}
-[data-theme="dark"] .pin-btn[aria-pressed="true"]{color:var(--yellow);background:rgba(241,196,15,.18)}
-/* Pin button lives next to the cal-tile on standalone items; the
-   existing flex layout puts it on the right edge with a small gap. */
-.item-row .pin-btn{margin-left:4px}
-.meal-pill .pin-btn{width:22px;height:22px;font-size:11px;margin-left:0}
-.meal-head .pin-btn{width:32px;height:32px;font-size:15px;margin-left:8px}
+.pin-btn:hover{opacity:1;background:rgba(0,0,0,.05)}
+.pin-btn:active{transform:scale(.9)}
+.pin-btn:focus-visible{opacity:1;outline:2px solid var(--yellow);outline-offset:1px}
+.pin-btn[aria-pressed="true"]{opacity:.85;color:var(--yellow)}
+.pin-btn[aria-pressed="true"]:hover{opacity:1;background:rgba(241,196,15,.18)}
+[data-theme="dark"] .pin-btn{color:#8A7A60}
+[data-theme="dark"] .pin-btn:hover{background:rgba(255,255,255,.06)}
+[data-theme="dark"] .pin-btn[aria-pressed="true"]{color:var(--yellow)}
+/* On meal cards, the pin button sits in the top-left corner
+   (above the meal-eyebrow). The meal-head gets extra left
+   padding to make room for it — every meal-main has a pin
+   button, so this padding is always present. The pin button
+   doesn't overlap the cal tile (which is on the right). */
+.meal>.item.meal-main .meal-head{padding-left:30px}
+.meal-main .pin-btn{top:4px;left:4px;width:22px;height:22px;font-size:12px}
+/* On meal pills (sub-items), use a smaller pin in the top-left
+   so it doesn't conflict with the cal number on the right. */
+.meal-pill .pin-btn{top:2px;left:2px;width:18px;height:18px;font-size:10px}
 
-/* Pinned section header — same shape as a regular section, but
-   with a left-edge yellow pin to signal "user-curated" content. */
-details#sec-pinned{border:0;background:transparent;padding:0;margin:0 0 12px}
+/* Pinned section — minimal, collapsed by default, no gradient.
+   Visually it sits as a thin separator above the first regular
+   section. The header is just "Pinned" + count in the same mono
+   type as section labels, no emoji, no hint text. */
+details#sec-pinned{
+  border-bottom:1px solid var(--line);
+  background:transparent;padding:0;margin:0;
+}
 details#sec-pinned:not(.has-pinned){display:none}
 details#sec-pinned>summary{
-  list-style:none;cursor:default;
-  background:linear-gradient(180deg,#FFFCF1 0%,#FFF6D9 100%);
-  border:1.5px solid var(--yellow);border-radius:10px;
-  padding:10px 14px;
-  display:flex;align-items:center;gap:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.04);
+  list-style:none;cursor:pointer;
+  display:flex;align-items:center;gap:8px;
+  padding:14px 2px 12px;
+  -webkit-tap-highlight-color:transparent;
+  border-bottom:0;
 }
 details#sec-pinned>summary::-webkit-details-marker{display:none}
+details#sec-pinned>summary:focus-visible{outline:2px solid var(--yellow);outline-offset:-2px}
 details#sec-pinned .sec-title{
-  font-family:Anton,sans-serif;font-size:16px;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--ink);
+  font-family:"IBM Plex Mono",monospace;
+  font-size:11px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--brown);
   border-bottom:0;padding:0;
 }
-details#sec-pinned .sec-title::before{content:"\1F4CC\20";font-size:14px}
+details#sec-pinned .sec-caret{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;
+  color:var(--brown);transition:transform .15s;
+}
+details#sec-pinned[open] .sec-caret{transform:rotate(90deg)}
 details#sec-pinned .sec-count{
   font-family:"IBM Plex Mono",monospace;font-size:11px;
-  color:var(--brown);opacity:.85;margin-left:auto;
+  color:var(--ink);opacity:.55;margin-left:auto;font-weight:600;
 }
-details#sec-pinned .sec-hint{
-  font-family:"IBM Plex Mono",monospace;font-size:10px;
-  color:var(--brown);opacity:.7;font-weight:400;
-  letter-spacing:.04em;text-transform:uppercase;margin-left:4px;
-}
-[data-theme="dark"] details#sec-pinned>summary{
-  background:linear-gradient(180deg,#2A2218 0%,#1F1812 100%);
-  border-color:#5A4920;
-}
-[data-theme="dark"] details#sec-pinned .sec-title{color:var(--yellow)}
+[data-theme="dark"] details#sec-pinned .sec-title{color:var(--brown)}
+[data-theme="dark"] details#sec-pinned .sec-caret{color:var(--brown)}
+/* Pinned items container — same vertical rhythm as a regular
+   section's items. No card, no padding — just the same item
+   rows, visually continuous with the rest of the menu. */
 details#sec-pinned .pin-items{
-  display:flex;flex-direction:column;gap:6px;
-  padding:8px 0 0;
+  display:flex;flex-direction:column;
+  padding:4px 0 12px;
 }
+/* When the Pinned section is collapsed, the pin button on items
+   inside it is invisible (the user can't see pinned items
+   anyway). This avoids visual noise. */
+details#sec-pinned:not([open]) .pin-items .pin-btn{display:none}
 .al-tags{
   display:block;font-family:"IBM Plex Mono",monospace;font-weight:400;
   font-size:9.5px;letter-spacing:.08em;color:#A98F5E;margin-top:2px;
@@ -1183,11 +1206,11 @@ function buildPinnedSectionHTML(data) {
       </div>`
     );
   }
-  return `<details class="sec has-pinned" id="sec-pinned" open aria-label="Pinned items">
+  return `<details class="sec has-pinned" id="sec-pinned" aria-label="Pinned items">
     <summary>
+      <span class="sec-caret">▸</span>
       <span class="sec-title">Pinned</span>
       <span class="sec-count">${items.length}</span>
-      <span class="sec-hint">tap 📌 to remove</span>
     </summary>
     <div class="pin-items">${items.join("")}</div>
   </details>`;
