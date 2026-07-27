@@ -703,59 +703,61 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 .item-note{display:block;font-weight:400;font-size:12px;color:var(--brown);font-style:italic;margin-top:1px}
 
 /* ---------- Pin button (per item) + Pinned section ----------
-   Pin design goals (rev 2):
-   - Discoverable but not obtrusive
-   - Subtle when unpinned (low opacity, small icon)
-   - Clear when pinned (yellow accent, always visible)
-   - Doesn't push content around (absolute positioning)
-   - Doesn't interfere with the cal tile (placed in the
-     top-left corner of the item, away from the right edge) */
+   Pin design goals (rev 3):
+   - Pin button is a subtle star (☆/★) in the top-right corner
+     of the item, near the cal tile. It's part of the item row
+     visually, not a floating overlay.
+   - Unpinned: outline star ☆, very low opacity (.2), brown
+   - Pinned: filled star ★, yellow, opacity .85
+   - Hover: opacity 1, subtle background
+   - Position: top-right, to the LEFT of the cal tile so they
+     don't overlap. The cal tile width is known (~55px), so
+     we use right: 58px to clear it.
+   - No emoji — uses universal Unicode characters that render
+     in every browser/font. */
 .item{position:relative}
 .pin-btn{
-  position:absolute;top:6px;left:6px;z-index:3;
-  width:22px;height:22px;
+  position:absolute;top:50%;right:58px;z-index:3;
+  transform:translateY(-50%);
+  width:20px;height:20px;
   background:none;border:0;cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;
-  font-size:12px;line-height:1;
+  font-size:13px;line-height:1;
   color:var(--brown);
-  opacity:.35;
+  opacity:.2;
   border-radius:4px;
   padding:0;
   -webkit-tap-highlight-color:transparent;
   transition:opacity .15s,background .15s,color .15s,transform .1s;
 }
 .pin-btn:hover{opacity:1;background:rgba(0,0,0,.05)}
-.pin-btn:active{transform:scale(.9)}
+.pin-btn:active{transform:translateY(-50%) scale(.9)}
 .pin-btn:focus-visible{opacity:1;outline:2px solid var(--yellow);outline-offset:1px}
 .pin-btn[aria-pressed="true"]{opacity:.85;color:var(--yellow)}
 .pin-btn[aria-pressed="true"]:hover{opacity:1;background:rgba(241,196,15,.18)}
 [data-theme="dark"] .pin-btn{color:#8A7A60}
 [data-theme="dark"] .pin-btn:hover{background:rgba(255,255,255,.06)}
 [data-theme="dark"] .pin-btn[aria-pressed="true"]{color:var(--yellow)}
-/* On meal cards, the pin button sits in the top-left corner
-   (above the meal-eyebrow). The meal-head gets extra left
-   padding to make room for it — every meal-main has a pin
-   button, so this padding is always present. The pin button
-   doesn't overlap the cal tile (which is on the right). */
-.meal>.item.meal-main .meal-head{padding-left:30px}
-.meal-main .pin-btn{top:4px;left:4px;width:22px;height:22px;font-size:12px}
-/* On meal pills (sub-items), use a smaller pin in the top-left
-   so it doesn't conflict with the cal number on the right. */
-.meal-pill .pin-btn{top:2px;left:2px;width:18px;height:18px;font-size:10px}
+/* On meal cards, the cal tile is wider (~70px) — adjust right
+   offset. The pin button is still vertically centered. */
+.meal-main .pin-btn{right:78px;width:22px;height:22px;font-size:14px}
+.meal-pill .pin-btn{right:36px;width:16px;height:16px;font-size:10px}
 
-/* Pinned section — minimal, collapsed by default, no gradient.
-   Visually it sits as a thin separator above the first regular
-   section. The header is just "Pinned" + count in the same mono
-   type as section labels, no emoji, no hint text. */
+/* Pinned section — minimal, collapsed by default, with a
+   subtle yellow accent (left border) to distinguish it from
+   regular sections. The header is "★ Pinned" + count in the
+   same mono type as section labels. */
 details#sec-pinned{
   border-bottom:1px solid var(--line);
-  background:transparent;padding:0;margin:0;
+  border-left:3px solid var(--yellow);
+  background:transparent;padding:0;margin:0 0 0 0;
+  padding-left:0;
 }
 details#sec-pinned:not(.has-pinned){display:none}
 details#sec-pinned>summary{
   list-style:none;cursor:pointer;
   display:flex;align-items:center;gap:8px;
-  padding:14px 2px 12px;
+  padding:14px 2px 12px 12px;
   -webkit-tap-highlight-color:transparent;
   border-bottom:0;
 }
@@ -768,6 +770,9 @@ details#sec-pinned .sec-title{
   color:var(--brown);
   border-bottom:0;padding:0;
 }
+details#sec-pinned .sec-title::before{
+  content:"\2605\20";color:var(--yellow);font-size:12px;
+}
 details#sec-pinned .sec-caret{
   font-family:"IBM Plex Mono",monospace;font-size:12px;
   color:var(--brown);transition:transform .15s;
@@ -777,14 +782,15 @@ details#sec-pinned .sec-count{
   font-family:"IBM Plex Mono",monospace;font-size:11px;
   color:var(--ink);opacity:.55;margin-left:auto;font-weight:600;
 }
+[data-theme="dark"] details#sec-pinned{border-left-color:#5A4920}
 [data-theme="dark"] details#sec-pinned .sec-title{color:var(--brown)}
 [data-theme="dark"] details#sec-pinned .sec-caret{color:var(--brown)}
-/* Pinned items container — same vertical rhythm as a regular
-   section's items. No card, no padding — just the same item
-   rows, visually continuous with the rest of the menu. */
+/* Pinned items container — compact spacing, same items as
+   regular sections. */
 details#sec-pinned .pin-items{
   display:flex;flex-direction:column;
-  padding:4px 0 12px;
+  padding:4px 12px 12px;
+  gap:0;
 }
 /* When the Pinned section is collapsed, the pin button on items
    inside it is invisible (the user can't see pinned items
@@ -1202,7 +1208,7 @@ function buildPinnedSectionHTML(data) {
           <span class="item-name">${esc(name)}${tags}</span>
           <span class="cal-tile">${found.d[0]}<small>CAL</small></span>
         </button>${factsHTML(found)}
-        <button type="button" class="pin-btn" data-pin-name="${esc(name)}" aria-pressed="true" aria-label="Unpin ${esc(name)}" title="Unpin">📌</button>
+        <button type="button" class="pin-btn" data-pin-name="${esc(name)}" aria-pressed="true" aria-label="Unpin ${esc(name)}" title="Unpin">★</button>
       </div>`
     );
   }
@@ -1362,7 +1368,7 @@ function render(data){
                 </span>
                 <span class="meal-head-cal">${headCal}<small>CAL</small></span>
               </button>${factsHTML(currentMeal.mainItem || {n:name,d:[headCal,0,0,0,0,0,0,0,0,0],a:[]})}
-              <button type="button" class="pin-btn" data-pin-name="${esc(name)}" aria-pressed="${pinned.has(name)?'true':'false'}" aria-label="${pinned.has(name)?'Unpin':'Pin'} ${esc(name)}" title="${pinned.has(name)?'Unpin':'Pin'}">${pinned.has(name)?'📌':'📍'}</button>
+              <button type="button" class="pin-btn" data-pin-name="${esc(name)}" aria-pressed="${pinned.has(name)?'true':'false'}" aria-label="${pinned.has(name)?'Unpin':'Pin'} ${esc(name)}" title="${pinned.has(name)?'Unpin':'Pin'}">${pinned.has(name)?'★':'☆'}</button>
             </div>`;
           mealOpen = true;
         }
@@ -1408,7 +1414,7 @@ function render(data){
               <span class="meal-pill-name">${esc(it.n)}</span>
               <span class="meal-pill-cal">${it.d[0]}</span>
             </button>${factsHTML(it)}
-            <button type="button" class="pin-btn" data-pin-name="${esc(it.n)}" aria-pressed="${pinned.has(it.n)?'true':'false'}" aria-label="${pinned.has(it.n)?'Unpin':'Pin'} ${esc(it.n)}" title="${pinned.has(it.n)?'Unpin':'Pin'}">${pinned.has(it.n)?'📌':'📍'}</button>
+            <button type="button" class="pin-btn" data-pin-name="${esc(it.n)}" aria-pressed="${pinned.has(it.n)?'true':'false'}" aria-label="${pinned.has(it.n)?'Unpin':'Pin'} ${esc(it.n)}" title="${pinned.has(it.n)?'Unpin':'Pin'}">${pinned.has(it.n)?'★':'☆'}</button>
           </div>`;
         } else {
           // Standalone section OR the meal's main item itself
@@ -1421,7 +1427,7 @@ function render(data){
               <span class="item-name">${esc(it.n)}${note}${tags}</span>
               <span class="cal-tile">${it.d[0]}<small>CAL</small></span>
             </button>${factsHTML(it)}
-            <button type="button" class="pin-btn" data-pin-name="${esc(it.n)}" aria-pressed="${pinned.has(it.n)?'true':'false'}" aria-label="${pinned.has(it.n)?'Unpin':'Pin'} ${esc(it.n)}" title="${pinned.has(it.n)?'Unpin':'Pin'}">${pinned.has(it.n)?'📌':'📍'}</button>
+            <button type="button" class="pin-btn" data-pin-name="${esc(it.n)}" aria-pressed="${pinned.has(it.n)?'true':'false'}" aria-label="${pinned.has(it.n)?'Unpin':'Pin'} ${esc(it.n)}" title="${pinned.has(it.n)?'Unpin':'Pin'}">${pinned.has(it.n)?'★':'☆'}</button>
           </div>`;
         }
       });
