@@ -336,19 +336,22 @@ test("kids-meals: section header uses the same fun gradient", () => {
   );
 });
 
-test("kids-meals: star marker (★) appears in both the jump link and the section header", () => {
-  // A small star glyph in front of "Kids Meals" labels makes
-  // it visually distinct and signals "this is the playful one"
-  // without needing a separate emoji or icon.
-  assert.match(
+test("kids-meals: NO star marker (★) on the jump link or section header", () => {
+  // A small star glyph used to appear in front of "Kids Meals"
+  // labels, but it was confusing — it competed with the Pinned
+  // section's pin icon and looked like a "starred/favorited"
+  // affordance. Now the labels are plain text, and the
+  // distinctive gradient (pink/orange/blue) carries the visual
+  // identity for Kids Meals alone.
+  assert.doesNotMatch(
     indexHtml,
     /\.jumpnav\s+a\[href="#sec-kids-meals"\][^{]*::before\s*\{[^}]*content\s*:\s*['"]★/u,
-    "kids jump link ::before must contain a star marker"
+    "kids jump link ::before must NOT contain a star marker (was confusing next to pin icon)"
   );
-  assert.match(
+  assert.doesNotMatch(
     indexHtml,
     /details#sec-kids-meals>summary::before\s*\{[^}]*content\s*:\s*['"]★/u,
-    "kids section summary ::before must contain a star marker"
+    "kids section summary ::before must NOT contain a star marker (was confusing next to pin icon)"
   );
 });
 
@@ -1330,15 +1333,26 @@ test("ui: meal-head has left padding to make room for the corner pin button", ()
   );
 });
 
-test("ui: pin button uses an SVG pin icon (not text or emoji)", () => {
-  // The pin button must contain an <svg> with a pin-shaped path
-  // and a dot circle. This is the rev 4 design.
+test("ui: pin button uses the 📌 thumbtack emoji consistently (no SVG variants)", () => {
+  // All pin icons (button + Pinned section header) must use the
+  // same classic thumbtack emoji 📌 for visual consistency. The
+  // earlier SVG variants (pin-body + pin-dot) were inconsistent
+  // across states and didn't render well at small sizes.
   const pinButtons = indexHtml.match(/<button[^>]*class="pin-btn"[^>]*>[\s\S]*?<\/button>/g) || [];
   assert.ok(pinButtons.length > 0, "at least one pin button must exist");
+  // Every pin button must contain a 📌 emoji.
+  for (const btn of pinButtons) {
+    assert.match(btn, /📌/u, "each pin button must contain the 📌 emoji");
+  }
+  // No pin button should use the old SVG pin icon.
   const hasSvg = pinButtons.some(btn => /<svg[^>]*class="pin-icon"/.test(btn));
-  assert.ok(hasSvg, "pin button must use an SVG pin icon");
-  const hasTextIcon = pinButtons.some(btn => />\s*[★☆📌📍]\s*</.test(btn));
-  assert.ok(!hasTextIcon, "pin button must NOT use text/emoji icons");
+  assert.ok(!hasSvg, "pin buttons must NOT use SVG pin icons — use 📌 emoji for consistency");
+  // Pinned section title must also use the same 📌 emoji.
+  assert.match(
+    indexHtml,
+    /<span class="pin-icon"[^>]*>📌<\/span>\s*Pinned/u,
+    "Pinned section title must use the 📌 emoji (same as pin buttons)",
+  );
 });
 
 test("ui: pin button has a subtle background for clickable affordance", () => {
