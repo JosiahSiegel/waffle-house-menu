@@ -31,9 +31,43 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<!--
+  Google Fonts is the largest render-blocking resource on initial
+  load (Lighthouse: ~860ms wasted). We swap the standard
+  <link rel="stylesheet"> for the non-blocking `media="print"
+  onload="this.media='all'"` pattern. On any browser that ignores
+  the onload handler, the <noscript> fallback applies the stylesheet
+  normally. The 400/600/700 → 400/600 trim drops a 10KB woff2 file
+  (no element on the page uses 700-weight IBM Plex Mono).
+-->
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;600&display=swap"
+  media="print"
+  onload="this.media='all'"
+>
+<noscript>
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;600&display=swap"
+  >
+</noscript>
 <link rel="modulepreload" href="filter.mjs">
-<link rel="preload" as="script" href="data/menu.js" crossorigin>
+<!--
+  Removed the redundant preload hint for data/menu.js.
+  Lighthouse flagged menu.js as being fetched TWICE on initial load
+  (~38KB each = 76KB total wasted bandwidth). The cause: a
+  preload+script-tag combination makes Chrome fetch the resource
+  eagerly, and the script tag later in the document fetches it
+  again because preload doesn't share the cache with script tags
+  the way modulepreload does for ES modules. The defer attribute
+  on the script tag already starts the fetch at HTML parse time
+  (just like preload does), so the preload hint was redundant
+  AND counter-productive. Letting the defer script tag handle
+  the fetch alone halves the bytes on the wire. Regression test
+  in test/ui.test.mjs asserts no `rel=preload as=script` tag
+  points at data/menu.js.
+-->
 <style>
 :root{
   --yellow:#FFD200;
@@ -333,6 +367,27 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
   align-items:flex-start;
   gap:5px 8px;
   transition:box-shadow .15s,border-color .15s;
+  /*
+    content-visibility:auto + contain-intrinsic-size tells the
+    browser to skip layout and paint work for off-screen meals.
+    Lighthouse flags the page for 18,076 DOM elements with max
+    depth 9 — the menu renders every meal expanded at once,
+    which means the browser has to layout/paint thousands of
+    nodes the user will never see on initial load.
+
+    contain-intrinsic-size reserves the layout space (an
+    estimated height) so the scrollbar doesn't jump when a
+    user scrolls into an unrendered region. The 600px estimate
+    is roughly the median meal height on this site — far
+    better than the default 1000px Chromium uses, which would
+    make the page look much taller than it really is.
+
+    No-javascript / no-content-visibility-support browsers
+    ignore the property and render normally (no fallback
+    needed — the keyword is `auto`, not `hidden`).
+  */
+  content-visibility:auto;
+  contain-intrinsic-size:auto 600px;
 }
 .meal:hover{
   box-shadow:0 2px 6px rgba(107,64,19,0.10);

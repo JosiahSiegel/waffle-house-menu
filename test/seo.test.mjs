@@ -223,8 +223,25 @@ test("render: every section gets a unique id like sec-<slug>", () => {
 // 6) Performance / preloading
 // ---------------------------------------------------------------------------
 
-test("perf: data/menu.js is preloaded", () => {
-  assert.match(indexHtml, /<link rel="preload"[^>]+href="data\/menu\.js"/u);
+test("perf: data/menu.js is NOT preloaded (causes double-fetch)", () => {
+  // REGRESSION: previously this test asserted that data/menu.js
+  // WAS preloaded. That was the bug — Lighthouse network panel
+  // showed menu.js being fetched TWICE on initial load (~38KB
+  // each = 76KB wasted bandwidth). Preload+script-tag don't share
+  // cache; the defer attribute on the script tag already starts
+  // the fetch at HTML parse time. The preload hint was both
+  // redundant and counter-productive. The script tag itself is
+  // the only fetch. Asserted as doesNotMatch to lock in the fix.
+  assert.doesNotMatch(
+    indexHtml,
+    /<link[^>]*rel="preload"[^>]+href="data\/menu\.js"/u,
+    "data/menu.js must NOT be preloaded (causes double-fetch; defer alone is enough)",
+  );
+  assert.match(
+    indexHtml,
+    /<script[^>]*src="data\/menu\.js"[^>]*defer/u,
+    "data/menu.js must still be loaded with defer (so the fetch starts at parse time)",
+  );
 });
 
 test("perf: filter.mjs is modulepreloaded", () => {
@@ -234,6 +251,33 @@ test("perf: filter.mjs is modulepreloaded", () => {
 test("perf: fonts preconnect (no render-blocking DNS lookups)", () => {
   assert.match(indexHtml, /<link rel="preconnect"[^>]+fonts\.googleapis\.com/u);
   assert.match(indexHtml, /<link rel="preconnect"[^>]+fonts\.gstatic\.com[^>]+crossorigin/u);
+});
+
+test("perf: google fonts is non-blocking (media=print + onload swap)", () => {
+  // REGRESSION: previously this site loaded fonts with a plain
+  // <link rel="stylesheet">, which is render-blocking. Lighthouse
+  // flagged it as the #1 render-blocking resource (~860ms wasted
+  // on FCP). The fix swaps the stylesheet tag to the non-blocking
+  // pattern: media="print" tells the browser to treat it as a
+  // print stylesheet (so it's NOT render-blocking for the screen),
+  // and the onload handler swaps media to "all" once the CSS is
+  // downloaded. A <noscript> fallback re-applies the stylesheet
+  // for users with JS disabled.
+  assert.match(
+    indexHtml,
+    /<link[^>]*rel="stylesheet"[^>]*href="https:\/\/fonts\.googleapis\.com\/css2\?family=Anton[^"]*"[^>]*media="print"/u,
+    "Google Fonts stylesheet must use the non-blocking media=\"print\" pattern",
+  );
+  assert.match(
+    indexHtml,
+    /onload="this\.media='all'"/u,
+    "Google Fonts stylesheet must swap media to 'all' on load",
+  );
+  assert.match(
+    indexHtml,
+    /<noscript>[\s\S]*?<link[^>]*href="https:\/\/fonts\.googleapis\.com/u,
+    "Google Fonts must have a <noscript> fallback for users without JS",
+  );
 });
 
 // ---------------------------------------------------------------------------

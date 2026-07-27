@@ -1551,3 +1551,81 @@ test("ui: Pinned section is minimal (no gradient, no emoji prefix, no hint)", ()
   assert.doesNotMatch(buildFn[0], /sec-hint/, "Pinned section must not have hint text");
   assert.doesNotMatch(buildFn[0], /\u{1F4CC}/u, "Pinned section must not have 📌 emoji in title");
 });
+
+test("ui: perf — Google Fonts is loaded non-blocking (media=print + onload swap)", () => {
+  // REGRESSION: Lighthouse flagged Google Fonts CSS as the largest
+  // render-blocking resource on initial load (~860ms wasted on
+  // FCP). The non-blocking pattern uses media="print" so the
+  // browser doesn't treat the stylesheet as render-blocking for
+  // the screen, then onload swaps the media to "all" once the
+  // CSS is downloaded. A <noscript> fallback re-applies the
+  // stylesheet for users with JS disabled (who would otherwise
+  // never get the fonts).
+  assert.match(
+    indexHtml,
+    /<link[^>]*rel="stylesheet"[^>]*href="https:\/\/fonts\.googleapis\.com\/css2\?family=Anton[^"]*"[^>]*media="print"/u,
+    "Google Fonts stylesheet must use the non-blocking media=\"print\" pattern",
+  );
+  assert.match(
+    indexHtml,
+    /onload="this\.media='all'"/u,
+    "Google Fonts stylesheet must swap media to 'all' on load",
+  );
+  assert.match(
+    indexHtml,
+    /<noscript>[\s\S]*?<link[^>]*href="https:\/\/fonts\.googleapis\.com/u,
+    "Google Fonts must have a <noscript> fallback for users without JS",
+  );
+  // Must NOT use 700-weight IBM Plex Mono (the original had
+  // wght@400;600;700 but no element on the page uses 700; the
+  // extra woff2 file was ~10KB of wasted bytes).
+  assert.doesNotMatch(
+    indexHtml,
+    /wght@400;600;700/u,
+    "Google Fonts URL must not request 700-weight IBM Plex Mono (no element uses it)",
+  );
+});
+
+test("ui: perf — menu.js is NOT double-fetched (preload removed)", () => {
+  // REGRESSION: Lighthouse network panel showed data/menu.js
+  // being fetched TWICE on initial load (38KB + 38KB = 76KB
+  // wasted bandwidth). The cause was a <link rel="preload"
+  // as="script" href="data/menu.js"> in the <head> — preload
+  // makes the browser fetch the resource eagerly, but preload
+  // and <script src> do NOT share cache. The defer attribute
+  // on the <script> tag already starts the fetch at HTML parse
+  // time, so the preload was both redundant and counter-
+  // productive. Fix: remove the preload; let the defer script
+  // tag handle the fetch alone.
+  assert.doesNotMatch(
+    indexHtml,
+    /<link[^>]*rel="preload"[^>]*as="script"[^>]*href="data\/menu\.js"/u,
+    "menu.js must NOT have a <link rel=preload as=script> tag (causes double-fetch)",
+  );
+  // The defer attribute on the script tag MUST still be present
+  // (so the script runs after parsing without blocking render).
+  assert.match(
+    indexHtml,
+    /<script[^>]*src="data\/menu\.js"[^>]*defer/u,
+    "data/menu.js script tag must still have defer",
+  );
+});
+
+test("ui: perf — .meal uses content-visibility:auto to skip off-screen paint", () => {
+  // REGRESSION: Lighthouse flagged 18,076 DOM elements with max
+  // depth 9 — the page renders every meal expanded at once. The
+  // .meal block now uses content-visibility:auto so the browser
+  // skips layout/paint for off-screen meals. contain-intrinsic-size
+  // reserves an estimated height so the scrollbar doesn't jump
+  // when scrolling into an unrendered region.
+  assert.match(
+    indexHtml,
+    /\.meal\{[\s\S]*?content-visibility\s*:\s*auto/u,
+    ".meal must use content-visibility:auto to skip off-screen paint work",
+  );
+  assert.match(
+    indexHtml,
+    /\.meal\{[\s\S]*?contain-intrinsic-size\s*:\s*auto\s+600px/u,
+    ".meal must have contain-intrinsic-size to reserve layout space for unrendered meals",
+  );
+});
