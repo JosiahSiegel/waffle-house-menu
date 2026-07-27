@@ -1233,7 +1233,7 @@ test("ui: applyFilters handles #sec-pinned with a dedicated per-item branch", ()
 // hint text). The pin button doesn't overlap the cal tile.
 // ---------------------------------------------------------------------------
 
-test("ui: pin button is absolutely positioned (doesn't push content)", () => {
+test("ui: pin button is absolutely positioned in the top-left corner (subtle)", () => {
   assert.match(
     indexHtml,
     /\.pin-btn\{[^}]*position:\s*absolute/u,
@@ -1241,21 +1241,27 @@ test("ui: pin button is absolutely positioned (doesn't push content)", () => {
   );
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*opacity:\s*1/u,
-    ".pin-btn must be fully opaque (opacity:1) so it's clearly visible",
+    /\.pin-btn\{[^}]*top:\s*6px[^}]*left:\s*6px/u,
+    ".pin-btn must be at top:6px left:6px (top-left corner)",
+  );
+  assert.match(
+    indexHtml,
+    /\.pin-btn\{[^}]*opacity:\s*\.5/u,
+    ".pin-btn default opacity must be .5 (subtle, discoverable but not loud)",
+  );
+  assert.match(
+    indexHtml,
+    /\.pin-btn\{[^}]*width:\s*24px/u,
+    ".pin-btn must be 24x24px (small, subtle)",
   );
 });
 
-test("ui: pin button is positioned at the RIGHT edge of the item (vertically centered)", () => {
+test("ui: meal-head has left padding to make room for the corner pin button", () => {
+  // padding:4px 2px 8px 32px — left padding is 32px
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*right:\s*6px/u,
-    ".pin-btn must be right:6px so it sits at the right edge of the item",
-  );
-  assert.match(
-    indexHtml,
-    /\.item-row\{[^}]*padding:[^;]*52px/u,
-    ".item-row must have right padding (~52px) to make room for the 40px pin button",
+    /\.meal-head\{[^}]*padding:[^;]*32px/u,
+    ".meal-head must have left padding of 32px so the pin button doesn't overlap the meal-eyebrow",
   );
 });
 
@@ -1270,23 +1276,18 @@ test("ui: pin button uses an SVG pin icon (not text or emoji)", () => {
   assert.ok(!hasTextIcon, "pin button must NOT use text/emoji icons");
 });
 
-test("ui: pin button has a visible background for clickable affordance", () => {
-  // Pin button is 40x40 with white background and 2px brown border —
-  // it matches the visual weight of the cal tile next to it.
+test("ui: pin button has a subtle background for clickable affordance", () => {
+  // Pin button is small (24x24) with a semi-transparent white
+  // background and thin border. Subtle but clearly clickable.
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*background:\s*#fff/u,
-    ".pin-btn must have a white background so it looks like a button",
+    /\.pin-btn\{[^}]*background:\s*rgba\(255,255,255/u,
+    ".pin-btn must have a semi-transparent white background",
   );
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*border:\s*2px solid var\(--brown\)/u,
-    ".pin-btn must have a 2px brown border so it looks clickable",
-  );
-  assert.match(
-    indexHtml,
-    /\.pin-btn\{[^}]*width:\s*40px/u,
-    ".pin-btn must be 40px wide to match the cal tile visual weight",
+    /\.pin-btn\{[^}]*border-radius:\s*50%/u,
+    ".pin-btn must be circular (border-radius:50%)",
   );
 });
 
