@@ -1224,16 +1224,34 @@ test("ui: pin button is absolutely positioned (doesn't push content)", () => {
   );
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*opacity:\s*\.3/u,
-    ".pin-btn default opacity must be low (0.3-0.4) so it's not obtrusive",
+    /\.pin-btn\{[^}]*opacity:\s*\.2/u,
+    ".pin-btn default opacity must be very low (0.2) so it's subtle",
   );
 });
 
-test("ui: meal-head gets padding-left to make room for the pin button", () => {
+test("ui: pin button is positioned to the LEFT of the cal tile (not overlapping)", () => {
+  // Rev 3: pin button is vertically centered, positioned to the
+  // left of the cal tile via right: 58px (standalone items).
   assert.match(
     indexHtml,
-    /\.meal>\.item\.meal-main \.meal-head\{[^}]*padding-left:\s*30px/u,
-    "meal-head must have padding-left:30px to clear the pin button",
+    /\.pin-btn\{[^}]*right:\s*58px/u,
+    ".pin-btn must be right:58px so it sits to the left of the cal tile",
+  );
+});
+
+test("ui: Pinned section has a yellow left border accent", () => {
+  assert.match(
+    indexHtml,
+    /details#sec-pinned\{[^}]*border-left:\s*3px solid var\(--yellow\)/u,
+    "Pinned section must have a yellow left border to distinguish it from regular sections",
+  );
+});
+
+test("ui: Pinned section title has a star prefix (visual distinction)", () => {
+  assert.match(
+    indexHtml,
+    /details#sec-pinned \.sec-title::before\s*\{[^}]*content:["']\\2605\\20["']/u,
+    "Pinned section title must have a ★ prefix via CSS ::before",
   );
 });
 
