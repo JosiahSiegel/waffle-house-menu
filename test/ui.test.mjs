@@ -1184,6 +1184,31 @@ test("ui: pin button CSS class and data attribute exist", () => {
   assert.match(indexHtml, /data-pin-name=/, "pin buttons must carry data-pin-name");
 });
 
+test("ui: pin button does NOT overlap with the meal-eyebrow (left padding 34px)", () => {
+  // The pin button is at top:6px left:6px (24x24, ends at x:30).
+  // The meal-eyebrow must start at >= 34px from the left of
+  // the meal-head. This requires padding-left:34px on the
+  // meal-head, which must come AFTER the .item-row rule
+  // (because .meal-head is also .item-row, and later rules
+  // win for same-specificity selectors).
+  assert.match(
+    indexHtml,
+    /\.meal>\.item\.meal-main \.meal-head\{[^}]*padding:[^;]*34px/u,
+    ".meal>.item.meal-main .meal-head must have left padding of 34px (must come AFTER .item-row rule)",
+  );
+});
+
+test("ui: pin button does NOT overlap with item name on standalone/pinned items", () => {
+  // Standalone items and pinned items also have pin buttons.
+  // The .item-row default must have left padding of 34px so
+  // the item name doesn't overlap with the pin button.
+  assert.match(
+    indexHtml,
+    /\.item-row\{[^}]*padding:[^;]*34px/u,
+    ".item-row must have left padding of 34px to make room for the corner pin button",
+  );
+});
+
 test("ui: sub-items (meal pills) do NOT have pin buttons", () => {
   // Sub-items in a meal (Choices/Includes/Add-ons/Meats/Toppings)
   // should NOT be pinnable. You pin the meal, not individual

@@ -682,9 +682,14 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 .item.h,.grp-h.h,details.sec.h,.jumpnav a.h,.meal.h{display:none}
 .item-row{
   width:100%;text-align:left;background:none;border:0;cursor:pointer;
-  display:flex;align-items:center;gap:10px;padding:11px 2px;
+  display:flex;align-items:center;gap:10px;padding:11px 2px 11px 34px;
   font:inherit;color:inherit;-webkit-tap-highlight-color:transparent;
 }
+/* Meal head needs left padding to make room for the corner
+   pin button (24x24 at top:6px left:6px). This must come
+   AFTER .item-row because .meal-head is also an .item-row,
+   and the later rule wins for same-specificity selectors. */
+.meal>.item.meal-main .meal-head{padding:4px 2px 8px 34px}
 .item-row:focus-visible{outline:3px solid var(--yellow);outline-offset:-3px}
 .item-name{flex:1;min-width:0;font-weight:600;font-size:14.5px}
 /* Meal context line: small, italic, dim. Shown under sub-items
