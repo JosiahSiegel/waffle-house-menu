@@ -1540,71 +1540,14 @@ function render(data){
   // its own styling; the .has-pinned class controls whether it
   // shows at all (no items pinned → display:none).
   const pinnedHTML = buildPinnedSectionHTML(data);
+  menuEl.innerHTML = pinnedHTML + html;
 
-  // Chunked render. The full menu has 18k+ DOM elements; assigning
-  // all of it to menuEl.innerHTML in a single shot creates a
-  // 1,000+ms long task (Lighthouse TBT was 1,110ms on real
-  // hardware). We split the per-section HTML at `<details>` boundaries
-  // and append each section in its own task, yielding to the
-  // browser with requestAnimationFrame between chunks. Each task
-  // appends a section + caches it for applyFilters(); the browser
-  // gets a paint opportunity between tasks, so the main thread is
-  // never blocked for the 50ms long-task threshold. Net effect:
-  // TBT drops from 1,110ms to a few ms per chunk (~30-40ms well
-  // under the threshold) and the user sees the menu populate
-  // progressively instead of a 1-second blank-then-everything.
-  //
-  // `_sectionEls` is appended to incrementally so applyFilters
-  // works on whatever sections are visible right now — even if
-  // the user starts typing in the search box mid-render.
-  menuEl.innerHTML = pinnedHTML;
-  const sectionChunks = html.split(/(?=<details\b)/);
-  _sectionEls = [];
-  let chunkIdx = 0;
-  const appendNextBatch = () => {
-    // Append as many sections as fit in a ~30ms window. 30ms is
-    // well under the 50ms long-task threshold so each batch stays
-    // off the TBT radar. We could go smaller (1 section per
-    // batch) but that creates too many paint passes and looks
-    // janky. 30ms batches give a smooth fill-in.
-    const batchStart = performance.now();
-    while (chunkIdx < sectionChunks.length && performance.now() - batchStart < 30) {
-      const t = document.createElement('div');
-      t.innerHTML = sectionChunks[chunkIdx];
-      // The first element child of the temp div is the <details>
-      // we want; any subsequent nodes would be trailing text
-      // (there shouldn't be any, but defensive copy moves them
-      // too). Move all children to menuEl.
-      while (t.firstChild) {
-        const node = t.firstChild;
-        if (node.nodeType === Node.ELEMENT_NODE && node.matches && node.matches('details.sec')) {
-          cacheSection(node);
-          _sectionEls.push(node);
-        }
-        menuEl.appendChild(node);
-      }
-      chunkIdx++;
-    }
-    if (chunkIdx < sectionChunks.length) {
-      // Yield to the browser. requestAnimationFrame gives a
-      // guaranteed paint before the next task; that's the
-      // difference between "menu fills in" and "blank screen
-      // for 1 second then everything".
-      requestAnimationFrame(appendNextBatch);
-    } else {
-      onRenderComplete();
-    }
-  };
-  requestAnimationFrame(appendNextBatch);
-
-  // Per-section DOM cache builder. Extracted from the old loop
-  // so the chunked render above can call it on each appended
-  // section. Same logic as before: pre-compute the [first,last]
-  // item-index ranges each .meal and .grp-h owns, so applyFilters
-  // never has to walk the DOM (it becomes pure property reads +
-  // classList.toggle). The build is the same total work, just
-  // distributed across tasks instead of all upfront.
-  function cacheSection(sec) {
+  // Build the per-section DOM caches that applyFilters() uses on
+  // every keystroke. Doing this once here turns applyFilters into
+  // pure property reads + classList.toggle — no querySelectorAll,
+  // no getElementById, no getBoundingClientRect per pass.
+  _sectionEls = Array.from(menuEl.querySelectorAll('details.sec'));
+  for (const sec of _sectionEls) {
     sec._itemEls = Array.from(sec.querySelectorAll('.item'));
     sec._grpHs = Array.from(sec.querySelectorAll('.grp-h'));
     sec._mealEls = Array.from(sec.querySelectorAll('.meal'));
@@ -1649,23 +1592,6 @@ function render(data){
       gh._first = first;
       gh._last = last;
     }
-  }
-
-  // Runs after the last section is appended. Hooks up everything
-  // that needed all sections in the DOM: jumpnav, structured data,
-  // clear-all button, scroll handler, initial filter pass, and
-  // the loading-indicator hide.
-  function onRenderComplete() {
-    buildJumpnav();
-    injectStructuredData(window.MENU_DATA);
-    syncClearAll();
-    onScroll();
-    // Now that the menu is in the DOM, run the filter pass so
-    // the empty state is correctly managed. _sectionEls is now
-    // fully populated.
-    applyFilters();
-    // Hide the loading indicator now that the menu is rendered.
-    document.getElementById('loading').classList.remove('show');
   }
 
   // build one chip per allergen actually present in the data
@@ -2275,16 +2201,20 @@ if(window.MENU_DATA&&window.MENU_DATA.sections){
   const hash=new URL(location.href).hash.replace(/^#/,'');
   const params=new URLSearchParams(hash);
   setInvert(params.get('invert')==='1');
-  // render() is now chunked/async — it splits the per-section HTML
-  // at <details> boundaries, appends each section in its own task
-  // with requestAnimationFrame yields between, and runs the
-  // post-render work (jumpnav, structured data, filter pass,
-  // loading-indicator hide) from onRenderComplete() once the
-  // last section lands. The TBT fix: instead of one ~1,100ms
-  // long task, ~25 short tasks of 30-40ms each, well under the
-  // 50ms long-task threshold. The user sees the menu populate
-  // progressively.
   render(window.MENU_DATA);
+  buildJumpnav();
+  injectStructuredData(window.MENU_DATA);
+  syncClearAll();
+  onScroll();
+  // Hide the loading indicator now that the menu is rendered.
+  document.getElementById('loading').classList.remove('show');
+  // Now that the menu is in the DOM, run the filter pass so
+  // the empty state is correctly managed. Without this,
+  // setInvert() above would have added .show to the empty div
+  // (because _sectionEls was empty at the time), and the empty
+  // "Nothing matches" message would stay visible on top of the
+  // freshly rendered menu.
+  applyFilters();
 }else{
   document.getElementById('loading').classList.remove('show');
   document.getElementById('loadErr').classList.add('show');
