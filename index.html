@@ -682,7 +682,7 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 .item.h,.grp-h.h,details.sec.h,.jumpnav a.h,.meal.h{display:none}
 .item-row{
   width:100%;text-align:left;background:none;border:0;cursor:pointer;
-  display:flex;align-items:center;gap:10px;padding:11px 36px 11px 2px;
+  display:flex;align-items:center;gap:10px;padding:11px 52px 11px 2px;
   font:inherit;color:inherit;-webkit-tap-highlight-color:transparent;
 }
 .item-row:focus-visible{outline:3px solid var(--yellow);outline-offset:-3px}
@@ -717,32 +717,32 @@ details.sec[open] .sec-caret{transform:rotate(90deg)}
 .pin-btn{
   position:absolute;top:50%;right:6px;z-index:3;
   transform:translateY(-50%);
-  width:30px;height:30px;
+  width:40px;height:40px;
   background:#fff;
-  border:1.5px solid var(--line);
+  border:2px solid var(--brown);
   cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;
   color:var(--brown);
-  opacity:.7;
-  border-radius:7px;
+  opacity:1;
+  border-radius:8px;
   padding:0;
-  box-shadow:0 1px 2px rgba(0,0,0,.06);
+  box-shadow:0 2px 4px rgba(0,0,0,.1);
   -webkit-tap-highlight-color:transparent;
-  transition:opacity .15s,background .15s,border-color .15s,color .15s,transform .1s,box-shadow .15s;
+  transition:background .15s,border-color .15s,color .15s,transform .1s,box-shadow .15s;
 }
-.pin-btn:hover{opacity:1;background:#FFFCF1;border-color:var(--brown);box-shadow:0 2px 4px rgba(0,0,0,.1)}
+.pin-btn:hover{background:#FFFCF1;border-color:var(--ink);box-shadow:0 3px 6px rgba(0,0,0,.15)}
 .pin-btn:active{transform:translateY(-50%) scale(.88)}
-.pin-btn:focus-visible{opacity:1;outline:2px solid var(--yellow);outline-offset:1px}
-.pin-btn[aria-pressed="true"]{opacity:1;color:#000;background:var(--yellow);border-color:var(--yellow);box-shadow:0 1px 3px rgba(241,196,15,.4)}
-.pin-btn[aria-pressed="true"]:hover{background:#FFD700;border-color:#E6B800;box-shadow:0 2px 5px rgba(241,196,15,.5)}
+.pin-btn:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+.pin-btn[aria-pressed="true"]{color:var(--black);background:var(--yellow);border-color:var(--ink);box-shadow:0 2px 5px rgba(241,196,15,.5)}
+.pin-btn[aria-pressed="true"]:hover{background:#FFD700;box-shadow:0 3px 7px rgba(241,196,15,.6)}
 /* SVG icon styling: outline when unpinned, filled when pinned */
-.pin-btn .pin-icon{width:16px;height:16px;display:block}
-.pin-btn .pin-icon .pin-body{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pin-btn .pin-icon{width:20px;height:20px;display:block}
+.pin-btn .pin-icon .pin-body{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pin-btn .pin-icon .pin-dot{fill:currentColor}
 .pin-btn[aria-pressed="true"] .pin-icon .pin-body{fill:currentColor;stroke:none}
-[data-theme="dark"] .pin-btn{color:#8A7A60;background:#2A2318;border-color:#3A3328;box-shadow:0 1px 2px rgba(0,0,0,.3)}
-[data-theme="dark"] .pin-btn:hover{background:#352D24;border-color:var(--yellow);box-shadow:0 2px 4px rgba(0,0,0,.4)}
-[data-theme="dark"] .pin-btn[aria-pressed="true"]{color:var(--black);background:var(--yellow);border-color:var(--yellow);box-shadow:0 1px 3px rgba(241,196,15,.3)}
+[data-theme="dark"] .pin-btn{color:var(--ink);background:#2A2318;border-color:#5A4920;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+[data-theme="dark"] .pin-btn:hover{background:#352D24;border-color:var(--yellow);box-shadow:0 3px 6px rgba(0,0,0,.4)}
+[data-theme="dark"] .pin-btn[aria-pressed="true"]{color:var(--black);background:var(--yellow);border-color:var(--ink);box-shadow:0 2px 5px rgba(241,196,15,.3)}
 /* On meal cards the pin sits next to the wider cal tile.
    Same right:6px position works because the meal-head already
    has internal padding for the cal tile. The pin is at the
