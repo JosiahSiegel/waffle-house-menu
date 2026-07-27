@@ -1355,6 +1355,52 @@ test("ui: pin button uses the 📌 thumbtack emoji consistently (no SVG variants
   );
 });
 
+test("ui: buildPinnedSectionHTML finds meals (groups[].h), not just standalone items (items[].n)", () => {
+  // REGRESSION: Kids Meals (and any other meal like All-Star
+  // Special) couldn't be pinned because buildPinnedSectionHTML
+  // only searched groups[].items[].n. Meal names live in
+  // groups[].h, so the function never found them and the
+  // Pinned section rendered 0 items even though the pin was
+  // registered (aria-pressed=true, has-pinned class added).
+  // The Pinned section then got the `.h` class from
+  // applyFilters (because pinItemCount was 0) and became
+  // invisible. Fix: search groups[].h as well, and use the
+  // first item in the group as the "main item" for cal/allergens.
+  // The function must reference both `g.h` and `g.items`.
+  assert.match(
+    indexHtml,
+    /function\s+buildPinnedSectionHTML[\s\S]*?g\.h\s*===\s*name/u,
+    "buildPinnedSectionHTML must check g.h (meal names) in addition to g.items[].n",
+  );
+  assert.match(
+    indexHtml,
+    /function\s+buildPinnedSectionHTML[\s\S]*?g\.items/u,
+    "buildPinnedSectionHTML must reference g.items (for both the meal and standalone searches)",
+  );
+});
+
+test("ui: pinned items show the section title as context (item-context element)", () => {
+  // REGRESSION: Pinned items like \"2 Eggs - Scrambled\" had
+  // no way to know which section they came from. The user
+  // couldn't tell if it was the All-Star Special or another
+  // section that happened to have the same item name. Fix:
+  // add a .item-context element under the item name showing
+  // the section title (e.g. \"All-Star Special\"). This must
+  // be rendered for EVERY pinned item, not just meals.
+  assert.match(
+    indexHtml,
+    /function\s+buildPinnedSectionHTML[\s\S]*?item-context/u,
+    "buildPinnedSectionHTML must render an .item-context element with the section title",
+  );
+  // The CSS for .item-context must exist and be styled
+  // (small, dim, monospace).
+  assert.match(
+    indexHtml,
+    /\.item-context\s*\{[^}]*font-size\s*:\s*10\.5px/u,
+    ".item-context must be styled small (10.5px)",
+  );
+});
+
 test("ui: pin button has a subtle background for clickable affordance", () => {
   // Pin button is small (24x24) with a semi-transparent white
   // background and thin border. Subtle but clearly clickable.
