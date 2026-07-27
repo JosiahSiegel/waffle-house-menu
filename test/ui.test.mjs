@@ -1224,34 +1224,81 @@ test("ui: pin button is absolutely positioned (doesn't push content)", () => {
   );
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*opacity:\s*\.2/u,
-    ".pin-btn default opacity must be very low (0.2) so it's subtle",
+    /\.pin-btn\{[^}]*opacity:\s*\.55/u,
+    ".pin-btn default opacity must be .55 so it's discoverable but not loud",
   );
 });
 
-test("ui: pin button is positioned to the LEFT of the cal tile (not overlapping)", () => {
-  // Rev 3: pin button is vertically centered, positioned to the
-  // left of the cal tile via right: 58px (standalone items).
+test("ui: pin button is positioned at the RIGHT edge of the item (vertically centered)", () => {
+  // Rev 4: pin button is at the right edge of the item, vertically
+  // centered. The item-row gets right padding to make room.
   assert.match(
     indexHtml,
-    /\.pin-btn\{[^}]*right:\s*58px/u,
-    ".pin-btn must be right:58px so it sits to the left of the cal tile",
+    /\.pin-btn\{[^}]*right:\s*6px/u,
+    ".pin-btn must be right:6px so it sits at the right edge of the item",
+  );
+  assert.match(
+    indexHtml,
+    /\.item-row\{[^}]*padding:[^;]*36px/u,
+    ".item-row must have right padding (~36px) to make room for the pin button",
+  );
+});
+
+test("ui: pin button uses an SVG pin icon (not text or emoji)", () => {
+  // The pin button must contain an <svg> with a pin-shaped path
+  // and a dot circle. This is the rev 4 design.
+  const pinButtons = indexHtml.match(/<button[^>]*class="pin-btn"[^>]*>[\s\S]*?<\/button>/g) || [];
+  assert.ok(pinButtons.length > 0, "at least one pin button must exist");
+  const hasSvg = pinButtons.some(btn => /<svg[^>]*class="pin-icon"/.test(btn));
+  assert.ok(hasSvg, "pin button must use an SVG pin icon");
+  const hasTextIcon = pinButtons.some(btn => />\s*[★☆📌📍]\s*</.test(btn));
+  assert.ok(!hasTextIcon, "pin button must NOT use text/emoji icons");
+});
+
+test("ui: pin button has a subtle background for clickable affordance", () => {
+  // Rev 4: pin button has a background color so it looks clickable
+  assert.match(
+    indexHtml,
+    /\.pin-btn\{[^}]*background:\s*rgba\(0,0,0/u,
+    ".pin-btn must have a subtle background so it looks clickable",
+  );
+});
+
+test("ui: pin button pinned state is clearly visible (yellow, filled)", () => {
+  assert.match(
+    indexHtml,
+    /\.pin-btn\[aria-pressed="true"\][^}]*color:\s*var\(--yellow\)/u,
+    "pinned pin button must be yellow",
+  );
+  assert.match(
+    indexHtml,
+    /\.pin-btn\[aria-pressed="true"\][^}]*background:\s*rgba\(241,196,15/u,
+    "pinned pin button must have a yellow-tinted background",
   );
 });
 
 test("ui: Pinned section has a yellow left border accent", () => {
   assert.match(
     indexHtml,
-    /details#sec-pinned\{[^}]*border-left:\s*3px solid var\(--yellow\)/u,
-    "Pinned section must have a yellow left border to distinguish it from regular sections",
+    /details#sec-pinned\{[^}]*border-left:\s*4px solid var\(--yellow\)/u,
+    "Pinned section must have a 4px yellow left border to distinguish it from regular sections",
   );
 });
 
-test("ui: Pinned section title has a star prefix (visual distinction)", () => {
+test("ui: Pinned section has a subtle yellow background tint", () => {
+  // Rev 4: the Pinned section gets a subtle yellow gradient background
   assert.match(
     indexHtml,
-    /details#sec-pinned \.sec-title::before\s*\{[^}]*content:["']\\2605\\20["']/u,
-    "Pinned section title must have a ★ prefix via CSS ::before",
+    /details#sec-pinned\{[^}]*background:\s*linear-gradient[^)]*241,196,15/u,
+    "Pinned section must have a subtle yellow background tint",
+  );
+});
+
+test("ui: Pinned section count is displayed in a yellow pill", () => {
+  assert.match(
+    indexHtml,
+    /details#sec-pinned \.sec-count\{[^}]*background:\s*rgba\(241,196,15/u,
+    "Pinned section count must be in a yellow pill background",
   );
 });
 
