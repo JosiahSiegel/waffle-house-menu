@@ -1285,7 +1285,7 @@ function buildPinnedSectionHTML(data) {
     // is the item name (e.g. "2 Eggs - Scrambled"). Both need
     // the section context to disambiguate.
     items.push(
-      `<div class="item pin-item" data-name="${esc(name.toLowerCase())}" data-a="${esc(a.join("|"))}" data-section="${esc(foundSection.title)}" data-is-meal="${isMeal ? '1' : '0'}">
+      `<div class="item pin-item" data-facts-loaded data-name="${esc(name.toLowerCase())}" data-a="${esc(a.join("|"))}" data-section="${esc(foundSection.title)}" data-is-meal="${isMeal ? '1' : '0'}">
         <button class="item-row" aria-expanded="false" type="button">
           <span class="item-name">${esc(name)}${tags}${context}</span>
           <span class="cal-tile">${found.d[0]}<small>CAL</small></span>
@@ -1459,7 +1459,7 @@ function render(data){
           // full nutrition facts. CSS makes .meal-main full-width
           // so the header spans the whole card.
           openMeal = `<div class="meal" data-name="${esc(name.toLowerCase())}" data-a="${esc(a.join("|"))}" data-meal="${esc(name)}">
-            <div class="item meal-main" data-name="${esc(name.toLowerCase())}" data-a="${esc(a.join("|"))}" data-meal="${esc(name)}">
+            <div class="item meal-main" data-facts-loaded data-name="${esc(name.toLowerCase())}" data-a="${esc(a.join("|"))}" data-meal="${esc(name)}">
               <button class="item-row meal-head" aria-expanded="false" type="button">
                 <span class="meal-head-info">
                   <span class="meal-head-eyebrow">meal</span>
