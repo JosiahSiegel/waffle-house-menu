@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: JosiahSiegel/umactually-action@000deded07b809f4aae814c786afaa33bd5963eb  # v1
+      - uses: JosiahSiegel/umactually-action@9924e799c11ae31a694caf761bdfe7d66b7e78e9  # v1
         with:
-          cli-version: 0.10.0
+          cli-version: 0.10.1
           provider: openai-compatible
           model: MiniMax-M3
           api-url: ${{ secrets.UMACTUALLY_API_URL }}
