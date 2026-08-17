@@ -2,3 +2,5 @@ node_modules/
 dist/
 data/menu.js
 snap-pill.mjs
+.omo
+.openchamber
