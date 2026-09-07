@@ -41,6 +41,7 @@ jobs:
           set -o pipefail
           python scripts/sync.py | tee sync_out.txt
           echo "result=$(tail -n1 sync_out.txt)" >> "$GITHUB_OUTPUT"
+          python -c "import json; print('source_updated=' + str(json.load(open('data/meta.json'))['source_updated']))" >> "$GITHUB_OUTPUT"
 
       - name: Regression test (allergen anchor filter)
         # If a future change to index.html's filter logic or the
@@ -62,8 +63,8 @@ jobs:
           base: main
           branch: automation/sync-nutritionals
           add-paths: data/
-          commit-message: "chore: sync nutritionals"
-          title: "chore: sync nutritionals"
+          commit-message: "chore: sync nutritionals (source updated ${{ steps.sync.outputs.source_updated }})"
+          title: "chore: sync nutritionals (source updated ${{ steps.sync.outputs.source_updated }})"
           body: |
             Updates the menu data from the latest official nutritionals PDF.
             Merge after the required Tests checks pass.
