@@ -12,6 +12,8 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
+  actions: write
 
 concurrency:
   group: sync
@@ -22,6 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: actions/setup-python@v5
         with:
@@ -37,19 +41,7 @@ jobs:
           set -o pipefail
           python scripts/sync.py | tee sync_out.txt
           echo "result=$(tail -n1 sync_out.txt)" >> "$GITHUB_OUTPUT"
-
-      - name: Commit updated data
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
-          if git diff --cached --quiet; then
-            echo "No data changes."
-          else
-            src=$(python -c "import json;print(json.load(open('data/meta.json'))['source_updated'])")
-            git commit -m "chore: sync nutritionals (source updated ${src})"
-            git push
-          fi
+          python -c "import json; print('source_updated=' + str(json.load(open('data/meta.json'))['source_updated']))" >> "$GITHUB_OUTPUT"
 
       - name: Regression test (allergen anchor filter)
         # If a future change to index.html's filter logic or the
@@ -63,3 +55,24 @@ jobs:
           else
             echo "::warning::data/menu.json not present; skipping filter test."
           fi
+
+      - name: Create or update data pull request
+        id: data-pr
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          base: main
+          branch: automation/sync-nutritionals
+          add-paths: data/
+          commit-message: "chore: sync nutritionals (source updated ${{ steps.sync.outputs.source_updated }})"
+          title: "chore: sync nutritionals (source updated ${{ steps.sync.outputs.source_updated }})"
+          body: |
+            Updates the menu data from the latest official nutritionals PDF.
+            Merge after the required Tests checks pass.
+
+      - name: Run required checks on the data branch
+        if: steps.data-pr.outputs.pull-request-number
+        # GITHUB_TOKEN-created PRs and pushes do not trigger other workflows.
+        # workflow_dispatch does, and records checks against the branch's HEAD.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run test.yml --ref automation/sync-nutritionals

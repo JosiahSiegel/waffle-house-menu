@@ -30,17 +30,26 @@ index.html                   static site, renders data/menu.js
   chips appear automatically if future PDFs add Fish, Shellfish, or Sesame).
   Selected allergens hide any item that lists them. Driven entirely by the
   PDF's own data, not name heuristics.
-- The workflow commits `data/` only when the PDF's sha256 or parsed output
-  changes.
+- When `data/` changes, the workflow opens or updates a pull request from
+  `automation/sync-nutritionals` to `main` instead of pushing to protected
+  `main`. It runs the Python regression before publishing the PR and
+  explicitly dispatches the `Tests` workflow on the data branch so the
+  required `filter rule (node --test)` check can pass before merging.
 
 ## Setup
 
 1. Push this repo to GitHub.
 2. Settings → Pages → Deploy from branch → `main` / root.
-3. Settings → Actions → General → Workflow permissions → "Read and write
-   permissions" (needed for the sync commit).
+3. Settings → Actions → General → Workflow permissions → enable "Allow
+   GitHub Actions to create and approve pull requests". The sync workflow
+   grants its `GITHUB_TOKEN` Contents, Pull requests, and Actions write
+   permissions to update the data branch, create the PR, and dispatch tests.
+   No personal access token is needed: explicit dispatch runs CI even though
+   PRs created with `GITHUB_TOKEN` do not trigger workflows automatically.
 4. Run the "Sync Waffle House nutritionals" workflow manually once, or wait
    for Monday.
+5. Review and merge the data-update PR after its required checks pass.
+   Keep branch protection enabled; the sync does not bypass it.
 
 ## Local run
 
