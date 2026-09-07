@@ -807,14 +807,14 @@ test("menu: Pecans in Waffles section is a Topping, not a separate meal", () => 
   assert.ok(toppings, "Waffles must have a Toppings group");
   assert.equal(toppings.items.length, 4, "Waffles Toppings must have 4 items");
   const toppingNames = toppings.items.map(i => i.n);
-  assert.ok(toppingNames.includes("Pecans"),
+  assert.ok(toppingNames.includes("Pecans - 0.75-oz"),
     `Toppings must include Pecans, got: ${toppingNames.join(", ")}`);
-  assert.ok(toppingNames.includes("Chocolate Chips"));
-  assert.ok(toppingNames.includes("Blueberry Nougat"));
-  assert.ok(toppingNames.includes("Peanut Butter Chips"));
+  assert.ok(toppingNames.includes("Chocolate Chips - 0.75-oz"));
+  assert.ok(toppingNames.includes("Blueberry Nougat - 1-oz"));
+  assert.ok(toppingNames.includes("Peanut Butter Chips - 0.75-oz"));
   // No "Pecans" as its own main item
   const pecansOwnMeal = waffles.groups.some(g =>
-    g.h === null && g.items.some(i => i.n === "Pecans")
+    g.h === null && g.items.some(i => i.n === "Pecans - 0.75-oz")
   );
   assert.equal(pecansOwnMeal, false,
     "Pecans must NOT be its own main item in Waffles");
@@ -845,16 +845,8 @@ test("menu: Egg Breakfasts has 'Fiesta Protein Bowl' as its own meal", () => {
         `Fiesta Protein Bowl must not be in group h=${JSON.stringify(g.h)}`);
     }
   }
-  // It must have its own bread + side Choices groups following it
-  const breadChoices = egg.groups[egg.groups.indexOf(fiesta) + 1];
-  const sideChoices = egg.groups[egg.groups.indexOf(fiesta) + 2];
-  assert.ok(breadChoices && breadChoices.h === "Choices",
-    "Fiesta Protein Bowl must be followed by a Choices group (bread)");
-  assert.ok(sideChoices && sideChoices.h === "Choices",
-    "Fiesta Protein Bowl must be followed by a Choices group (sides)");
-  // Bread choices should include Raisin Toast
-  assert.ok(breadChoices.items.some(i => i.n === "Raisin Toast - 2 Slices"),
-    "Bread choices for Fiesta Protein Bowl must include Raisin Toast");
+  assert.equal(egg.groups.indexOf(fiesta), egg.groups.length - 1,
+    "The 08/27/26 PDF ends Egg Breakfasts with Fiesta Protein Bowl, without choices");
 });
 
 test("menu: Omelet Breakfasts 'Fiesta Omelet Breakfast' has only 1 main item", () => {
@@ -888,11 +880,9 @@ test("menu: Omelet Breakfasts 'Fiesta Omelet Breakfast' has only 1 main item", (
     `Bread choices for Fiesta Omelet must have 5 items, got ${breadChoices.items.length}: ${breadChoices.items.map(i => i.n).join(", ")}`);
 });
 
-test("menu: every Egg Breakfasts meal has exactly 2 'Choices' groups", () => {
-  // Each Egg Breakfasts meal in the PDF has 2 "Plus your
-  // choice of:" lines (bread + sides). The data must mirror
-  // that. This catches the parser bug where a meal's choices
-  // got attached to the wrong meal.
+test("menu: Egg Breakfasts meals have 2 'Choices' groups, except Fiesta Protein Bowl", () => {
+  // Fiesta Protein Bowl has no choices in the 08/27/26 PDF.
+  // Every other meal retains its own bread and side choices.
   const menuJs = readFileSync("data/menu.js", "utf8");
   const ctx = { window: {} };
   vm.createContext(ctx);
@@ -908,7 +898,7 @@ test("menu: every Egg Breakfasts meal has exactly 2 'Choices' groups", () => {
       if (pendingMeal) choicesAfterMeal++;
     } else {
       if (pendingMeal) {
-        if (choicesAfterMeal !== 2) {
+        if (choicesAfterMeal !== (pendingMeal === "Fiesta Protein Bowl" ? 0 : 2)) {
           badMeals.push({ meal: pendingMeal, choices: choicesAfterMeal });
         }
       }
@@ -916,7 +906,7 @@ test("menu: every Egg Breakfasts meal has exactly 2 'Choices' groups", () => {
       choicesAfterMeal = 0;
     }
   }
-  if (pendingMeal && choicesAfterMeal !== 2) {
+  if (pendingMeal && choicesAfterMeal !== (pendingMeal === "Fiesta Protein Bowl" ? 0 : 2)) {
     badMeals.push({ meal: pendingMeal, choices: choicesAfterMeal });
   }
   assert.equal(badMeals.length, 0,
@@ -943,15 +933,15 @@ test("menu: Hashbrowns & Toppings: Sautéed Onions is a Topping, not a main", ()
   assert.equal(mains.length, 3,
     `Hashbrowns & Toppings must have exactly 3 mains, got ${mains.length}: ${mains.join(", ")}`);
   assert.equal(mains[0], "Regular Hashbrowns");
-  assert.equal(mains[1], "Large Hashbrowns");
-  assert.equal(mains[2], "Triple Hashbrowns");
+  assert.equal(mains[1], "Large Hashbrowns - 2 orders");
+  assert.equal(mains[2], "Triple Hashbrowns - 3 orders");
   const toppings = hash.groups.find(g => g.h === "Toppings");
   assert.ok(toppings, "Hashbrowns & Toppings must have a Toppings group");
   assert.equal(toppings.items.length, 8, `Toppings must have 8 items, got ${toppings.items.length}`);
   const names = toppings.items.map(i => i.n);
-  assert.ok(names.includes("Sautéed Onions"),
+  assert.ok(names.includes("Sautéed Onions - 1.5-oz"),
     `Toppings must include Sautéed Onions, got: ${names.join(", ")}`);
-  const sautedMain = hash.groups.some(g => g.h === null && g.items.some(i => i.n === "Sautéed Onions"));
+  const sautedMain = hash.groups.some(g => g.h === null && g.items.some(i => i.n === "Sautéed Onions - 1.5-oz"));
   assert.equal(sautedMain, false, "Sautéed Onions must NOT be a standalone main");
 });
 
@@ -1017,7 +1007,7 @@ test("menu: Hashbrown Bowls Include items sum to the meal's calorie total", () =
   }
 });
 
-test("menu: Bert's Chili 8oz is 2x 4oz, 2oz topping is half 4oz", () => {
+test("menu: Bert's Chili 6oz is 2x 3oz topping, 9oz is 3x topping", () => {
   // Sanity check: portion sizes scale linearly for chili.
   const menuJs = readFileSync("data/menu.js", "utf8");
   const ctx = { window: {} };
@@ -1025,27 +1015,28 @@ test("menu: Bert's Chili 8oz is 2x 4oz, 2oz topping is half 4oz", () => {
   vm.runInContext(menuJs, ctx);
   const data = ctx.window.MENU_DATA;
   const bc = data.sections.find(s => s.title === "Bert's Chili");
-  const reg = bc.groups[0].items[0].d[0];
-  const large = bc.groups[1].items[0].d[0];
-  const top = bc.groups[2].items[0].d[0];
-  assert.equal(large, reg * 2, `8oz Bert's Chili (${large}) must be 2x 4oz (${reg})`);
-  assert.equal(top, reg / 2, `2oz Bert's Chili topping (${top}) must be half 4oz (${reg})`);
+  const items = bc.groups.flatMap(g => g.items);
+  const calories = name => {
+    const item = items.find(it => it.n === name);
+    assert.ok(item, `Bert's Chili must contain "${name}"`);
+    return item.d[0];
+  };
+  const top = calories("Bert's Chili™ as a Topping (3 oz)");
+  const reg = calories("Regular Bert's Chili™ (6 oz)");
+  const large = calories("Large Bert's Chili™ (9 oz)");
+  assert.equal(top, 110);
+  assert.equal(reg, 220);
+  assert.equal(large, 330);
+  assert.equal(reg, top * 2, `6oz Bert's Chili (${reg}) must be 2x 3oz (${top})`);
+  assert.equal(large, top * 3, `9oz Bert's Chili (${large}) must be 3x 3oz (${top})`);
+  const hash = data.sections.find(s => s.title === "Hashbrowns & Toppings");
+  const hashTopping = hash.groups.flatMap(g => g.items).find(it => it.n === "Bert's Chili™ - 3 oz");
+  assert.ok(hashTopping, "Hashbrowns must offer the 3oz chili topping");
+  assert.equal(hashTopping.d[0], top);
 });
 
-test("menu: flag items where the same name has different nutrition in different sections", () => {
-  // The Waffle House PDF has 6 items that appear with slightly
-  // different nutrition in different sections:
-  //   - Grits: protein 3g (breakfast) vs 1g (dinner)
-  //   - Sliced Tomatoes: fiber 0g (breakfast) vs 1g (elsewhere)
-  //   - Bacon, Sausage, Chicken Sausage: adult portions (135/260/180)
-  //     in Breakfast Sides vs smaller portions (90/130/90) in
-  //     Omelet Meats. These are real different sizes, not
-  //     data errors.
-  //   - Melted American Cheese: 1 slice (50) vs 2 slices (100).
-  //     Also a real different size.
-  // This test passes if the data preserves the PDF exactly. It
-  // is a sentinel — if a future sync changes a value, the test
-  // alerts us.
+test("menu: preserve distinct serving names and nutrition across sections", () => {
+  // Serving-qualified names distinguish real portion differences in the PDF.
   const menuJs = readFileSync("data/menu.js", "utf8");
   const ctx = { window: {} };
   vm.createContext(ctx);
@@ -1062,12 +1053,21 @@ test("menu: flag items where the same name has different nutrition in different 
   }
   // Sanity: each item should appear at least once
   assert.ok(byName.size > 100, `Expected > 100 unique items, got ${byName.size}`);
-  // The 6 known "different-size" items are real and expected.
-  // No assertion failures here — just exercises the code path.
-  const knownVariants = ["Bacon", "Sausage", "Chicken Sausage", "Melted American Cheese"];
-  for (const n of knownVariants) {
-    const refs = byName.get(n) || [];
-    assert.ok(refs.length >= 2, `${n} should appear in multiple sections`);
+  const knownVariants = [
+    ["Breakfast Sides", "Bacon - 3 slices", 135, "Omelet Breakfasts", "Bacon - 2 slices", 90],
+    ["Breakfast Sides", "Sausage - 2 patties", 260, "Omelet Breakfasts", "Sausage - 1 patty", 130],
+    ["Breakfast Sides", "Chicken Sausage - 2 patties", 180, "Omelet Breakfasts", "Chicken Sausage - 1 patty", 90],
+    ["Omelet Breakfasts", "Melted American Cheese - 2 slices", 100, "Hashbrowns & Toppings", "Melted American Cheese - 1 slice", 50],
+  ];
+  for (const [largeSection, largeName, largeCal, smallSection, smallName, smallCal] of knownVariants) {
+    const large = (byName.get(largeName) || []).find(it => it.section === largeSection);
+    const small = (byName.get(smallName) || []).find(it => it.section === smallSection);
+    assert.ok(large, `${largeSection} must contain "${largeName}"`);
+    assert.ok(small, `${smallSection} must contain "${smallName}"`);
+    assert.notEqual(largeName, smallName, "different portions must retain distinct names");
+    assert.equal(large.d[0], largeCal, `${largeName} calories must match the PDF`);
+    assert.equal(small.d[0], smallCal, `${smallName} calories must match the PDF`);
+    assert.ok(large.d[0] > small.d[0], `${largeName} must have more calories than ${smallName}`);
   }
 });
 

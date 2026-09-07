@@ -21,7 +21,7 @@ const menu = JSON.parse(readFileSync(resolve(REPO, "data/menu.json"), "utf8"));
 // Allergen vocabulary used by the PDF. Anything outside this set
 // is treated as a typo (e.g. "Dairy" instead of "Milk").
 const KNOWN_ALLERGENS = new Set([
-  "Egg", "Milk", "Soy", "Wheat", "Peanut", "Tree Nuts", "Fish", "Shellfish",
+  "Egg", "Milk", "Soy", "Wheat", "Peanut", "Tree Nuts", "Fish", "Shellfish", "Sesame",
 ]);
 
 // Categorization rules. Each rule says: in this section, the
@@ -37,15 +37,17 @@ const CATEGORIZATION_RULES = {
         // Only actual meats. Sautéed Onions / Melted American Cheese
         // do NOT belong here even though the PDF groups them here.
         allowed: new Set([
-          "Bacon", "Sausage", "Chicken Sausage", "Grilled Chicken",
-          "Cheesesteak", "Hickory Smoked Ham",
+          "Bacon - 2 slices", "Sausage - 1 patty", "Chicken Sausage - 1 patty",
+          "Grilled Chicken - 1 breast", "Cheesesteak - 1 serving",
+          "Hickory Smoked Ham - 1.5-oz",
         ]),
       },
       "Add-ons": {
         // Non-meat additions: vegetables, cheese.
         allowed: new Set([
-          "Sautéed Onions", "Melted American Cheese",
-          "Grilled Tomatoes", "Jalapeno Peppers", "Grilled Mushrooms",
+          "Sautéed Onions - 1.5-oz", "Melted American Cheese - 2 slices",
+          "Grilled Tomatoes - 1.5-oz", "Jalapeno Peppers - 1.5-oz",
+          "Grilled Mushrooms - 1.5-oz",
         ]),
       },
     },
@@ -93,6 +95,13 @@ test("categorization rules: cheese is not under Meats, etc.", () => {
     // Find the meal start
     const mealIdx = section.groups.findIndex(rule.matchMeal);
     assert.ok(mealIdx >= 0, `${sectionTitle} must have the specified meal`);
+
+    for (const [header, check] of Object.entries(rule.groupChecks)) {
+      const groups = section.groups.slice(mealIdx + 1).filter(g => g.h === header);
+      assert.equal(groups.length, 1, `${sectionTitle} must have one ${header} group`);
+      assert.equal(groups[0].items.length, check.allowed.size,
+        `${sectionTitle} > ${header} must contain every allowed item exactly once`);
+    }
 
     // Check each group after the meal
     for (let i = mealIdx + 1; i < section.groups.length; i++) {

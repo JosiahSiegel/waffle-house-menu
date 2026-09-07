@@ -3,7 +3,7 @@
  "source_updated": "08/27/26",
  "fetched_at": "2026-09-07T16:50:24+00:00",
  "sha256": "97cc0a8fa34cd231e3017a7432b58edf736873cf9e3051c6fd703610ddc8b555",
- "item_count": 381,
+ "item_count": 380,
  "sections": [
   {
    "title": "All-Star Special",
@@ -56,7 +56,12 @@
         "Wheat",
         "Tree Nuts"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -96,12 +101,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -733,7 +733,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -773,12 +778,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -924,7 +924,12 @@
         "Milk",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -964,12 +969,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -1114,7 +1114,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -1154,12 +1159,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -1304,7 +1304,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -1344,12 +1349,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -1494,7 +1494,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -1534,12 +1539,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -1684,7 +1684,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -1724,12 +1729,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -1874,7 +1874,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -1914,12 +1919,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -2064,7 +2064,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -2104,12 +2109,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -2254,7 +2254,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -2294,12 +2299,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -2444,7 +2444,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -2484,12 +2489,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -2610,7 +2610,12 @@
         0
        ],
        "a": []
-      },
+      }
+     ]
+    },
+    {
+     "h": "Fiesta Protein Bowl",
+     "items": [
       {
        "n": "Fiesta Protein Bowl",
        "d": [
@@ -2666,7 +2671,7 @@
      ]
     },
     {
-     "h": null,
+     "h": "Toppings",
      "items": [
       {
        "n": "Pecans - 0.75-oz",
@@ -2685,12 +2690,7 @@
        "a": [
         "Tree Nuts"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Toppings",
-     "items": [
+      },
       {
        "n": "Chocolate Chips - 0.75-oz",
        "d": [
@@ -2780,10 +2780,10 @@
      ]
     },
     {
-     "h": "Hashbrowns",
+     "h": null,
      "items": [
       {
-       "n": "Large - 2 orders",
+       "n": "Large Hashbrowns - 2 orders",
        "d": [
         380,
         14,
@@ -2799,9 +2799,14 @@
        "a": [
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": null,
+     "items": [
       {
-       "n": "Triple - 3 orders",
+       "n": "Triple Hashbrowns - 3 orders",
        "d": [
         570,
         21,
@@ -2817,7 +2822,12 @@
        "a": [
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Toppings",
+     "items": [
       {
        "n": "Sautéed Onions - 1.5-oz",
        "d": [
@@ -2852,12 +2862,7 @@
         "Milk",
         "Soy"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Toppings",
-     "items": [
+      },
       {
        "n": "Hickory Smoked Ham - 1.5-oz",
        "d": [
@@ -4238,7 +4243,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -4278,12 +4288,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -4487,7 +4492,12 @@
         "Milk",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -4527,12 +4537,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -4678,7 +4683,12 @@
         "Milk",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -4718,12 +4728,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -4869,7 +4874,12 @@
         "Milk",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -4909,12 +4919,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -5060,7 +5065,12 @@
         "Milk",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -5120,12 +5130,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Grilled Biscuit",
        "d": [
@@ -5250,7 +5255,12 @@
         "Egg",
         "Soy"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -5290,12 +5300,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -5505,6 +5510,27 @@
        ]
       },
       {
+       "n": "Hickory Smoked Ham - 1.5-oz",
+       "d": [
+        70,
+        3,
+        1,
+        0,
+        25,
+        630,
+        2,
+        0,
+        1,
+        9
+       ],
+       "a": []
+      }
+     ]
+    },
+    {
+     "h": "Add-ons",
+     "items": [
+      {
        "n": "Sautéed Onions - 1.5-oz",
        "d": [
         15,
@@ -5539,27 +5565,6 @@
         "Soy"
        ]
       },
-      {
-       "n": "Hickory Smoked Ham - 1.5-oz",
-       "d": [
-        70,
-        3,
-        1,
-        0,
-        25,
-        630,
-        2,
-        0,
-        1,
-        9
-       ],
-       "a": []
-      }
-     ]
-    },
-    {
-     "h": "Ons",
-     "items": [
       {
        "n": "Grilled Tomatoes - 1.5-oz",
        "d": [
@@ -5605,22 +5610,6 @@
         2,
         2,
         2
-       ],
-       "a": []
-      },
-      {
-       "n": "Grilled Chicken - 1 breast",
-       "d": [
-        130,
-        1,
-        0,
-        0,
-        80,
-        930,
-        2,
-        0,
-        0,
-        29
        ],
        "a": []
       }
@@ -5850,7 +5839,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -5870,12 +5864,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Wheat Toast - 2 Slices",
        "d": [
@@ -6041,7 +6030,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -6081,12 +6075,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -6232,7 +6221,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -6272,12 +6266,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -6423,7 +6412,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -6463,12 +6457,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -6614,7 +6603,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -6654,12 +6648,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -6810,7 +6799,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -6850,12 +6844,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -7001,7 +6990,12 @@
         "Soy",
         "Wheat"
        ]
-      },
+      }
+     ]
+    },
+    {
+     "h": "Choices",
+     "items": [
       {
        "n": "White Toast - 2 Slices",
        "d": [
@@ -7041,12 +7035,7 @@
         "Soy",
         "Wheat"
        ]
-      }
-     ]
-    },
-    {
-     "h": "Choices",
-     "items": [
+      },
       {
        "n": "Raisin Toast - 2 Slices",
        "d": [
@@ -7267,7 +7256,8 @@
         0,
         6
        ],
-       "a": []
+       "a": [],
+       "addOn": true
       }
      ]
     }
@@ -7451,7 +7441,8 @@
         0,
         15
        ],
-       "a": []
+       "a": [],
+       "addOn": true
       }
      ]
     },
@@ -7476,7 +7467,8 @@
         "Soy",
         "Wheat",
         "Sesame"
-       ]
+       ],
+       "addOn": true
       }
      ]
     },
@@ -7497,7 +7489,8 @@
         0,
         6
        ],
-       "a": []
+       "a": [],
+       "addOn": true
       }
      ]
     }

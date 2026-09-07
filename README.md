@@ -22,9 +22,15 @@ index.html                   static site, renders data/menu.js
 ```
 
 - The parser extracts every item's 10 nutrition columns plus the allergen
-  list, de-duplicates the repeated "plus your choice of" blocks, and fails
+  list, restores meal groups around vertically centered/wrapped PDF labels,
+  and de-duplicates repeated additions within a meal. It preserves serving
+  labels and nutrition from the current source, and fails
   loudly (sanity check: >= 100 items) if the PDF layout ever changes enough
-  to break parsing — so a bad parse never gets published.
+  to break parsing. Offline parser regressions also check that the cached
+  PDF reproduces the committed menu data and its meal structure.
+- Section-wide additions are marked with `addOn: true` in the menu data,
+  so filtering hides them when no main remains, even if an addition such
+  as a burger bun has its own allergens.
 - The site has an **Avoid** filter chip for every allergen present in the
   PDF's allergen column (currently Egg, Milk, Soy, Wheat, Tree Nuts, Peanut;
   chips appear automatically if future PDFs add Fish, Shellfish, or Sesame).
@@ -62,11 +68,11 @@ python scripts/sync.py
 ## Tests
 
 ```bash
-node --test test/
+node --test "test/*.test.mjs"
 ```
 
-Runs the **filter regression suite** (32 assertions, no extra deps —
-uses `node:test` from Node 20+). The suite imports the same
+Runs the **filter, data, and page regression suites** (no extra deps —
+uses `node:test`; CI runs Node 22). The filter suite imports the same
 `filter.mjs` that the page loads via `<script type="module">`, so the
 page and the tests share one source of truth for the filter rule. Any
 drift in `SUBCAT_RE`, the anchor logic, or the data shape fails here
@@ -81,7 +87,16 @@ the case where someone replaces `filter.mjs` with a fresh
 implementation that happens to satisfy the JS tests but disagrees
 with the documented contract.
 
-Both suites run in the `Tests` workflow (`.github/workflows/test.yml`)
+```bash
+pip install -r requirements.txt
+python3 scripts/test-sync.py
+```
+
+Runs offline parser fixtures and re-parses `data/latest.pdf` to verify
+`menu.json`, `menu.js`, and the metadata count stay in sync. No source
+download is needed.
+
+All suites run in the `Tests` workflow (`.github/workflows/test.yml`)
 on every PR and every push to `main`.
 
 ## Invert filter

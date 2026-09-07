@@ -96,7 +96,9 @@ SECTIONS = {
 NAME_FIXUPS = {
     "Waffle House Regular": "Regular Hashbrowns",
     "Hashbrowns: Large": "Large Hashbrowns",
+    "Hashbrowns: Large - 2 orders": "Large Hashbrowns - 2 orders",
     "Triple": "Triple Hashbrowns",
+    "Triple - 3 orders": "Triple Hashbrowns - 3 orders",
 }
 
 
@@ -193,6 +195,7 @@ def split_name(raw):
         left, right = (p.strip() for p in name.split(": ", 1))
         if "," in right:
             name, note = left, right          # "Bowl: component, list, ..."
+            group = inline_group or name
         else:
             group, name = left, right         # "Meal Name: Item"
     return group, name, note
@@ -202,6 +205,68 @@ def titlecase_fallback(s):
     t = re.sub(r"[™©®]", "", s).strip().title()
     t = re.sub(r"'([A-Z])", lambda m: "'" + m.group(1).lower(), t)
     return t
+
+
+def normalize_sections(sections):
+    """Restore groups whose labels are vertically centered in the PDF."""
+    bread_re = re.compile(r"^(White Toast|Wheat Toast|Raisin Toast|Texas Toast|Grilled Biscuit)\b")
+    meat_names = {"Bacon", "Sausage", "Chicken Sausage", "Grilled Chicken",
+                  "Cheesesteak", "Hickory Smoked Ham"}
+    for section in sections:
+        groups = section["groups"]
+        for idx, group in enumerate(groups):
+            if (group["h"] == "Choices" and group["items"]
+                    and bread_re.match(group["items"][0]["n"])):
+                # The label can occur after two or three bread rows, even
+                # inside an Includes block. Move only the trailing breads.
+                breads = []
+                for previous in reversed(groups[:idx]):
+                    while previous["items"] and bread_re.match(previous["items"][-1]["n"]):
+                        breads.insert(0, previous["items"].pop())
+                    if previous["items"]:
+                        break
+                group["items"] = breads + group["items"]
+        groups[:] = [g for g in groups if g["items"]]
+
+        if section["title"] == "Waffles":
+            items = [it for g in groups for it in g["items"]]
+            groups[:] = [{"h": None, "items": items[:1]},
+                         {"h": "Toppings", "items": items[1:]}]
+        elif section["title"] == "Hashbrowns & Toppings":
+            items = [it for g in groups for it in g["items"]]
+            mains, toppings = [], []
+            for item in items:
+                if re.match(r"^(Regular|Large|Triple) Hashbrowns\b", item["n"]):
+                    mains.append({"h": None, "items": [item]})
+                else:
+                    toppings.append(item)
+            groups[:] = mains + [{"h": "Toppings", "items": toppings}]
+        elif section["title"] == "Omelet Breakfasts":
+            # The PDF interleaves vegetables and a repeated chicken row in
+            # the build-your-own meat/add-on blocks.
+            start = next((i for i, g in enumerate(groups) if g["h"] == "Meats"), None)
+            if start is not None:
+                end = start
+                while end < len(groups) and groups[end]["h"] in {"Meats", "Add-ons"}:
+                    end += 1
+                meats, additions, seen = [], [], set()
+                for group in groups[start:end]:
+                    for item in group["items"]:
+                        key = (item["n"], tuple(item["d"]), tuple(item["a"]))
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        target = meats if item["n"].split(" - ")[0] in meat_names else additions
+                        target.append(item)
+                groups[start:end] = [{"h": "Meats", "items": meats},
+                                     {"h": "Add-ons", "items": additions}]
+        elif section["title"] in {"Texas Melts", "Angus Beef Hamburgers"}:
+            # Section-wide additions can themselves contain allergens (bun).
+            for group in groups:
+                for item in group["items"]:
+                    if item["n"] in {"Angus Patty", "Bun"} or item["n"].startswith("Add Bacon"):
+                        item["addOn"] = True
+    return sections
 
 
 def parse_pdf(pdf_path):
@@ -289,6 +354,9 @@ def parse_pdf(pdf_path):
     for ln in lines:
         if SKIP_RE.match(ln):
             continue
+        if pending == "Add-" and ln.startswith("Ons:"):
+            ln = pending + ln
+            pending = None
         if pending is not None:
             m = CONT_RE.match(ln)
             if m:
@@ -323,7 +391,7 @@ def parse_pdf(pdf_path):
          "groups": [g for g in s["groups"] if g["items"]]}
         for s in sections
     ]
-    sections = [s for s in sections if s["groups"]]
+    sections = normalize_sections([s for s in sections if s["groups"]])
     n_items = sum(len(g["items"]) for s in sections for g in s["groups"])
     if n_items < MIN_ITEMS:
         raise RuntimeError(
