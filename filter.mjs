@@ -97,7 +97,7 @@ function flattenSection(sec) {
       mealA = mainItem ? [...(mainItem.a || [])] : [];
       inMeal = true;
       for (const it of gr.items) {
-        flatItems.push({ name: it.n, a: it.a || [], mealA, inMeal: true, subcat: null });
+        flatItems.push({ name: it.n, a: it.a || [], mealA, inMeal: true, subcat: null, addOn: !!it.addOn });
       }
     }
   }
@@ -128,8 +128,9 @@ export function computeVisibility(annotatedSections, avoid, q, opts) {
 
     // Section-level add-on rule (applies to sections WITHOUT
     // subcats that follow the "mains + add-ons" PDF pattern).
-    // A "section-level add-on" is an item in a null-h group with
-    // empty allergens positioned AFTER the section's main items —
+    // A "section-level add-on" is explicitly marked in the data;
+    // legacy data falls back to allergen-free items positioned
+    // AFTER the section's main items —
     // e.g. "Add Bacon" in Texas Melts or "Angus Patty" in Angus
     // Burgers. The PDF positions these as general add-ons that
     // apply to ANY of the section's main items, not to a specific
@@ -137,7 +138,7 @@ export function computeVisibility(annotatedSections, avoid, q, opts) {
     // main item in the section, the add-ons must also hide —
     // "Add Bacon" without a melt to add to is meaningless UX.
     //
-    // The "mains + add-ons" pattern in the data:
+    // The fallback "mains + add-ons" pattern in legacy data:
     //   - Section has null-h groups with allergens at the start
     //     (a contiguous block)
     //   - Then null-h groups with no allergens at the end
@@ -152,6 +153,11 @@ export function computeVisibility(annotatedSections, avoid, q, opts) {
     // already be hidden by per-item).
     const addOnIdx = new Set();
     if (!sec.hasSubcat && avoidSet.size > 0 && !invert) {
+      for (let i = 0; i < sec.flatItems.length; i++) {
+        if (sec.flatItems[i].addOn) addOnIdx.add(i);
+      }
+    }
+    if (!sec.hasSubcat && avoidSet.size > 0 && !invert && addOnIdx.size === 0) {
       // Walk flatItems, classify each as 'all' (has allergens),
       // 'free' (no allergens), or 'subcat' (subcat != null). The
       // section matches the add-on pattern iff:
@@ -244,7 +250,7 @@ export function computeVisibility(annotatedSections, avoid, q, opts) {
       const okQ = !qLower || it.name.toLowerCase().includes(qLower);
       const baseVisible = okA && okQ;
       // Section-level add-on rule: if this is a section-level
-      // add-on (null-h, empty allergens) and the rule is active,
+      // add-on and the rule is active,
       // also require at least one main item in the section to be
       // visible. The check is done in a second pass below so the
       // visibility of other items is known first.

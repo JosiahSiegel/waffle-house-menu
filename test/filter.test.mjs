@@ -12,7 +12,7 @@
 // coverage tests at the bottom of this file.
 const ALL_ALLERGENS = [
   "Egg", "Milk", "Soy", "Wheat", "Tree Nuts", "Peanut",
-  "Fish", "Shellfish",
+  "Fish", "Shellfish", "Sesame",
 ];
 
 import { test } from "node:test";
@@ -124,10 +124,10 @@ test("Waffles + Wheat: Pecans specifically hidden (user's second report)", () =>
   // non-subcat groups share one meal, so Pecans is part of the
   // Waffle meal and gated by the Waffle's Wheat.
   const vis = visibleBySection(annotated, ["Wheat"], "")["Waffles"];
-  assert.ok(!vis.includes("Pecans"), "Pecans must be hidden with Wheat filter");
-  assert.ok(!vis.includes("Chocolate Chips"), "Chocolate Chips must be hidden too");
-  assert.ok(!vis.includes("Blueberry Nougat"), "Blueberry Nougat must be hidden too");
-  assert.ok(!vis.includes("Peanut Butter Chips"), "Peanut Butter Chips must be hidden too");
+  assert.ok(!vis.includes("Pecans - 0.75-oz"), "Pecans must be hidden with Wheat filter");
+  assert.ok(!vis.includes("Chocolate Chips - 0.75-oz"), "Chocolate Chips must be hidden too");
+  assert.ok(!vis.includes("Blueberry Nougat - 1-oz"), "Blueberry Nougat must be hidden too");
+  assert.ok(!vis.includes("Peanut Butter Chips - 0.75-oz"), "Peanut Butter Chips must be hidden too");
 });
 
 test("Waffles + Tree Nuts: 0 visible (anchor has Tree Nuts)", () => {
@@ -152,8 +152,8 @@ test("Waffles + Peanut: 4 visible (anchor has no Peanut, per-item keeps 4 of 5)"
   // leaving 4 of 5.
   const vis = visibleBySection(annotated, ["Peanut"], "")["Waffles"];
   assert.equal(vis.length, 4);
-  assert.ok(!vis.includes("Peanut Butter Chips"));
-  assert.ok(vis.includes("Pecans"));
+  assert.ok(!vis.includes("Peanut Butter Chips - 0.75-oz"));
+  assert.ok(vis.includes("Pecans - 0.75-oz"));
 });
 
 // ---------------------------------------------------------------------------
@@ -183,14 +183,11 @@ test("Hashbrowns & Toppings + Soy: 0 visible (Regular Hashbrowns gates the whole
   );
 });
 
-test("Egg Breakfasts + Wheat: 33 visible (anchor 2 Eggs has no wheat; +2 for Fiesta Protein Bowl choices)", () => {
-  // Originally 31 visible. After fixing the parser so
-  // "Fiesta Protein Bowl" is its own meal group (PR #40),
-  // its 2 "Plus your choice of:" groups add 1 Wheat Toast
-  // hit each, bringing the total to 33.
+test("Egg Breakfasts + Wheat: 31 visible (Fiesta Protein Bowl has no choices)", () => {
+  // The 08/27/26 PDF lists Fiesta Protein Bowl without bread or side choices.
   assert.equal(
     countVisibleBySection(annotated, ["Wheat"], "")["Egg Breakfasts"],
-    33,
+    31,
   );
 });
 
@@ -204,7 +201,7 @@ test("Egg Breakfasts + Egg: 0 visible (anchor 2 Eggs has Egg)", () => {
 test("Sandwiches + Milk: only BLT visible (no subcat, per-item filter)", () => {
   const vis = visibleBySection(annotated, ["Milk"], "")["Sandwiches"];
   assert.equal(vis.length, 1);
-  assert.equal(vis[0], "BLT Sandwich");
+  assert.equal(vis[0], "BLT Sandwich - 3 bacon slices");
 });
 
 test("Sandwiches + Wheat: 0 visible (no subcat, all items have wheat)", () => {
@@ -215,7 +212,7 @@ test("Beverages + non-Milk allergens: 21 visible (no item has these)", () => {
   // Beverages has 4 milk items (Regular/Large + chocolate variants),
   // so Milk trims it to 17. The other 5 allergens should not affect
   // the count.
-  for (const allergen of ["Egg", "Soy", "Wheat", "Tree Nuts", "Peanut"]) {
+  for (const allergen of ["Egg", "Soy", "Wheat", "Tree Nuts", "Peanut", "Sesame"]) {
     assert.equal(
       countVisibleBySection(annotated, [allergen], "")["Beverages"],
       21,
@@ -343,7 +340,7 @@ test("search 'pecan' + Peanut: 1 Waffles (Pecans), 0 Pies (per-item)", () => {
   // gated. Search 'pecan' keeps Pecans only.
   const visWaffles = visibleBySection(annotated, ["Peanut"], "pecan")["Waffles"];
   assert.equal(visWaffles.length, 1);
-  assert.equal(visWaffles[0], "Pecans");
+  assert.equal(visWaffles[0], "Pecans - 0.75-oz");
 });
 
 test("search 'pecan' + Wheat: 0 visible (Waffle meal hidden, pecan pies have wheat)", () => {
@@ -407,7 +404,7 @@ test("relaxing a filter restores previously-hidden items", () => {
 // 7) Sanity — total item count is stable.
 // ---------------------------------------------------------------------------
 
-test("no filter: 221 items across 19 sections, matches menu.item_count", () => {
+test("no filter: items across 19 sections match menu.item_count", () => {
   const counts = countVisibleBySection(annotated, [], "");
   assert.equal(Object.keys(counts).length, 19);
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
@@ -445,10 +442,10 @@ test("invert: Waffles + Wheat shows whole Waffle meal (meal integrity)", () => {
   // 3 toppings), because the meal is active.
   assert.equal(vis.length, 5, "Waffles + invert Wheat: all 5 items in Waffle meal visible");
   assert.ok(vis.includes("Classic Waffle House Waffle"));
-  assert.ok(vis.includes("Pecans"), "Waffle meal is active → Pecans shows even without Wheat");
-  assert.ok(vis.includes("Chocolate Chips"));
-  assert.ok(vis.includes("Blueberry Nougat"));
-  assert.ok(vis.includes("Peanut Butter Chips"));
+  assert.ok(vis.includes("Pecans - 0.75-oz"), "Waffle meal is active → Pecans shows even without Wheat");
+  assert.ok(vis.includes("Chocolate Chips - 0.75-oz"));
+  assert.ok(vis.includes("Blueberry Nougat - 1-oz"));
+  assert.ok(vis.includes("Peanut Butter Chips - 0.75-oz"));
 });
 
 test("invert: Kids Meals + Milk shows both whole meals (meal integrity)", () => {
@@ -483,7 +480,7 @@ test("invert: search still applies as an AND with the allergen match", () => {
   // Waffles + Wheat (invert) shows only items with Wheat: Waffle +
   // Blueberry Nougat. Adding search 'nougat' narrows to just one.
   const vis = visibleBySection(annotated, ["Wheat"], "nougat", { invert: true })["Waffles"];
-  assert.deepEqual(vis, ["Blueberry Nougat"]);
+  assert.deepEqual(vis, ["Blueberry Nougat - 1-oz"]);
 });
 
 test("invert: empty avoid set in invert mode shows everything (meals are always active)", () => {
@@ -494,10 +491,10 @@ test("invert: empty avoid set in invert mode shows everything (meals are always 
   const total = Object.values(
     countVisibleBySection(annotated, [], "", { invert: true })
   ).reduce((a, b) => a + b, 0);
-  // With no allergen filter, invert mode shows everything (388 items).
+  // With no allergen filter, invert mode shows every menu item.
   // The old behavior was to show nothing, but that was confusing —
   // the user hasn't filtered anything, so invert has no meaning.
-  assert.equal(total, 388, "invert with no avoid set should show all 388 items");
+  assert.equal(total, menu.item_count, "invert with no avoid set should show every menu item");
 });
 
 test("invert: opts parameter is optional, default behavior unchanged", () => {
@@ -564,8 +561,8 @@ test("universal: every section has at least 1 item visible with no filter", () =
 // Section-level add-on behavior: when a section's add-ons (e.g. "Add Bacon"
 // in Texas Melts, "Angus Patty" in Angus Burgers) are conceptually
 // attached to the section's main items, filtering an allergen that hides
-// all main items must also hide the add-ons. The data fix moves the
-// add-ons under a subcat label so the meal gate applies.
+// all main items must also hide the add-ons. Explicit addOn flags
+// identify these items even when the add-ons themselves have allergens.
 // ---------------------------------------------------------------------------
 
 test("Texas Melts + Milk: Add Bacon is hidden when all melts are filtered", () => {
@@ -573,31 +570,78 @@ test("Texas Melts + Milk: Add Bacon is hidden when all melts are filtered", () =
   // empty allergens. When the user filtered Milk, all 3 melts
   // (each has Milk) were hidden by per-item check, but Add Bacon
   // (no Milk) stayed visible — meaningless without a melt to add
-  // to. The fix: move Add Bacon under an 'Add-ons' subcat so the
-  // meal gate hides the whole meal.
+  // to. The addOn flag makes visibility depend on a visible melt.
   const vis = visibleBySection(annotated, ["Milk"], "")["Texas Melts"];
   assert.equal(vis.length, 0,
     "Texas Melts + Milk: Add Bacon should also be hidden, got " + vis.length);
-  assert.ok(!vis.includes("Add Bacon (2 slices)"),
+  assert.ok(!vis.includes("Add Bacon - 2 slices"),
     "Add Bacon should be hidden when melts are filtered");
 });
 
 test("Angus Burgers + Milk: patty, bun, and bacon are hidden when burgers are filtered", () => {
   // Same pattern as Texas Melts: 3 burgers share allergens, then
-  // 3 add-ons (Angus Patty, Bun, Add Bacon) with empty allergens.
-  // The add-ons are now subcats so the meal gate hides everything.
+  // 3 add-ons (Angus Patty, Bun, Add Bacon); the bun has Soy, Wheat, Sesame.
+  // The bun is Milk-free, but still needs a visible burger.
+  const burgers = annotated.find(s => s.title === "Angus Beef Hamburgers");
+  const bun = burgers.flatItems.find(it => it.name === "Bun");
+  assert.deepEqual(bun.a, ["Soy", "Wheat", "Sesame"]);
   const vis = visibleBySection(annotated, ["Milk"], "")["Angus Beef Hamburgers"];
   assert.equal(vis.length, 0,
     "Angus Burgers + Milk: all 6 items should be hidden, got " + vis.length);
   assert.ok(!vis.includes("Angus Patty"));
   assert.ok(!vis.includes("Bun"));
-  assert.ok(!vis.includes("Add Bacon (2 slices)"));
+  assert.ok(!vis.includes("Add Bacon - 2 slices"));
+});
+
+test("annotateSections: preserve explicit section-level add-on flags", () => {
+  for (const [title, expected] of [
+    ["Angus Beef Hamburgers", ["Angus Patty", "Bun", "Add Bacon - 2 slices"]],
+    ["Texas Melts", ["Add Bacon - 2 slices"]],
+  ]) {
+    const section = annotated.find(s => s.title === title);
+    assert.equal(section.hasSubcat, false, `${title} add-ons are section-wide, not meal subcats`);
+    assert.deepEqual(section.flatItems.filter(it => it.addOn).map(it => it.name), expected);
+  }
+});
+
+test("Angus Burgers + Sesame: burgers and all section-level add-ons are hidden", () => {
+  const vis = visibleBySection(annotated, ["Sesame"], "")["Angus Beef Hamburgers"];
+  assert.deepEqual(vis, [], "Sesame hides every burger, so even Sesame-free patty and bacon must hide");
+});
+
+test("Angus Burgers + Peanut: unaffected allergen keeps bun and every burger visible", () => {
+  const vis = visibleBySection(annotated, ["Peanut"], "")["Angus Beef Hamburgers"];
+  assert.deepEqual(vis, visibleBySection(annotated, [], "")["Angus Beef Hamburgers"]);
+  assert.equal(vis.length, 6);
+  assert.ok(vis.includes("Bun"));
+});
+
+test("explicit add-ons require any visible main and still respect their own allergens", () => {
+  const sections = annotateSections([{
+    title: "Mixed mains",
+    groups: [
+      { h: null, items: [{ n: "Milk main", a: ["Milk"] }] },
+      { h: null, items: [{ n: "Egg main", a: ["Egg"] }] },
+      { h: null, items: [{ n: "Bun", a: ["Sesame"], addOn: true }] },
+      { h: null, items: [{ n: "Add Bacon", a: [], addOn: true }] },
+    ],
+  }]);
+  for (const [avoid, expected] of [
+    [["Milk"], ["Egg main", "Bun", "Add Bacon"]],
+    [["Egg"], ["Milk main", "Bun", "Add Bacon"]],
+    [["Sesame"], ["Milk main", "Egg main", "Add Bacon"]],
+    [["Milk", "Sesame"], ["Egg main", "Add Bacon"]],
+    [["Milk", "Egg"], []],
+  ]) {
+    assert.deepEqual(visibleBySection(sections, avoid, "")["Mixed mains"], expected,
+      `filtering ${avoid.join(", ")} must gate add-ons using mains, not other add-ons`);
+  }
 });
 
 test("Texas Melts: no filter shows all 4 items (Add Bacon visible)", () => {
   const vis = visibleBySection(annotated, [], "")["Texas Melts"];
   assert.equal(vis.length, 4, "all 4 items visible with no filter");
-  assert.ok(vis.includes("Add Bacon (2 slices)"));
+  assert.ok(vis.includes("Add Bacon - 2 slices"));
 });
 
 // ---------------------------------------------------------------------------
@@ -619,7 +663,7 @@ test("Texas Melts + Milk: Add Bacon is hidden (section-level add-on rule)", () =
   const vis = visibleBySection(annotated, ["Milk"], "")["Texas Melts"];
   assert.equal(vis.length, 0,
     "Texas Melts + Milk: all 4 items hidden, got " + vis.length);
-  assert.ok(!vis.includes("Add Bacon (2 slices)"));
+  assert.ok(!vis.includes("Add Bacon - 2 slices"));
 });
 
 test("Angus Burgers + Milk: Angus Patty, Bun, Add Bacon all hidden", () => {
@@ -628,7 +672,7 @@ test("Angus Burgers + Milk: Angus Patty, Bun, Add Bacon all hidden", () => {
     "Angus Burgers + Milk: all 6 items hidden, got " + vis.length);
   assert.ok(!vis.includes("Angus Patty"));
   assert.ok(!vis.includes("Bun"));
-  assert.ok(!vis.includes("Add Bacon (2 slices)"));
+  assert.ok(!vis.includes("Add Bacon - 2 slices"));
 });
 
 test("Beverages + Milk: allergen-free items stay visible (NOT add-ons, they're interleaved)", () => {
@@ -647,7 +691,7 @@ test("Beverages + Milk: allergen-free items stay visible (NOT add-ons, they're i
 test("Texas Melts: no filter shows all 4 items", () => {
   const vis = visibleBySection(annotated, [], "")["Texas Melts"];
   assert.equal(vis.length, 4);
-  assert.ok(vis.includes("Add Bacon (2 slices)"));
+  assert.ok(vis.includes("Add Bacon - 2 slices"));
 });
 
 test("Angus Burgers: no filter shows all 6 items", () => {
@@ -655,5 +699,5 @@ test("Angus Burgers: no filter shows all 6 items", () => {
   assert.equal(vis.length, 6);
   assert.ok(vis.includes("Angus Patty"));
   assert.ok(vis.includes("Bun"));
-  assert.ok(vis.includes("Add Bacon (2 slices)"));
+  assert.ok(vis.includes("Add Bacon - 2 slices"));
 });

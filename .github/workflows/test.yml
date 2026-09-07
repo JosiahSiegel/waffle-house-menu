@@ -40,6 +40,11 @@ jobs:
         # JS tests but disagrees with the documented contract.
         run: python3 scripts/test-allergen-anchor.py
 
+      - name: Run offline PDF parser regressions
+        run: |
+          python3 -m pip install -r requirements.txt
+          python3 scripts/test-sync.py
+
   page-syntax:
     name: page syntax (HTML + module import)
     runs-on: ubuntu-latest
